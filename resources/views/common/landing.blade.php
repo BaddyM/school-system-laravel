@@ -7,5 +7,3 @@ C.H.S - Home
 @section('body')
     
 @endsection
-
-@extends('common.footer')

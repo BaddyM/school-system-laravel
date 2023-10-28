@@ -1,0 +1,11 @@
+.submit-btn{
+    background:purple;
+    color:white;
+    transition: .3s ease-in-out;
+}
+
+.submit-btn:hover{
+    color:purple;
+    background:white;
+    border: 1px purple solid;
+}
