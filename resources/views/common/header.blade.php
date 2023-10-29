@@ -164,10 +164,9 @@
                             </a>
                             <div class="collapse ms-3" id="marksheet">
                                 <ul class="nav flex-column">
-                                    <li class="nav-item"><a class="text-info nav-link" target="_blank"
+                                    <li class="nav-item"><a class="text-info nav-link"
                                             href="{{ route('alevel.marksheet') }}">A Level Marksheet</a></li>
-                                    <li class="nav-item"><a class="text-info nav-link" href="olevelmarksheet">O Level
-                                            Marksheet</a></li>
+                                    <li class="nav-item"><a class="text-info nav-link" href="{{ route('marksheet.olevel.display') }}">O Level Marksheet</a></li>
                                 </ul>
                             </div>
                         </li>
@@ -425,6 +424,8 @@
               <h5 class="text-center fw-bold p-1 text-white badge bg-primary">Version 2.0</h5>
             </div>
         </main>
+
+        @include('common.scripts')
 </body>
 
 </html

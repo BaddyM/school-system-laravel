@@ -56,6 +56,14 @@
         <hr>
 
         <div class="card marksheet d-none">
+            <div class="card-header">
+               <form action="">
+                @csrf
+                    <input type="hidden" id="result_print" value="">
+                    <input type="hidden" id="class_print" value="">
+                    <a id="marksheet" target="_blank"><button class="btn btn-warning bg-gradient px-3 rounded-1 text-uppercase fw-bold border border-secondary" id="download-btn" type="button">Download</button></a>
+               </form>
+            </div>
             <div class="card-body overflow-scroll">
                 <table id="alevel" class="table table-striped table-hover">
                     <thead style="background-color:purple !important;" class="text-white">
@@ -80,17 +88,7 @@
     </div>
 
 
-    <script src="{{ asset('js/JQuery.js') }}"></script>
-    <script src="{{ asset('js/bootstrap.bundle.js') }}"></script>
-    <script src="{{ asset('js/datatable.min.js') }}"></script>
-
-    <script>
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-    </script>
+    @include('common.scripts')
 
     <script>
         $(document).ready(function() {
@@ -578,6 +576,9 @@
                 var classname = $("#class").val()
                 var result = $("#resultset").val()
 
+                $("#result_print").val(result)
+                $("#class_print").val(classname)
+
                 $.ajax({
                     type: 'post',
                     url: '{{ route('marksheet.a.fetch') }}',
@@ -593,6 +594,15 @@
 
                     }
                 })
+            })
+
+            //Print Marksheet here
+            $("#download-btn").on('click',function(){
+                var result = $("#result_print").val()
+                var classname = $("#class_print").val()
+
+                $("#marksheet").attr('href','/marksheet-pdf')
+                window.open(($("#marksheet").attr('href')+'/'+result+'/'+classname), '_blank')
             })
 
         })
