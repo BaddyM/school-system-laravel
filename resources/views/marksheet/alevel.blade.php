@@ -21,10 +21,6 @@
 @endphp
 
 @section('body')
-    <style>
-
-    </style>
-
     <div class="container-fluid">
         <h5 class="text-center text-uppercase fw-bold mb-3">A level Marksheet</h5>
 
@@ -581,7 +577,7 @@
 
                 $.ajax({
                     type: 'post',
-                    url: '{{ route('marksheet.a.fetch') }}',
+                    url: '{{ route("marksheet.a.fetch") }}',
                     data: {
                         classname: classname,
                         result: result

@@ -166,11 +166,13 @@
                                 <ul class="nav flex-column">
                                     <li class="nav-item"><a class="text-info nav-link"
                                             href="{{ route('alevel.marksheet') }}">A Level Marksheet</a></li>
-                                    <li class="nav-item"><a class="text-info nav-link" href="{{ route('marksheet.olevel.display') }}">O Level Marksheet</a></li>
+                                    <li class="nav-item"><a class="text-info nav-link" 
+                                        href="{{ route('marksheet.olevel.display') }}">O Level Marksheet</a></li>
                                 </ul>
                             </div>
                         </li>
-                        <!--Marklist -->
+                        <!-- Marksheet -->
+                        <!--
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" role="button" aria-expanded="false"
                                 aria-controls="marklist" href="#marklist">
@@ -185,7 +187,7 @@
                                             href="o_level_marklist">O'Level</a></li>
                                 </ul>
                             </div>
-                        </li>
+                        </li> -->
                         <!--Marklist -->
 
                         <li class="nav-item">

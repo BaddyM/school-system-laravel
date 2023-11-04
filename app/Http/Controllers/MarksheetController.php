@@ -264,8 +264,6 @@ class MarksheetController extends Controller{
         $result = $result_set;
         $class = $classname;
 
-        info($class);
-
         $data = DB::select('
         select * from
         students
@@ -635,9 +633,237 @@ $html .='                  </tbody>
     }
     
     public function olevel_marksheet(Request $req){
-        $result_set = DB::select('
-        select * from students inner join a1_3_2023 where students.stdID = a1_3_2023.stdID
-        ');
+        $result_set  = DB::select('select *  from activities');
         return view('marksheet.olevel', compact('result_set'));
+    }
+
+    public function get_olevel_marksheet(Request $req){
+        $results_table = $req->result;
+        $class = $req->classname;
+
+        return response()->json([
+            'result' => $results_table,
+            'class' => $class
+        ]);
+    }
+
+    public function o_level_marksheet_dt(Request $req){
+        $results_table = $req->result;
+        $class = $req->classname;
+
+        $data = DB::select("
+        SELECT 
+            students.stdID,
+            ".$results_table.".stdID,
+            stdFName,stdLName,students.class,level,
+            stdHouse,section, stdImage, year, status,
+            Initialfees, requirements, registration,Mathematics,History,Luganda,CRE,Agriculture,Physics,Chemistry,Biology,
+            Geography,Entrepreneurship,English,ICT,Art,Kiswahili,
+
+            (Mathematics+History+Luganda+CRE+Agriculture+Physics+Chemistry+Biology+Geography+Entrepreneurship+English+ICT+Art+Kiswahili)
+        AS
+            total,
+            ROW_NUMBER() OVER (ORDER BY total desc) as row_num
+        FROM 
+            students,".$results_table."
+        WHERE
+        ".$results_table.".stdID = students.stdID AND students.class = '" . $class . "';
+        ");
+
+        return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('resultset',function($fetch){
+                    
+                })
+                ->addColumn('identifier',function($fetch){
+                    $class = $fetch->class;
+                    $total = $fetch->total;
+                    if($class == 'senior1' || $class == 'senior2' || $class == 'Senior1' || $class == 'Senior2'){
+                        $ident = round(($total/12),1);
+                    }elseif($class == 'senior3' || $class == 'senior4' || $class == 'Senior4' || $class == 'Senior3'){
+                        $ident = round(($total/9),1);
+                    }else{
+                        $ident = '';
+                    }
+
+                    return $ident;
+                    
+                })
+                ->addColumn('comment',function(){
+                    
+                })
+                ->addColumn('position',function($fetch){
+                    return $fetch->row_num;
+                })
+                ->make(true);
+    }
+
+    public function print_olevel_marksheet($class, $result_set){
+        info("Class = ".$class.", REsult_set = ".$result_set);
+
+        $head = [
+            "Mathematics",
+            "History",
+            "Luganda",
+            "CRE",
+            "Agriculture",
+            "Physics",
+            "Chemistry",
+            "Biology",
+            "Geography",
+            "Entr",
+            "English",
+            "ICT",
+            "Art",
+            "Kiswahili",
+        ];
+
+        $subjects = [
+            "Mathematics",
+            "History",
+            "Luganda",
+            "CRE",
+            "Agriculture",
+            "Physics",
+            "Chemistry",
+            "Biology",
+            "Geography",
+            "Entrepreneurship",
+            "English",
+            "ICT",
+            "Art",
+            "Kiswahili",
+        ];
+
+        $data = DB::select("
+        SELECT 
+            students.stdID,
+            ".$result_set.".stdID,
+            stdFName,stdLName,students.class,level,
+            stdHouse,section, stdImage, year, status,
+            Initialfees, requirements, registration,Mathematics,History,Luganda,CRE,Agriculture,Physics,Chemistry,Biology,
+            Geography,Entrepreneurship,English,ICT,Art,Kiswahili,
+
+            (Mathematics+History+Luganda+CRE+Agriculture+Physics+Chemistry+Biology+Geography+Entrepreneurship+English+ICT+Art+Kiswahili)
+        AS
+            total,
+            ROW_NUMBER() OVER (ORDER BY total desc) as row_num
+        FROM 
+            students,".$result_set."
+        WHERE
+        ".$result_set.".stdID = students.stdID AND students.class = '" . $class . "';
+        ");
+
+        $html = '
+        <html>
+            <head>
+                <style>
+                    table{
+                        border-collapse:collapse;
+                    }
+                    th,td{
+                        border:black 1px solid;
+                        padding:5px;
+                        font-size:11px;
+                    }
+                    .table-container{
+                        margin-top:-30px;
+                        margin-left:-30px;
+                    }
+                    .title{
+                        padding:0;
+                        margin-bottom:5px;
+                        margin-top:0px;
+                        width:100%;
+                        text-align:center;
+                        text-transform:uppercase;
+                    }
+                    .school{
+                        margin-bottom:5px;
+                        margin-top:0px;
+                        text-align:center;
+                        font-size:;
+                    }
+                    td{
+                        text-align:center;
+                    }
+                <style>
+            </head>
+
+            <body>
+                <div class="table-container">
+                <h3 class="school">CORNERSTONE HIGH SCHOOL NANGABO</h3>
+                <h4 class="title">'.$class.' Marksheet '.$result_set.'</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Class</th>';
+
+    foreach($head as $h){
+    $html .='
+                    <th>'.$h.'</th>
+    ';
+    }
+
+    $html .='
+                    <th>Idemtifier</th>
+                    <th>Comment</th>
+                    <th>Position</th>
+                           </tr>
+                        </thead>
+                        <tbody>';
+    foreach($data as $d){
+    $html .= '
+                <tr>
+                    <td>'.$d->stdID.'</td>
+                    <td>'.$d->stdFName.' '.$d->stdLName.'</td>
+                    <td>'.$d->class.'</td>';
+            foreach($subjects as $h){
+                
+    $html .= '     <td>'.$d->$h.'</td>';
+
+            }
+    if(($d->class) == 'senior1' || ($d->class) == 'Senior1' || ($d->class) == 'senior2' || ($d->class) == 'Senior2'){
+        $ident = round($d->total/12,1);
+        $html .= '   <td>'.$ident.'</td>';
+    }elseif(($d->class) == 'senior3' || ($d->class) == 'Senior3' || ($d->class) == 'senior4' || ($d->class) == 'Senior4'){
+        $ident = round($d->total/9,1);
+        $html .= '   <td>'.$ident.'</td>';
+    }
+
+    if($ident >= 2.5 and $ident <= 3.0){
+        $html .= '   <td>OUTSTANDING</td>';
+    }elseif($ident >= 1.5 and $ident <= 2.4){
+        $html .= '   <td>MODERATE</td>';
+    }elseif($ident >= 0.1 and $ident <= 1.4){
+        $html .= '   <td>BASIC</td>';
+    }else{
+        $html .= '   <td>No LOs</td>';
+    }
+    $html .= '
+                    <td>'.$d->row_num.'</td>
+                    </tr> ';
+
+    }
+
+    $html .= '
+                        </tbody>
+                    </table>
+
+                    <p>
+                    <h5 style="font-size:20px; margin-bottom:5px;">Grading</h5>
+                        <span>2.5 - 3.0 : <b>OUTSTANDING</b></span> <br>
+                        <span>1.5 - 2.4 : <b>MODERATE</b></span> <br>
+                        <span>0.1 - 1.4 : <b>BASIC</b></span> <br>
+                        <span>0 : No LOs (No Learner Outcomes)</span> <br>
+                    </p>
+            </body>
+        </html>
+                ';
+
+        $pdf = PDF::loadHTML($html)->setPaper('A4','landscape');
+        return $pdf->stream(''.$class.'_Marksheet');
     }
 }
