@@ -197,12 +197,14 @@
                                 <i class="bi bi-person-circle fs-5"></i> Staff
                             </a>
                             <div class="collapse ms-3" id="Staff">
-                                <ul class="nav flex-column"><a class="text-info nav-link" href="viewStaff">View
+                                <ul class="nav flex-column"><a class="text-info nav-link" href="{{ route('staff.display') }}">View
                                         Staff</a>
                         </li>
-                        <li class="nav-item"><a class="text-info nav-link" href="addStaff">Add Staff</a></li>
+<!--
+                        <li class="nav-item"><a class="text-info nav-link" href="">Add Staff</a></li>
                         <li class="nav-item"><a class="text-info nav-link" href="removeStaff">Remove Staff</a></li>
                         <li class="nav-item"><a class="text-info nav-link" href="updateStaff">Update Staff</a></li>
+-->
                     </ul>
                 </div>
                 </li>

@@ -6,7 +6,34 @@
 
 @section('body')
     <div class="container-fluid">
-        <h5 class="text-center text-uppercase fw-bold mb-3">O level Marksheet</h5>
+        <h5 class="text-center text-uppercase fw-bold h3 mb-3">O level Marksheet</h5>
+
+        <div class="d-flex justify-content-between col-md-6">
+            <div class="d-flex justify-content-between col-sm-4">
+                <div class="d-block">
+                    <h5 class="fw-bold">a1 : </h5>
+                    <h5 class="fw-bold">a2 : </h5>
+                </div>
+                <div class="d-block">
+                    <h5>Activity 1</h5>
+                    <h5>Activity 2</h5>
+                </div>
+            </div>{{-- result set --}}
+    
+            <div class="d-flex justify-content-between col-sm-2">
+                <div class="d-block">
+                    <h5 class="fw-bold">1 : </h5>
+                    <h5 class="fw-bold">2 : </h5>
+                    <h5 class="fw-bold">3 : </h5>
+                </div>
+                <div class="d-block">
+                    <h5>term 1</h5>
+                    <h5>term 2</h5>
+                    <h5>term 3</h5>
+                </div>
+            </div>{{-- term --}}
+        </div>
+
         <div class="mb-3">
             <form action="" method="post">
                 @csrf

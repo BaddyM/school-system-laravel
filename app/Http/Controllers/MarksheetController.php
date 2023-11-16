@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use DataTables;
-use Log;
-use DB;
-use PDF;
+use Yajra\DataTables\DataTables;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\PDF;
 
 class MarksheetController extends Controller{
     //declare global variable in the class
@@ -41,6 +41,7 @@ class MarksheetController extends Controller{
         where
         students.stdID = '.$result.'.stdID
         and class="'.$class.'"
+        and students.status = "continuing"
         ');
 
         return DataTables::of($data)
@@ -272,6 +273,7 @@ class MarksheetController extends Controller{
         where
         students.stdID = '.$result.'.stdID
         and class="'.$class.'"
+        and status = "continuing"
         ');
 
         //$pdf = PDF::loadView('marksheet.marksheetpdf', $data)->setPaper('A4','landscape');
@@ -667,7 +669,8 @@ $html .='                  </tbody>
         FROM 
             students,".$results_table."
         WHERE
-        ".$results_table.".stdID = students.stdID AND students.class = '" . $class . "';
+        ".$results_table.".stdID = students.stdID AND students.class = '" . $class . "'
+        and students.status = 'continuing';
         ");
 
         return DataTables::of($data)
