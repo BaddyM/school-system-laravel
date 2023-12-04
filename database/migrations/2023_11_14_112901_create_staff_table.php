@@ -21,8 +21,8 @@ class CreateStaffTable extends Migration
             $table->string('gender');
             $table->string('status');
             $table->string('location');
-            $table->string('subjects');
-            $table->string('Class');
+            $table->string('subjects')->nullable();
+            $table->string('Class')->nullable();
             $table->timestamps();
         });
     }

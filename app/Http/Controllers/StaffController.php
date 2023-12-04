@@ -18,6 +18,9 @@ class StaffController extends Controller
         
         return DataTables::of($data)
         ->addIndexColumn()
+        ->addColumn('action',function(){
+            
+        })
         ->editColumn('created_at',function($created){
             return date('D M Y, H:i',strtotime($created->created_at));
         })

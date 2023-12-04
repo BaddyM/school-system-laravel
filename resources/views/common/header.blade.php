@@ -429,7 +429,7 @@
             </div>
         </main>
 
-        @include('common.scripts')
+        @stack('body-scripts')
 </body>
 
 </html

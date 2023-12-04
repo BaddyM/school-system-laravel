@@ -1,5 +1,9 @@
 @extends('common.header')
 
+@section('title')
+    Staff
+@endsection
+
 @section('body')
 
 <style>
@@ -30,6 +34,7 @@
                 <th scope="col">Class</th>
                 <th scope="col">Entered</th>
                 <th scope="col">Updated</th>
+                <th scope="col">Action</th>
             </thead>
             <tbody>
 
@@ -38,11 +43,15 @@
     </div>
 
 </div>
+@include('staff.staff-details-modal')
 
+@endsection
+
+@push('body-scripts')
 @include('common.scripts')
-
 <script>
-    var staff_table = $("#staff-table").DataTable({
+    $(document).ready(function(){
+        var staff_table = $("#staff-table").DataTable({
         serverSide: true,
         processing: true,
         autoWidth: false,
@@ -88,6 +97,12 @@
             {
                 data:'updated_at'
             },
+            {
+                data:'action',
+                render:function(data,type,row){
+                    return '<button class="action-btn btn btn-warning bg-gradient btn-sm" value="'+row.id+'">Action</button>'
+                }
+            }
         ],
         columnDefs:[
             {
@@ -96,7 +111,33 @@
                 width:'120px'
             }
         ]
-    })
-</script>
+    });
 
-@endsection
+        //Autoupdate table
+        $(window).focus(function(){
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                type: "POST",
+                url:"{{ route('staff.data') }}",
+                success:function(){
+                    console.log("Auto update success")
+                    staff_table.draw()
+                }
+            });
+        });
+
+        //Clicking the action button
+        $(window).on('load',function(){
+            $("#staffModal").modal('show');
+        })
+
+        //Delete/Suspend/Continue/Dismiss
+        $(".staff-action-btn").on("click",function(){
+            var action_clicked = $(this).attr('id');
+            console.log("Clicked = "+action_clicked);
+        })
+    });
+</script>
+@endpush
