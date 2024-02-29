@@ -1,6 +1,7 @@
 /node_modules
 /public/hot
 /public/storage
+/public/images/student_photos
 /storage/*.key
 /vendor
 .env

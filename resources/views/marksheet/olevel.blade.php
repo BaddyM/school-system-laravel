@@ -117,6 +117,7 @@
     </div>
 @endsection
 
+
 @include('common.scripts')
 
 <script>
