@@ -26,6 +26,7 @@
         width: 200px;
         height: 200px;
         object-fit: contain;
+        cursor: pointer;
     }
 
     #viewStudentModal input,
@@ -69,7 +70,8 @@
             <div class="modal-body text-center">
                 <div class="d-flex" style="gap:20px;">
                     <div>
-                        <p class="mb-2 text-uppercase fw-bold" style="color:white; font-size:18px;">Student Image</p>
+                        <p class="mb-2 text-uppercase fw-bold" style="color:white; font-size:18px;">Student Image
+                        </p>
                         <img src="" alt="" id="std_image">
                     </div>{{-- Student Image here --}}
 
@@ -79,15 +81,24 @@
                             <div class="mb-2">Class :
                                 <select id="std_class" class="text-dark">
                                     @foreach ($classes as $class)
-                                    <option value="{{ $class->class }}">{{ $class->class }}</option>
+                                        <option value="{{ $class->class }}">{{ $class->class }}</option>
                                     @endforeach
                                 </select>{{-- Select Student Stream --}}
                             </div>
-                            <div class="mb-2">Section : <input type="text" id="std_section"></div>
+                            <div class="mb-2">Section :
+                                <select name="" id="std_section">
+                                    @php
+                                        $sections = ['Day', 'Boarding'];
+                                    @endphp
+                                    @foreach ($sections as $section)
+                                        <option value="{{ $section }}">{{ $section }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <div class="mb-2">Stream :
                                 <select id="std_stream" class="text-dark">
                                     @foreach ($streams as $stream)
-                                    <option value="{{ $stream->stream }}">{{ $stream->stream }}</option>
+                                        <option value="{{ $stream->stream }}">{{ $stream->stream }}</option>
                                     @endforeach
                                 </select>{{-- Select Student Stream --}}
                             </div>
@@ -95,17 +106,17 @@
                             <div class="mb-2">Status :
                                 <select id="std_status" class="text-dark">
                                     @foreach ($status as $s)
-                                    <option value="{{ $s->status }}">{{ $s->status }}</option>
+                                        <option value="{{ $s->status }}">{{ $s->status }}</option>
                                     @endforeach
                                 </select>{{-- Select Student Status --}}
                             </div>
-                            <div class="mb-2">Fees : <input type="text" id="std_fees"></div>
+                            <div class="mb-2">Nationality : <input type="text" id="nationality"></div>
                             <div class="mb-2">Created On : <input type="text" id="created_at"></div>
                         </div>
                         <div class="inner-elements">
                             <div class="mb-2">Last Name : <input type="text" id="std_lname"></div>
                             <div class="mb-2">Middle Name : <input type="text" id="std_mname"></div>
-                            <div class="mb-2">Registration : <input type="text" id="std_reg"></div>
+                            <div class="mb-2">LIN : <input type="text" id="lin"></div>
                             <div class="mb-2">Password : <input type="text" id="std_pass"></div>
                             <div class="mb-2">Combination : <input type="text" id="std_comb"></div>
                             <div class="mb-2">Year of Entry : <input type="text" id="std_year"></div>
@@ -117,13 +128,14 @@
             </div>
 
             <div class="modal-footer text-center justify-content-center mb-0">
-                <div class="w-100 text-center d-flex justify-content-center" style="gap:30px;">
+                <div class="w-100 text-center d-flex justify-content-center button_cont" style="gap:30px;">
                     <button class="btn yes-button px-5 py-2 bg-gradient" id="update-std">
                         UPDATE
                     </button>
-                    <button class="btn no-button px-5 py-2 bg-gradient" id="delete-std">
-                        DELETE
+                    <button class="btn no-button px-5 py-2 bg-gradient" id="disable-std" data-std_status=''>
+                        DISABLE
                     </button>
+                    <input type="hidden" id="std_id_buffer">
                 </div>
             </div>
         </div>

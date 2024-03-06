@@ -13,16 +13,13 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class StudentController extends Controller
 {
 
-    function addStudentIndex()
-    {
+    public function addStudentIndex() {
         $classes = DB::table('std_class')->select('class')->get();
         $streams = DB::table('class_stream')->select('stream')->get();
-
         return view('student.add', compact('classes', 'streams'));
     }
 
-    function addStudentToDB(Request $req)
-    {
+    public function addStudentToDB(Request $req) {
         //Student variables
         $fname = $req->fname;
         $lname = $req->lname;
@@ -106,8 +103,6 @@ class StudentController extends Controller
             }
         }
 
-        info("Year_of_Entry = " . $year);
-
         try {
 
             //Add to the Student Table 
@@ -183,21 +178,17 @@ class StudentController extends Controller
             'relationship' => $relationship
         );
 
-        //info(json_encode($std_details).'\n'.json_encode($parents_details));
-
         return response("Student Added Successfully");
     }
 
-    function viewStudentIndex()
-    {
+    public function viewStudentIndex() {
         $status = DB::table('std_status')->select('status')->get();
         $classes = DB::table('std_class')->select('class')->get();
         $streams = DB::table('class_stream')->select('stream')->get();
         return view('student.view', compact('status', 'classes', 'streams'));
     }
 
-    function fetchStudentData(Request $req)
-    {
+    public function fetchStudentData(Request $req) {
         $class_name = $req->classname;
         $category = $req->category;
         //info("Class_Name = ".$class_name.", category = ".$category);
@@ -212,26 +203,23 @@ class StudentController extends Controller
             ->make(true);
     }
 
-    function getDataForModal(Request $req)
-    {
+    public function getDataForModal(Request $req) {
         $std_id = $req->std_id;
         $data = Student::where("std_id", $std_id)->first();
         return response()->json($data);
     }
 
-    function updateStudentData(Request $req)
-    {
+    public function updateStudentData(Request $req) {
         $std_id = $req->std_id;
         $fname = $req->fname;
         $lname = $req->lname;
         $mname = $req->mname;
         $class = $req->std_class;
         $combination = $req->combination;
-        $fees = $req->fees;
-        $registration = $req->std_reg;
-        $requirements = $req->std_req;
+        $lin = $req->lin;
+        $nationality = $req->nationality;
         $house = $req->house;
-        $level = $req->std_stream;
+        $stream = $req->std_stream;
         $password = $req->password;
         $section = $req->section;
         $status = $req->std_status;
@@ -240,42 +228,41 @@ class StudentController extends Controller
 
         if ($combination == null) {
             $combination = '-';
-        } elseif ($registration == null) {
-            $registration = 0;
-        } elseif ($requirements == null) {
-            $requirements = 0;
-        } elseif ($fees == null) {
-            $fees = 0;
-        } elseif ($password == null) {
+        } elseif ($lin == null) {
+            $lin = 'NULL';
+        } elseif ($nationality == null) {
+            $nationality = 'NULL';
+        }elseif ($password == null) {
             $password = '-';
         }
 
-        Student::where('std_id', $std_id)->update([
-            'fname' => $fname,
-            'lname' => $lname,
-            'mname' => $mname,
-            'class' => $class,
-            'level' => $level,
-            'section' => $section,
-            'house' => $house,
-            'year' => $year,
-            'status' => $status,
-            'password' => $password,
-            'fees' => $fees,
-            'gender' => $gender,
-            'requirements' => $requirements,
-            'registration' => $registration,
-            'combination' => $combination
-        ]);
+        try{
+            Student::where('std_id', $std_id)->update([
+                'fname' => $fname,
+                'lname' => $lname,
+                'mname' => $mname,
+                'class' => $class,
+                'section' => $section,
+                'house' => $house,
+                'stream' => $stream,
+                'year_of_entry' => $year,
+                'status' => $status,
+                'password' => $password,
+                'nationality' => $nationality,
+                'gender' => $gender,
+                'lin' => $lin,
+                'combination' => $combination
+            ]);
+        }catch(Exception $e){
+            info($e);
+        }
     }
 
-    public function import_index()
-    {
+    public function import_index() {
         return view('student.import_student');
     }
 
-    public function import_students(Request $req)
-    {
+    public function import_students(Request $req) {
         $file = $req->std_upload_file->getClientOriginalName();
 
         //Move the file temporarily
@@ -455,4 +442,95 @@ class StudentController extends Controller
 
         return $pdf->stream();
     }
+
+    public function fetch_std_records(Request $req){
+        $std_id = $req->std_id;
+        $data = Student::where('std_id',$std_id)->first();
+        return response()->json([
+            'data' => $data
+        ]);
+    }
+
+    public function update_std_image(Request $req){
+        $std_id = $req->std_img_id;
+        
+        $original_record = Student::where('std_id',$std_id)->first();
+        $std_image = $original_record->image;
+
+        //First delete the original file
+        if($std_image == null || $std_image == ' ' || $std_image == 'NULL' || $std_image == 'male.jpg' || $std_image == 'female.jpg'){
+            info("Image is null");
+        }else{
+            unlink(public_path('images/student_photos/'.$original_record->year_of_entry.'/'.$original_record->image.''));
+        }
+
+        try{
+            $file_name = strtolower($std_id . '.' . $req->std_image->extension());
+            //Insert new filename
+            $req->std_image->move(public_path('images/student_photos/'.$original_record->year_of_entry.''),$file_name);
+
+            //Update the DB
+            Student::where('std_id',$std_id)->update([
+                'image' => $file_name
+            ]);
+
+        }catch(Exception $e){
+            info($e);
+        }
+
+        return response("Image updated succesfully");
+    }
+
+    public function disable_student(Request $req){
+        $std_id = $req->std_id;
+        $status = $req->status;
+
+        try{
+            Student::where('std_id',$std_id)->update([
+                'status' => $status
+            ]);
+        }catch(Exception $e){
+            info($e);
+        }
+        return response("Student Updated Successfully");
+    }
+
+    public function student_status_index(){
+        $classes = DB::table('std_class')->select('class')->get();
+        $status = DB::table('std_status')->select('status')->get();
+        return view('student.std_status',compact('classes','status'));
+    }
+
+    public function display_std_status(Request $req){
+        $class = $req->classname;
+        $data = Student::where('class',$class)->get();
+
+        return DataTables::of($data)
+                ->addIndexColumn()
+                ->make(true);
+    }
+
+    //Update Student Status
+    public function update_std_status(Request $req){
+        $std_list = implode(',',$req->selected);
+        $status = $req->std_status;
+        info("Status = ".$status.", List = ".$std_list);
+
+        try{
+            DB::update('
+                UPDATE
+                    student
+                SET
+                    status = "'.$status.'"
+                WHERE 
+                    std_id
+                IN('.$std_list.')
+            ');
+        }catch(Exception $e){
+            info($e);
+        }
+
+        return response("Student Status Updated");
+    }
+
 }

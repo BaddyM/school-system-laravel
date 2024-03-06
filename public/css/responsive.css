@@ -1,4 +1,16 @@
 @media only screen and (max-width:768px){
+    /*---------------------------------- Navbar --------------------------------------*/
+    .dashboard-nav{
+        display: none;
+    }
+
+    .display_nav{
+        display: block !important;
+        position: absolute;
+        z-index: 99;
+        transition: .4s;
+    }
+
     /*--------------------------- Dashboard Styles ----------------------------------*/
     .school-dashboard{
         gap: 10px !important;
@@ -6,14 +18,25 @@
     .dashboard-nav{
         width: 40% !important;
     }
+    .hamburger{
+        display: block !important;
+    }
+    .hamburger i{
+        font-size: 35px !important;
+    }
     .system-header h5{
         text-transform: uppercase;
         font-size: 15px!important;
         padding: 5px;
     }
     .system-header{
+        display: block !important;
         text-transform: uppercase;
         font-size: 15px !important;
+    }
+    .sign_lock{
+        display: flex;
+        justify-content: space-around;
     }
 
     /*------------------ Dashboard cards --------------------*/
@@ -36,4 +59,11 @@
     .add-student > div{
         display: block !important;
     }
+
+    /*------------------------ Login ---------------------------*/
+    .login-container{
+        width: 95% !important;
+        margin-top: 30%;
+    }
+
 }

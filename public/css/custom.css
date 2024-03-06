@@ -1,15 +1,26 @@
-/*--------------------------- Dashboard Styles ----------------------------------*/
+/*------------------------------- Dashboard Styles ----------------------------*/
 :root{
     --link-btn-color:yellow;
 }
+
 @font-face {
     font-family: 'roboto';
     src: url('./fonts/Roboto-Regular.ttf');
 }
+
 body{
     background: rgb(244, 244, 244);
     font-family: 'roboto';
 }
+
+#navigation_bar{
+    display: block;
+}
+
+.sign_lock{
+    display: flex;
+}
+
 .link-header{
     border: 3px double #ffc107;
     margin-left:30%;
@@ -17,11 +28,17 @@ body{
     margin-bottom:7px;
     margin-top:7px;
 }
+
+.hamburger{
+    display: none;
+}
+
 .school-dashboard{
     display: flex;
     gap: 10px;
     margin-right:10px;
 }
+
 .dashboard-nav{
     width: 20%;
     background: linear-gradient(to bottom,  #09203f, #537895);
@@ -29,12 +46,14 @@ body{
     overflow-y: auto;
     height: 100vh;
 }
+
 .academic-year{
     background:rgba(255,255,255,0.2);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.5);
 }
+
 .system-header{
     border-radius: 5px;
     background: linear-gradient(#cfd6e6, #e7eff9);
@@ -43,15 +62,20 @@ body{
     margin-bottom: 10px;
     padding: 10px;
     display: flex;
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
     justify-content: space-around;
     align-items: center;
     box-shadow: 2px 3px 3px rgb(98, 98, 98);
     transition: .3s all ease-in-out;
     cursor: pointer;
 }
+
 .system-header:hover{
     transform: scale(1.01);
 }
+
 .system-body{
     overflow-x: hidden;
     overflow-y: auto;
@@ -66,19 +90,23 @@ body{
     font-size: 30px;
     cursor: pointer;
 }
+
 .system-header h5{
     text-transform: uppercase;
     font-size: 25px;
 }
+
 .dashboard-nav a{
     color: white;
     font-size: 15px;
     letter-spacing: 1px;
     text-transform: uppercase;  
 }
+
 .dashboard-nav a:hover{
     color:yellow !important;
 }
+
 .dashboard-nav li{
     cursor: pointer;
     transition: .2s all ease-in-out;
@@ -86,9 +114,7 @@ body{
     text-align: left;
     padding-left:10px;
 }
-.dashboard-nav li:hover{
-    
-}
+
 .nav-title{
     color: white;
     font-size:18px;
@@ -96,6 +122,7 @@ body{
     cursor: pointer;
     transition: .3s all ease-in-out;
 }
+
 .nav-item:hover{
     border-left:4px solid orange;
     border-top-left-radius: 7px;
@@ -103,34 +130,75 @@ body{
     margin-left: 10px;
     background: rgba(255,255,255,0.2);
 }
+
 /*----------------------- Home cards -------------------*/
 .card-container{
     display: flex;
     justify-content: space-between;
 }
+
 .card-one{
     cursor:pointer;
     background:linear-gradient(to left, #cc2b5e, #753a88);
     transition: 1s all ease-in-out;
     box-shadow: 3px 5px 10px #42275a;
 }
+
 .card-two{
     cursor:pointer;
     background:linear-gradient(to left, #dd5e89, #f7bb97);
     transition: 1s all ease-in-out;
     box-shadow: 3px 5px 10px #42275a;
 }
+
 .card-three{
     cursor:pointer;
     background:linear-gradient(to left, #614385, #516395);
     transition: 1s all ease-in-out;
     box-shadow: 3px 5px 10px #9c2eb2;
 }
+
 .card-one:hover,.card-three:hover{
     transform: rotateY(-360deg);
 }
+
 .card-two:hover{
     transform: rotateX(-360deg);
+}
+
+/*------------------------------ Login ----------------------------*/
+.login-body{
+    background: linear-gradient(to right,  #09203f 10%, #537895 50%, #09203f);
+}
+
+.login-container{
+    background: rgba(255,255,255,0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    width: 40%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10%;
+    padding: 20px 40px;
+    border: 2px rgba(255,255,255,0.5) solid;
+    border-radius: 10px;
+}
+
+.login-container label{
+    color: white;
+    font-size: 18px;
+    font-family: 'roboto';
+}
+
+.login-container input{
+    color: black;
+    font-size: 18px;
+    font-family: 'roboto';
+}
+
+.user_section{
+    padding-bottom: 10px;
+    border-bottom: 4px double yellow;
 }
 
 /*----------------- Term Planner ------------------------*/
@@ -145,10 +213,12 @@ body{
     scrollbar-color: blue;
     box-shadow: 4px 4px 10px black;
 }
+
 .term-planner > div{
     background: linear-gradient(to right, #c4c5c7 0%, #dcdddf 70%, #c4c5c7 100%);
     padding: 10px;
 }
+
 .term-planner p{
     font-size: 15px;
 }
@@ -158,22 +228,29 @@ body{
     display: flex;
     justify-content: space-around;
 }
+
 .add-student input{
 
 }
+
 .add-student label{
     font-size: 15px;
     font-weight: bold;
 }
+
 input,
-textarea, select{
+textarea, 
+select{
     box-shadow: none !important;
     outline: none !important;
 }
 
-input:focus,textarea:focus, select:focus{
+input:focus,
+textarea:focus,
+select:focus{
     border: 1px black solid !important;
 }
+
 .button-container{
     display: flex;
     justify-content: space-between;

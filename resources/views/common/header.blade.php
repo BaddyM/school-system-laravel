@@ -25,8 +25,23 @@
 <body>
 
     <div class="school-dashboard">
-        <div class="dashboard-nav">
-            <ul class="nav d-block mt-2">
+        <div class="dashboard-nav" id="dash_nav">
+            <div class="mt-3 text-center user_section">
+                <p class="mb-0 text-white text-center h5">User: <span
+                        class="text-warning fw-bold">{{ Auth::user()->username }}</span></p>
+                {{-- If The image is empty --}}
+                @if (Auth::user()->image == null || Auth::user()->image == '')
+                    @if (Auth::user()->gender == 'male')
+                        <img src="{{ asset('/') }}images/static/male.jpg" class="img-fluid w-50 mt-2" style="border-radius: 60px;" alt="">
+                    @elseif(Auth::user()->gender == 'female')
+                        <img src="{{ asset('/') }}images/static/female.jpg" class="img-fluid w-50 mt-2" style="border-radius: 60px;"  alt="">
+                    @endif
+                @else
+                    <img src="{{ asset('/') }}images/users/{{ Auth::user()->image }}" class="img-fluid w-50 mt-2" style="border-radius: 60px;"  alt="">
+                @endif
+            </div>{{-- -User Details here --}}
+
+            <ul class="nav mt-2" id="navigation_bar">
                 <div>
                     <div class="nav-item nav-title" id="student_items" title="Student Data">
                         Students
@@ -36,9 +51,16 @@
                             <a href="{{ route('student.add') }}" class="nav-link"><i class="bi bi-plus-circle"></i> Add
                                 Student</a>
                         </li>
+
                         <li class="nav-item" title="View Student">
                             <a href="{{ route('student.view') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i>
                                 View Student</a>
+                        </li>
+
+                        <li class="nav-item" title="Student Status">
+                            <a href="{{ route('student.status.index') }}" class="nav-link"><i
+                                    class="bi bi-clipboard-plus"></i>
+                                Student Status</a>
                         </li>
                     </div>
                 </div>{{-- Students --}}
@@ -115,6 +137,10 @@
                         <li class="nav-item" title="Streams">
                             <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> Streams</a>
                         </li>
+
+                        <li class="nav-item" title="Streams">
+                            <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> Student Cards</a>
+                        </li>
                     </div>
                 </div>{{-- Settings --}}
 
@@ -132,19 +158,28 @@
                     $year = date('Y', strtotime(now()));
                 @endphp
                 <div class="badge p-2 academic-year">
-                    <p class="mb-0 h6 text-dark">Term: 
+                    <p class="mb-0 h6 text-dark">Term:
                         <span id="term" style="color:purple;font-weight:bold;"></span>
                         Year:
                         <span id="year" style="color:purple;font-weight:bold;"></span>
                     </p>
                 </div>
                 <h5 class="mb-0">{{ $system_header }}</h5>
-                <div class="d-flex" style="gap:10px;">
-                    <div title="Sign-out" id="sign-out"><i class="bi bi-lock-fill"></i></div>
-                    <div title="Home" id="go-home"><a href="{{ route('home') }}" class="text-dark"><i
-                                class="bi bi-house-fill"></i></a></div>
+                <div class="sign_lock" style="gap:10px;">
+                    <div title="Sign-out" id="sign-out">
+                        <a href="{{ route('logout') }}" class="text-dark"><i class="bi bi-lock-fill"></i></a>
+                    </div>
+                    <div title="Home" id="go-home">
+                        <a href="{{ route('home') }}" class="text-dark"><i class="bi bi-house-fill"></i>
+                        </a>
+                    </div>
+                    <div class="hamburger">
+                        <i class="bi bi-list"></i>
+                    </div>
                 </div>
-            </div>{{-- Header here --}}
+            </div>
+            
+            {{-- Header here --}}
 
             <div class="system-body">
 
@@ -176,9 +211,9 @@
 
         //Fetch the Term
         $.ajax({
-            type:'get',
-            url:'{{ route("home.term") }}',
-            success:function(data){
+            type: 'get',
+            url: '{{ route('home.term') }}',
+            success: function(data) {
                 var term = data.term.term;
                 var year = data.term.year;
                 $("#term").text(term);
@@ -187,18 +222,24 @@
         })
 
         //Autoupdate the term
-        $(window).focus(function(){
+        $(window).focus(function() {
             $.ajax({
-                type:'get',
-                url:'{{ route("home.term") }}',
-                success:function(data){
+                type: 'get',
+                url: '{{ route('home.term') }}',
+                success: function(data) {
                     var term = data.term.term;
                     var year = data.term.year;
                     $("#term").text(term);
                     $("#year").text(year);
                 }
             })
-        })
+        });
+
+        //Nav-bar
+        $(".hamburger").on('click',function(){
+            $("#dash_nav").toggleClass('display_nav');
+        });
+
     </script>
 
 </body>

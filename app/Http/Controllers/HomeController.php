@@ -2,13 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class HomeController extends Controller
 {
     function index(){
-        return view('common.landing');
+        $staff = User::all();
+        $students = Student::all();
+
+        $subjects = DB::select("
+            SELECT 
+                DISTINCT name
+            FROM
+                subjects
+        ");
+
+        return view('common.landing',compact('staff','students','subjects'));
     }
 
     function fetch_term(){

@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder {
     public function run() {
         // \App\Models\User::factory(10)->create();
         //Staff::factory(10)->create();
-        Student::factory(100)->create();
+        //Student::factory(100)->create();
         //Term::factory()->create();
 
         /*
@@ -31,6 +31,21 @@ class DatabaseSeeder extends Seeder {
                 )
                 
         ");
+        */
+
+        //$subjects = array('Geography', 'Literature', 'Luganda', 'Biology', 'Physics','Chemistry');
+        $subjects = array('Mathematics','English','Agriculture','History');
+
+        /*
+        foreach($subjects as $s){
+            DB::table('subjects')->insert([
+                'name' => $s,
+                'papers' => 2,
+                'level' => 'O Level',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
         */
     }
     

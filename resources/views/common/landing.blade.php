@@ -6,19 +6,13 @@
 
 @section('body')
     <div class="container-fluid">
-        @php
-            $user_name = 'User';
-        @endphp
-        <h4 class="d-flex align-items-center my-3">Welcome <div><i class="bi bi-person-fill mb-1"></i></div> <b
-                class="text-primary fw-bold"> {{ $user_name }}</b></h4>
-
         <div class="card-container">
             <div class="card col-md-3 border-0 card-one">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-block">
-                            <p class="mb-0 h2 text-white">150</p>
-                            <p class="mb-0 text-white">Students</p>
+                            <p class="mb-0 h2 text-white">{{ count($students) }}</p>
+                            <p class="mb-0 text-white">Active Students</p>
                         </div>
                         <div>
                             <i class="bi bi-mortarboard-fill" style="font-size:40px;"></i>
@@ -31,7 +25,7 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-block">
-                            <p class="mb-0 h2 text-white">20</p>
+                            <p class="mb-0 h2 text-white">{{ count($subjects) }}</p>
                             <p class="mb-0 text-white">Subjects</p>
                         </div>
                         <div>
@@ -45,8 +39,8 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-block">
-                            <p class="mb-0 h2 text-white">25</p>
-                            <p class="mb-0 text-white">Teachers</p>
+                            <p class="mb-0 h2 text-white">{{ count($staff) }}</p>
+                            <p class="mb-0 text-white">Active Staff</p>
                         </div>
                         <div>
                             <i class="bi bi-people-fill text-white" style="font-size:40px;"></i>

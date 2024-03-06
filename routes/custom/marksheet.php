@@ -2,7 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MarksheetController;
 
-Route::prefix('marksheet')->group(function(){
+Route::middleware('auth')->prefix('marksheet')->group(function(){
     Route::get('/alevel', [MarksheetController::class,'alevel'])->name('alevel.marksheet');
     Route::post('/fetchalevel', [MarksheetController::class,'fetchdata'])->name('marksheet.display');
     Route::post('/amarksheet', [MarksheetController::class,'marksheet'])->name('marksheet.a.fetch');

@@ -29,11 +29,9 @@
                 <div class="col-md-4">
                     <label for="" class="fw-bold">Select Class</label>
                     <select id="classname" class="form-select p-2 rounded-0">
-                        <?php 
-                        for($i=1; $i<=6; $i++){    
-                    ?>
-                        <option value="Senior <?php echo $i; ?>">Senior <?php echo $i; ?></option>
-                        <?php } ?>
+                        @foreach ($classes as $class)
+                        <option value="{{ $class->class }}">{{ $class->class }}</option>
+                        @endforeach                        
                     </select>{{-- Select Class --}}
                 </div>
     
@@ -46,7 +44,7 @@
                     </select>{{-- Select Student Status --}}
                 </div>
             </div>
-        </div>{{-- Select Class here --}}
+        </div>{{-- Select Class and Status here --}}
 
         <div class="button-container">
             <button class="submit-btn mt-3 bg-gradient" id="view-std-data" type="button">Submit</button>
@@ -78,16 +76,16 @@
     </div>
 
     @include('student.view_std_modal')
+    @include('student.std_images')
 @endsection
 
 @push('body-scripts')
     <script src="{{ asset('js/jquery.min.js') }}"></script>
-    <script src="{{ asset('/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('/js/datatable.min.js') }}"></script>
     <script src="{{ asset('/js/bootstrap.bundle.js') }}"></script>
     <script src="{{ asset('js/custom.js') }}"></script>
 
-    <script type="text/javascript">
+    <script>
         $(document).ready(function() {
             //Remove the Datatable display
             $(".update-students-table-container").hide();
@@ -146,7 +144,7 @@
                             render: function(data, type, row) {
                                 var image;
 
-                                if(data == "male.jpg" || data == 'NULL'){
+                                if(data == "male.jpg" || data == 'NULL' || data == null || data == ''){
                                     image = '<img src="{{ asset('/') }}images/static/male.jpg" class="img-fluid w-50 std-img" alt="' + row
                                     .fname + '">';
                                 }else if(data == "female.jpg"){
@@ -177,7 +175,7 @@
                                     display =
                                         '<span class="badge bg-secondary"><p class="mb-0 h6">' +
                                         data + '</p></span>';
-                                } else if (data == 'dismissed' || data == 'removed') {
+                                } else if (data == 'dismissed' || data == 'removed' || data == 'disabled') {
                                     display = '<span class="badge bg-danger"><p class="mb-0 h6">' +
                                         data + '</p></span>';
                                 }
@@ -224,7 +222,7 @@
                 var classname = $("#classname").val();
                 var category = $("#category").val();
 
-                console.log("Class = " +classname+", category = "+category);
+                //console.log("Class = " +classname+", category = "+category);
 
                 $.ajax({
                     type: 'POST',
@@ -326,16 +324,16 @@
                         std_id:std_id
                     },
                     success: function(data) {
-                        console.log(data);
+                        //console.log(data);
 
                         if(data.mname != null){
-                            $("#std_full_name").val(data.lname+" "+data.fname+" "+data.mname);
+                            $("#std_full_name").val(data.lname+" "+data.mname+" "+data.fname);
                         }else{
                             $("#std_full_name").val(data.lname+" "+data.fname);
                         }
                         $("#std_id").val(data.std_id);
 
-                        if(data.image == 'male.jpg'){
+                        if(data.image == 'male.jpg' || data.image == null || data.image == 'NULL' || data.image == ''){
                             $("#std_image").attr('src',`../images/static/male.jpg`);
                         }else if(data.image == 'female.jpg'){
                             $("#std_image").attr('src',`../images/static/female.jpg`);
@@ -345,17 +343,18 @@
 
                         var std_status = (data.status).toLowerCase();
                         //Punch Student details to modal
+                        $('#std_id_buffer').val(data.std_id);
                         $("#std_fname").val(data.fname);
-                        $("#std_lname").val(data.lname);                       
+                        $("#std_lname").val(data.lname);     
+                        $("#std_mname").val(data.mname);                  
                         $("#std_class").val(data.class);
                         $("#std_house").val(data.house);
                         $("#std_section").val(data.section);
                         $("#std_status").val(std_status);
                         $("#std_stream").val(data.stream);
                         $("#std_gender").val(data.gender);
-                        $("#std_fees").val(atm_money(data.fees));
-                        $("#std_reg").val(atm_money(data.registration));
-                        $("#std_mname").val(data.mname);
+                        $("#nationality").val(data.nationality);
+                        $("#lin").val(data.lin);
                         $("#std_year").val(data.year_of_entry);
                         $("#std_comb").val(data.combination);
                         $("#std_pass").val(data.password);
@@ -363,6 +362,21 @@
                         $("#std_total_fees").val(total_fees);
                         $("#created_at").val(convert_date(data.created_at));
                         $("#updated_at").val(convert_date(data.updated_at));
+                        $("#disable-std").data('std_status',(data.status));
+
+                        //Check Student status
+                        var en_dis_btn = '<button class="btn no-button px-5 py-2 bg-gradient" id="disable-std" data-std_status="">\
+                                DISABLE\
+                            </button>';
+                        if(std_status == 'disabled'){
+                            $("#disable-std").html(en_dis_btn);
+                            $("#disable-std").text('ENABLE').data('std_status','disabled');
+                        }else if(std_status == 'continuing'){
+                            $("#disable-std").html(en_dis_btn);
+                            $("#disable-std").text('DISABLE').data('std_status','continuing');
+                        }else{
+                            $("#disable-std").remove();
+                        }
                     }
                 })
             }
@@ -374,16 +388,18 @@
                 var std_id = $("#std_id").val();
                 var fname = $("#std_fname").val();
                 var lname = $("#std_lname").val();
+                var mname = $("#std_mname").val();
+                var nationality = $("#nationality").val();
                 var house = $("#std_house").val();
                 var section = $("#std_section").val();
                 var std_status = $("#std_status").val();
                 var gender = $("#std_gender").val();
                 var std_stream = $("#std_stream").val();
-                var fees = ($("#std_fees").val()).replaceAll(",","");
-                var mname = $("#std_mname").val();
+                var lin = $("#lin").val();
                 var year = $("#std_year").val();
                 var combination = $("#std_comb").val();
                 var password = $("#std_pass").val();
+                
 
                 var data = {
                     std_class:std_class,
@@ -395,16 +411,16 @@
                     section:section,
                     std_status:std_status,
                     std_stream:std_stream,
-                    fees:fees,
+                    lin:lin,
                     year:year,
+                    nationality:nationality,
                     combination:combination,
                     password:password,
                     gender:gender
                 }
 
-                console.log(data);
+                //console.log(data);
 
-                /*
                 $.ajax({
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -413,7 +429,7 @@
                     url: "{{ route('student.update') }}",
                     data:data,
                     success: function(data) {
-                        console.log("Update Successfull");
+                        //console.log("Update Successfull");
                         //Update Table
                         $("#update-students-table").DataTable().draw();
                         setTimeout(function(){
@@ -421,7 +437,7 @@
                         },500);
                     }
                 })
-                */
+                
             }
 
             //Reset Modal inputs on hide
@@ -469,7 +485,7 @@
                 var class_name = $("#classname").val();
                 var category = $("#category").val();
 
-                console.log("Class = "+class_name+", Category = "+category);
+                //console.log("Class = "+class_name+", Category = "+category);
 
                 $.ajax({
                     headers: {
@@ -489,7 +505,115 @@
                     error:function(data){
                         alert("Printing Failed");
                     }
-                })
+                });
+            });
+
+            //Close the modal
+            $(".close-button").on('click',function(){
+                $('#studentImageModal').modal('hide');
+            });
+
+            //IMAGE UPDATE
+            $("#std_image").on('click',function(){
+                $('#viewStudentModal').modal('hide');
+                var std_id = $("#std_id_buffer").val();
+                $('#studentImageModal').modal('show');
+                $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    type: "POST",
+                    url:"{{ route('student.fetch.image') }}",
+                    data:{
+                        std_id:std_id
+                    }, 
+                    success: function(response) {
+                        if(response.data.mname == null){
+                            $("#std_update_name").text(response.data.fname+" "+response.data.lname);
+                        }else{
+                            $("#std_update_name").text(response.data.fname+" "+response.data.mname+" "+response.data.lname);
+                        }
+                        $("#std_update_class").text(response.data.class);
+                        $("#std_img_id").val(response.data.std_id);
+                    },
+                    error:function(data){
+                        alert("Image Update Failed");
+                    }
+                });
+            });
+
+            //Show update image on change
+            $("#update-img").on('change',function(){
+                $("#update-std-image").removeClass('d-none');
+            })
+
+            //Clicking update image button
+            $("#student_update_form").submit(function(event){
+                event.preventDefault();
+                $.ajax({
+                    type: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url:"{{ route('student.update.image') }}",
+                    data:new FormData(this), 
+                    processData: false,
+                    contentType: false,
+                    cache: false,
+                    success: function(data) {
+                        //Hide the button after update
+                        $("#update-std-image").addClass('d-none');
+
+                        //Reset the form
+                        $("#student_update_form")[0].reset();
+                        $('#studentImageModal').modal('hide');
+
+                        //Update the DataTable
+                        $("#update-students-table").DataTable().draw();
+                        alert("Image Update Successful");
+                    },
+                    error:function(data){
+                        alert("Image Update Failed");
+                    }
+                });
+            });
+
+            //Disable Student
+            $("#disable-std").on('click',function(){
+                var std_id = $("#std_id_buffer").val();
+                var status = $(this).data('std_status');
+
+                console.log("old_status = "+status);
+
+                if(status == 'continuing'){
+                    status = 'disabled';
+                }else if(status == 'disabled'){
+                    status = 'continuing';
+                }
+
+                console.log("new_status = "+status);
+                
+                $.ajax({
+                    type: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url:"{{ route('student.disable') }}",
+                    data:{
+                        std_id:std_id,
+                        status:status
+                    },
+                    success: function(data) {
+                        $('#viewStudentModal').modal('hide');
+                        //Update the DataTable
+                        $("#update-students-table").DataTable().draw();
+                        alert(data);
+                    },
+                    error:function(data){
+                        alert("Disable Student Failed");
+                    }
+                });
+                
             })
 
         });
