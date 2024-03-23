@@ -16,9 +16,10 @@ class CreateSchoolDetailsTable extends Migration
         Schema::create('school_details', function (Blueprint $table) {
             $table->id();
             $table->string('school_name');
+            $table->string('motto');
             $table->string('address');
             $table->string('contact');
-            $table->string('school_badge');
+            $table->string('school_badge')->nullable(true);
             $table->timestamps();
         });
     }

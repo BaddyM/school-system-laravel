@@ -39,6 +39,9 @@
                 @else
                     <img src="{{ asset('/') }}images/users/{{ Auth::user()->image }}" class="img-fluid w-50 mt-2" style="border-radius: 60px;"  alt="">
                 @endif
+                <div>
+                    <a href="" class="nav-link mt-2">My Profile</a>
+                </div>
             </div>{{-- -User Details here --}}
 
             <ul class="nav mt-2" id="navigation_bar">
@@ -80,6 +83,24 @@
                 </div>{{-- Staff --}}
 
                 <div>
+                    <div class="nav-item nav-title" id="fees_items" title="Fees Collection">
+                        Fees Collection
+                    </div>
+                    <div id="fees_items_list">
+                        <li class="nav-item" title="Pending">
+                            <a href="" class="nav-link">
+                                <i class="bi bi-file-earmark-check"></i> Pending Fees
+                            </a>
+                        </li>
+                        <li class="nav-item" title="Pay Fees">
+                            <a href="" class="nav-link">
+                                <i class="bi bi-file-earmark-check"></i> Pay Fees
+                            </a>
+                        </li>
+                    </div>
+                </div>{{-- Student Fees --}}
+
+                <div>
                     <div class="nav-item nav-title" id="parents_items" title="Parents Data">
                         Parents - Information
                     </div>
@@ -96,18 +117,22 @@
                     </div>
                     <div id="results_items_list">
                         <li class="nav-item" title="Marksheet">
-                            <a href="{{ route('alevel.marksheet') }}" class="nav-link"><i
-                                    class="bi bi-file-earmark-check"></i> A'Level Marksheet</a>
+                            <a href="{{ route('alevel.marksheet') }}" class="nav-link">
+                                <i class="bi bi-file-earmark-check"></i> A'Level Marksheet</a>
                         </li>
                         <li class="nav-item" title="Marksheet">
-                            <a href="" class="nav-link"><i class="bi bi-file-earmark-check"></i> O'Level
-                                Marksheet</a>
+                            <a href="{{ route('marksheet.olevel') }}" class="nav-link"><i class="bi bi-file-earmark-check"></i> O'Level Marksheet</a>
                         </li>
+
+                        <li class="nav-item" title="Reports">
+                            <a href="" class="nav-link"><i class="bi bi-arrow-down-square"></i> Download Marklist</a>
+                        </li>
+
                         <li class="nav-item" title="A'Level">
-                            <a href="" class="nav-link"><i class="bi bi-plus-circle"></i> Results (A'Level)</a>
+                            <a href="{{ route('alevel.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i> Results (A'Level)</a>
                         </li>
                         <li class="nav-item" title="O'Level">
-                            <a href="" class="nav-link"><i class="bi bi-plus-circle"></i> Results (O'Level)</a>
+                            <a href="{{ route('olevel.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i> Results (O'Level)</a>
                         </li>
                         <li class="nav-item" title="Reports">
                             <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> V.D Reports</a>
@@ -124,18 +149,31 @@
                     </div>
                     <div id="settings_items_list">
                         <li class="nav-item" title="Term">
-                            <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> Change Term</a>
+                            <a href="{{ route('setting.term') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Change Term</a>
                         </li>
 
                         <li class="nav-item" title="Status">
-                            <a href="" class="nav-link"><i class="bi bi-plus-circle"></i> Status</a>
+                            <a href="" class="nav-link"><i class="bi bi-plus-circle"></i> Status List</a>
                         </li>
+
+                        <li class="nav-item" title="Classes">
+                            <a href="{{ route('setting.subjects.index') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Subjects</a>
+                        </li>
+
+                        <li class="nav-item" title="Classes">
+                            <a href="{{ route('setting.results.index') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Results Table</a>
+                        </li>
+
                         <li class="nav-item" title="Classes">
                             <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> Classes</a>
                         </li>
 
                         <li class="nav-item" title="Streams">
                             <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> Streams</a>
+                        </li>
+
+                        <li class="nav-item" title="Classes">
+                            <a href="{{ route('setting.school') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> School Details</a>
                         </li>
 
                         <li class="nav-item" title="Streams">
@@ -165,7 +203,7 @@
                     </p>
                 </div>
                 <h5 class="mb-0">{{ $system_header }}</h5>
-                <div class="sign_lock" style="gap:10px;">
+                <div class="sign_lock align-items-center" style="gap:10px;">
                     <div title="Sign-out" id="sign-out">
                         <a href="{{ route('logout') }}" class="text-dark"><i class="bi bi-lock-fill"></i></a>
                     </div>
@@ -173,9 +211,11 @@
                         <a href="{{ route('home') }}" class="text-dark"><i class="bi bi-house-fill"></i>
                         </a>
                     </div>
-                    <div class="hamburger">
-                        <i class="bi bi-list"></i>
-                    </div>
+                    <button class="hamburger">
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                    </button>
                 </div>
             </div>
             
@@ -201,6 +241,8 @@
         $("#results_items_list").hide();
         $("#settings_items_list").hide();
         $("#parents_items_list").hide();
+        $("#parents_items_list").hide();
+        $("#fees_items_list").hide();
 
         //Nav-items-dropdown
         $(".nav-title").on('click', function() {
@@ -237,7 +279,8 @@
 
         //Nav-bar
         $(".hamburger").on('click',function(){
-            $("#dash_nav").toggleClass('display_nav');
+            $(".dashboard-nav").toggleClass('is_mob_active');
+            $(".bar").toggleClass('is_active');
         });
 
     </script>

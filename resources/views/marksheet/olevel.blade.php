@@ -6,107 +6,57 @@
 
 @section('body')
     <div class="container-fluid">
-        <h5 class="text-center text-uppercase fw-bold h3 mb-3">O level Marksheet</h5>
+        <h5 class="mb-0 text-uppercase fw-bold text-center mb-3" style="color: purple;">O level Marksheet</h5>
 
-        <div class="d-flex justify-content-between col-md-6">
-            <div class="d-flex justify-content-between col-sm-4">
-                <div class="d-block">
-                    <h5 class="fw-bold">a1 : </h5>
-                    <h5 class="fw-bold">a2 : </h5>
-                </div>
-                <div class="d-block">
-                    <h5>Activity 1</h5>
-                    <h5>Activity 2</h5>
-                </div>
-            </div>{{-- result set --}}
-    
-            <div class="d-flex justify-content-between col-sm-2">
-                <div class="d-block">
-                    <h5 class="fw-bold">1 : </h5>
-                    <h5 class="fw-bold">2 : </h5>
-                    <h5 class="fw-bold">3 : </h5>
-                </div>
-                <div class="d-block">
-                    <h5>term 1</h5>
-                    <h5>term 2</h5>
-                    <h5>term 3</h5>
-                </div>
-            </div>{{-- term --}}
-        </div>
-
-        <div class="mb-3">
+        <div class="my-5">
             <form action="" method="post">
                 @csrf
                 <div class="row">
-                    <div class="col-sm-6 form-floating">
-                        <select name="classname" id="class" class="form-select">
-                            @for ($i = 1; $i <= 4; $i++)
-                                <option value="senior{{ $i }}">Senior {{ $i }}</option>
-                            @endfor
-                        </select>
-                        <label for="" class="form-label fw-bold" style="color:blue;">Select Class</label>
-                    </div> {{-- Select class here --}}
-
-                    <div class="col-sm-6 form-floating">
-                        <select name="result_set" id="resultset" class="form-select">
-                            @foreach ($result_set as $result)
-                                <option value="{{ $result->name }}">{{ $result->name }}</option>
+                    <div class="col-md-3">
+                        <select name="" id="class_name" class="form-select rounded-0">
+                            @foreach ($classes as $class)
+                                <option value="{{ $class->class }}">{{ $class->class }}</option>
                             @endforeach
                         </select>
-                        <label for="" class="form-label fw-bold" style="color:red;">Select Result Set</label>
-                    </div>{{-- -Select Result set here --}}
+                    </div>{{-- Select Class --}}
+
+                    <div class="col-md-3">
+                        <select name="" id="table_name" class="form-select rounded-0 text-uppercase">
+                            @foreach ($results as $result)
+                                <option value="{{ $result->table_name }}">{{ explode('_', $result->table_name)[0] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>{{-- Select Table --}}
                 </div>
-                <button class="btn bg-primary bg-gradient text-white mt-3 rounded-1" id="olevel-btn" type="button">SUBMIT</button>
+
+                <button class="submit-btn mt-3" id="submit_btn">Submit</button>
             </form>
-        </div><!-- Select class here -->
+        </div>
 
-        <hr>
+        <div class="container table_container d-none overflow-scroll">
+            <div class="d-flex justify-content-end">
+                <div>
 
-        <div class="card d-none marksheet">
-            <div class="card-header">
-                <form action="" class="m-0">
-                    @csrf
-                    <input type="hidden" id="class_name">
-                    <input type="hidden" id="result_set">
-                    <a id="marksheet-link" target="_blank">
-                        <button class="btn btn-warning bg-gradient px-3 rounded-1 text-uppercase fw-bold border border-secondary" type="button" id="download-btn">Download</button>
-                    </a>
+                </div>
+                <form action="" method="post" class="mb-3">
+                    <input type="hidden" id="class_name_buffer">
+                    <input type="hidden" id="table_name_buffer">
+                    <button class="btn btn-warning bg-gradient rounded-0 px-4 text-uppercase"
+                        id="print_marksheet">print</button>
                 </form>
             </div>
-        <div class="card-body overflow-scroll pt-3 pb-3">
-            <table id="olevel" class="table table-striped table-hover">
-                <thead class="bg-primary bg-gradient text-white">
-                    <th class="text-uppercase" scope="col">No.</th>
-                    <th scope="col">Student_ID</th>
-                    <th scope="col">student_Name</th>
-                    <th scope="col">resultset</th>
-                    <th scope="col">Class</th>
-                    @php
-                        $subjects = [
-                            "Mathematics",
-                            "History",
-                            "Luganda",
-                            "CRE",
-                            "Agriculture",
-                            "Physics",
-                            "Chemistry",
-                            "Biology",
-                            "Geography",
-                            "Entrepreneurship",
-                            "English",
-                            "ICT",
-                            "Art",
-                            "Kiswahili"
-                        ];
-                    @endphp                    
-                        @foreach ($subjects as $s)
-                        <th scope="col">
-                            {{ $s }}
-                        </th>
+            <table class="table">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Class</th>
+                        @foreach ($subjects as $subjects)
+                            <th scope="col">{{ $subjects->name }}</th>
                         @endforeach
                         <th scope="col">Identifier</th>
-                        <th scope="col">Comment</th>
                         <th scope="col">Position</th>
+                    </tr>
                 </thead>
                 <tbody>
 
@@ -114,179 +64,130 @@
             </table>
         </div>
     </div>
-    </div>
 @endsection
 
 
-@include('common.scripts')
+@push('body-scripts')
+    <script src="{{ asset('js/jquery.min.js') }}"></script>
 
-<script>
-    $(document).ready(function() {
+    <script>
+        $(document).ready(function() {
+            $("#submit_btn").on('click', function(event) {
+                event.preventDefault();
 
-        var result_set = $("#resultset").val();
+                //Display the results
+                $(".table_container").removeClass('d-none');
 
-        function datatable(result, classname){
-            $("#olevel").DataTable({
-                        serverSide: true,
-                        processing: true,
-                        autoWidth: false,
-                        searchable: true,
-                        stateSave: true,
-                        ajax: {
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            },
-                            type:'post',
-                            url:'{{ route("table.olevel.display") }}',
-                            data:{
-                                result : result,
-                                classname : classname
-                            }
-                        },
-                        columns:[
-                            {
-                                data:'DT_RowIndex'
-                            },
-                            {
-                                data: 'stdID',
-                                render:function(data,type,row){
-                                    return '<div class="text-primary fw-bold stdid">'+data+'</div>';
+                var classname = $("#class_name").val();
+                var tablename = $("#table_name").val();
+                var level = 'O Level';
+                var paper = 1;
+                //console.log("Class = " + classname + ", Table = " + tablename);
+
+                //Add buffer variables
+                $("#class_name_buffer").val(classname);
+                $("#table_name_buffer").val(tablename);
+
+                //Empty the previous table first
+                $('tbody').empty();
+
+                $.ajax({
+                    type: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: "{{ route('marksheet') }}",
+                    data: {
+                        classname: classname,
+                        tablename: tablename,
+                        level: level,
+                        paper: paper
+                    },
+                    success: function(response) {
+                        if (response != 'empty') {
+                            var position = 0;
+                            $.each((response), function(k, v) {
+                                position += 1;
+                                var array_objects = Object.values(v);
+                                var tr = '';
+
+                                //Push the position
+                                array_objects.push(position);
+
+                                //Get identifier 
+                                var identifier_pos = (array_objects.length - 2);
+                                var class_pos = array_objects[1];
+
+                                if (class_pos == 'Senior 1' || class_pos ==
+                                    'Senior 2') {
+                                    array_objects[identifier_pos] = (parseFloat((
+                                            array_objects[identifier_pos]) / 12))
+                                        .toFixed(1);
+                                } else if (class_pos == 'Senior 3' || class_pos ==
+                                    'Senior 4') {
+                                    array_objects[identifier_pos] = (parseFloat((
+                                            array_objects[identifier_pos]) / 9))
+                                        .toFixed(1);
                                 }
-                            },
-                            {
-                                data: 'stdFName',
-                                render: function(data,type,row){
-                                    return '<div><span class="text-danger fw-bold">'+row.stdFName+'</span> '+row.stdLName+'</div>'
-                                }
-                            },
-                            {
-                                data: 'resultset',
-                                render: function(){
-                                    return '<div class="text-uppercase text-success fw-bold">'+result+'</div>';
-                                }
-                            },
-                            {
-                                data: 'class'
-                            },
-                            {
-                                data: 'Mathematics'
-                            },
-                            {
-                                data: 'History'
-                            },
-                            {
-                                data: 'Luganda'
-                            },
-                            {
-                                data: 'CRE'
-                            },
-                            {
-                                data: 'Agriculture'
-                            },
-                            {
-                                data: 'Physics'
-                            },
-                            {
-                                data: 'Chemistry'
-                            },
-                            {
-                                data: 'Biology'
-                            },
-                            {
-                                data: 'Geography'
-                            },
-                            {
-                                data: 'Entrepreneurship'
-                            },
-                            {
-                                data: 'English'
-                            },
-                            {
-                                data: 'ICT'
-                            },
-                            {
-                                data: 'Art'
-                            },
-                            {
-                                data: 'Kiswahili'
-                            },
-                            {
-                                data: 'identifier'
-                            },
-                            {
-                                data: 'comment',
-                                render: function(data,type,row){
-                                    var indent = row.identifier;
-                                    var comment;
 
-                                    if(indent >= 2.5 && indent <= 3.0){
-                                        comment = '<div class="fw-bold badge bg-success">OUTSTANDING<div>';
-                                    }else if(indent >= 1.5 && indent <= 2.4){
-                                        comment = '<div class="fw-bold badge bg-info">MODERATE<div>';
-                                    }else if(indent >= 0.1 && indent <= 1.4){
-                                        comment = '<div class="badge bg-secondary fw-bold">BASIC<div>';
-                                    }else{
-                                        comment = '<div class="text-danger fw-bold">No LOs<div>';
+                                $.each(array_objects, function(key, value) {
+                                    //console.log(value);
+
+                                    if (value == null || value == 'NULL' ||
+                                        value == '') {
+                                        value = ' '
                                     }
 
-                                    return comment;
-                                }
-                            },
-                            {
-                                data: 'position'
-                            }
-                        ],
-                        columnDefs:[
-                            {
-                                target:[1,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],
-                                className:'dt-center'
-                            }
-                        ]
-                    })
-        }
+                                    var td = '<td>' + value + '</td>';
+                                    tr += td;
+                                });
 
-        $("#olevel-btn").on('click', function() {
-            var classname = $("#class").val()
-            var result = $("#resultset").val()
+                                //console.log("Response = " + response.data);
 
-            $("#class_name").val(classname)
-            $("#result_set").val(result)
+                                $('tbody').append('<tr>\
+                                            ' + tr + '\
+                                        </tr>');
 
-            //Dislay the table
-            $(".marksheet").removeClass('d-none')
+                            });
+                        } else {
+                            $('tbody').append(
+                                '<tr><td class="text-danger fw-bold">Table Empty</td></tr>');
+                        }
 
-            $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                type:"POST",
-                url:'{{ route("table.olevel.display.marksheet") }}',
-                data:{
-                    result : result,
-                    classname :classname
-                },
-                success:function(response){
-                    //console.log("Data fetched successfully")
-                    var result = response.result;
-                    var classname = response.class
+                    },
+                    error: function(error) {
+                        console.error(error);
+                    }
+                });
+            });
 
-                    $("#olevel").DataTable().destroy()
-                    //Display Table
-                    datatable(result, classname)
-                }
+            //Print marksheet
+            $("#print_marksheet").on('click', function(e) {
+                e.preventDefault()
+                var classname = $("#class_name_buffer").val();
+                var tablename = $("#table_name_buffer").val();
+                var level = 'O Level';
+
+                $.ajax({
+                    type: "get",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: "/marksheet/marksheet-print/"+classname+"/"+tablename+"/"+level+"",
+                    data: {
+                        classname: classname,
+                        tablename: tablename,
+                        level:level
+                    },
+                    success: function(response) {
+                        //console.log(response);
+                        window.open("/marksheet/marksheet-print/"+classname+"/"+tablename+"/"+level+"",'_blank')
+                    },
+                    error: function(error) {
+                        console.error(error);
+                    }
+                });
             })
-
-        })
-
-        //Download the marksheet
-        $("#download-btn").on('click',function(){
-            var classname = $("#class_name").val()
-            var result = $("#result_set").val()
-
-            var link = $("#marksheet-link").attr('href','/marksheet/olevel-marksheet-pdf/'+classname+'/'+result+'')
-            //console.log($("#marksheet-link").attr('href'))
-            window.open($("#marksheet-link").attr('href'), '_blank')
-        })
-
-    })
-</script>
+        });
+    </script>
+@endpush

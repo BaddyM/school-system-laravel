@@ -35,18 +35,17 @@ class DatabaseSeeder extends Seeder {
 
         //$subjects = array('Geography', 'Literature', 'Luganda', 'Biology', 'Physics','Chemistry');
         $subjects = array('Mathematics','English','Agriculture','History');
-
-        /*
+        
         foreach($subjects as $s){
             DB::table('subjects')->insert([
                 'name' => $s,
                 'papers' => 2,
-                'level' => 'O Level',
+                'level' => 'A Level',
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
         }
-        */
+        
     }
     
 }

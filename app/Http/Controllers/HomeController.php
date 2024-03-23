@@ -27,4 +27,5 @@ class HomeController extends Controller
         $term = DB::table('term')->select('term','year')->where('active',1)->first();
         return response()->json(['term'=>$term]);
     }
+
 }

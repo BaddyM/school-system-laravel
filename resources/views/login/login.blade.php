@@ -45,11 +45,20 @@
                 </div>
             </div>
 
-            <button class="btn mt-2 mb-3 w-100 bg-gradient submit-btn rounded-0" type="submit" id="login-btn">Login</button>
+            <button class="btn mt-2 mb-3 w-100 bg-gradient submit-btn rounded-0" type="submit" id="login-btn" disabled>Login</button>
         </form>
     </div>
 
     <script src="{{ asset('/') }}js/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("#login-btn").removeClass('submit-btn').addClass('submit-btn-disabled');
+
+            $("#email, #password").on('change',function(){
+                $("#login-btn").addClass('submit-btn').removeClass('submit-btn-disabled').prop('disabled',false);
+            })
+        })
+    </script>
 </body>
 
 </html>

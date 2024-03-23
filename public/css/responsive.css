@@ -1,28 +1,49 @@
 @media only screen and (max-width:768px){
     /*---------------------------------- Navbar --------------------------------------*/
     .dashboard-nav{
-        display: none;
+        position: absolute;
+        display: block;
+        right: 100%;
+        width: 60% !important;
+        z-index: 99;
+        transition: .4s all ease-in-out;
     }
 
-    .display_nav{
+    .school-dashboard{
         display: block !important;
-        position: absolute;
-        z-index: 99;
-        transition: .4s;
+    }
+    .is_mob_active{
+        right: 40%;
     }
 
     /*--------------------------- Dashboard Styles ----------------------------------*/
     .school-dashboard{
         gap: 10px !important;
     }
-    .dashboard-nav{
-        width: 40% !important;
-    }
     .hamburger{
         display: block !important;
+        border: none;
+        background: none;
+        appearance: none;
     }
-    .hamburger i{
-        font-size: 35px !important;
+    .bar{
+        width: 50px;
+        background: black;
+        height: 5px;
+        border-radius: 5px;
+        transition: .4s all ease-in-out;
+    }
+    .bar:nth-child(2).is_active{
+        display: none;
+    }
+    .bar:nth-child(1).is_active{
+        transform: rotate(45deg) translate(5px, -2px);
+    }
+    .bar:nth-child(3).is_active{
+        transform: rotate(-45deg) translate(9px, -4px);
+    }
+    .bar:nth-child(1), .bar:nth-child(2){
+        margin-bottom: 7px;
     }
     .system-header h5{
         text-transform: uppercase;

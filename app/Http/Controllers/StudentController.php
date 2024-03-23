@@ -86,14 +86,14 @@ class StudentController extends Controller
             $file_name = strtolower($std_id . '.' . $req->std_image->extension());
 
             //Create directory per year
-            $file_check = file_exists(public_path('images/student_photos/' . $year . ''));
+            $file_check = file_exists(public_path('images/student_photos'));
 
             if ($file_check != 1) {
-                mkdir(public_path('images/student_photos/' . $year . ''), 0754);
+                mkdir(public_path('images/student_photos'), 0754);
             }
 
             //Upload to the specified directory
-            $req->std_image->move(public_path('images/student_photos/' . $year . ''), $file_name);
+            $req->std_image->move(public_path('images/student_photos'), $file_name);
         } else {
             //If the Image is null, assign one
             if ($gender == 'Male') {
@@ -275,7 +275,11 @@ class StudentController extends Controller
             $fname = $row['fname'];
             $mname = $row['mname'];
             $lname = $row['lname'];
-            $dob = date('y-m-d', strtotime($row['dob']));
+            if(($row['dob']) != null){
+                $dob = date('y-m-d', strtotime($row['dob']));
+            }else{
+                $dob = date('y-m-d', strtotime(now()));
+            }            
             $class = $row['class'];
             $stream = $row['stream'];
             $house = $row['house'];
@@ -459,15 +463,15 @@ class StudentController extends Controller
 
         //First delete the original file
         if($std_image == null || $std_image == ' ' || $std_image == 'NULL' || $std_image == 'male.jpg' || $std_image == 'female.jpg'){
-            info("Image is null");
+            //info("Image is null");
         }else{
-            unlink(public_path('images/student_photos/'.$original_record->year_of_entry.'/'.$original_record->image.''));
+            unlink(public_path('images/student_photos/'.$original_record->image.''));
         }
 
         try{
             $file_name = strtolower($std_id . '.' . $req->std_image->extension());
             //Insert new filename
-            $req->std_image->move(public_path('images/student_photos/'.$original_record->year_of_entry.''),$file_name);
+            $req->std_image->move(public_path('images/student_photos'),$file_name);
 
             //Update the DB
             Student::where('std_id',$std_id)->update([
@@ -514,7 +518,7 @@ class StudentController extends Controller
     public function update_std_status(Request $req){
         $std_list = implode(',',$req->selected);
         $status = $req->std_status;
-        info("Status = ".$status.", List = ".$std_list);
+        //info("Status = ".$status.", List = ".$std_list);
 
         try{
             DB::update('

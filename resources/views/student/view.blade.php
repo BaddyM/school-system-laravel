@@ -97,7 +97,7 @@
                 $('#update-students-table').DataTable().destroy()
 
                 //Create a new Datatable
-                var updateTable = $('#update-students-table').DataTable({
+                $('#update-students-table').DataTable({
                     serverSide: true,
                     processing: true,
                     ajax: {
@@ -125,10 +125,10 @@
                             data: 'lname',
                             render:(data, type, row)=>{
                                 var lname;
-                                if(!(row.mname == null)){
-                                    lname = '<div class="text-uppercase">'+row.mname+' '+data+'</div>'
-                                }else{
+                                if(row.mname == null || row.mname == 'NULL' || row.mname == ''){
                                     lname = '<div class="text-uppercase">'+data+'</div>'
+                                }else{
+                                    lname = '<div class="text-uppercase">'+row.mname+' '+data+'</div>'
                                 }
                                 return lname;
                             }
@@ -145,16 +145,13 @@
                                 var image;
 
                                 if(data == "male.jpg" || data == 'NULL' || data == null || data == ''){
-                                    image = '<img src="{{ asset('/') }}images/static/male.jpg" class="img-fluid w-50 std-img" alt="' + row
+                                    image = '<img src="{{ asset("images/static/male.jpg") }}" class="img-fluid w-50 std-img" alt="' + row
                                     .fname + '">';
                                 }else if(data == "female.jpg"){
-                                    image = '<img src="{{ asset('/') }}images/static/female.jpg" class="img-fluid w-50 std-img" alt="' + row
+                                    image = '<img src="{{ asset("images/static/female.jpg") }}" class="img-fluid w-50 std-img" alt="' + row
                                     .fname + '">';
                                 }else{
-                                    image = '<img src="{{ asset('/') }}images/student_photos/' + row
-                                    .year_of_entry + '/' + row.image +
-                                    '" class="img-fluid w-50 std-img" alt="' + row
-                                    .fname + '">'
+                                    image = '<img src="{{ asset('/') }}images/student_photos/'+row.image+'" class="img-fluid w-50 std-img" alt="' + row.fname + '"/>'
                                 }
 
                                 return image;
@@ -326,10 +323,10 @@
                     success: function(data) {
                         //console.log(data);
 
-                        if(data.mname != null){
-                            $("#std_full_name").val(data.lname+" "+data.mname+" "+data.fname);
-                        }else{
+                        if(data.mname == null || data.mname == 'NULL' || data.mname == ''){
                             $("#std_full_name").val(data.lname+" "+data.fname);
+                        }else{
+                            $("#std_full_name").val(data.lname+" "+data.mname+" "+data.fname);
                         }
                         $("#std_id").val(data.std_id);
 
@@ -338,7 +335,7 @@
                         }else if(data.image == 'female.jpg'){
                             $("#std_image").attr('src',`../images/static/female.jpg`);
                         }else{
-                            $("#std_image").attr('src',`../images/student_photos/${data.year_of_entry}/${data.image}`);
+                            $("#std_image").attr('src',`../images/student_photos/${data.image}`);
                         }
 
                         var std_status = (data.status).toLowerCase();
@@ -550,6 +547,7 @@
             //Clicking update image button
             $("#student_update_form").submit(function(event){
                 event.preventDefault();
+                $('#studentImageModal').modal('hide');
                 $.ajax({
                     type: "POST",
                     headers: {
@@ -566,7 +564,6 @@
 
                         //Reset the form
                         $("#student_update_form")[0].reset();
-                        $('#studentImageModal').modal('hide');
 
                         //Update the DataTable
                         $("#update-students-table").DataTable().draw();

@@ -4,629 +4,177 @@
     Alevel - Marksheet
 @endsection
 
-@php
-    //Subjects here
-    $ones = ['general_paper', 'Submath'];
-
-    $twos = ['Mathematics', 'Mathematics2', 'History', 'History2', 'Economics', 'Economics2', 'Agriculture', 'Agriculture2'];
-
-    $threes = ['Luganda', 'Luganda2', 'Luganda3', 'Physics', 'Physics2', 'Physics3', 'Chemistry', 'Chemistry2', 'Chemistry3', 'Biology', 'Biology2', 'Biology3', 'Geography', 'Geography2', 'Geography3', 'Divinity', 'Divinity2', 'Divinity3', 'Literature', 'Literature2', 'Literature3', 'Entrepreneurship', 'Entrepreneurship2', 'Entrepreneurship3'];
-
-    $fours = ['Art', 'Art2', 'Art3', 'Art4'];
-
-    $subs = ['Subict', 'Subict2'];
-
-    $merged = array_merge($twos, $threes, $fours, $ones, $subs);
-
-@endphp
-
 @section('body')
     <div class="container-fluid">
-        <h5 class="text-center text-uppercase fw-bold h3 mb-3">A level Marksheet</h5>
+        <h5 class="mb-0 text-uppercase fw-bold text-center mb-3" style="color: purple;">A level Marksheet</h5>
 
-        <div class="d-flex justify-content-between col-md-6">
-            <div class="d-flex justify-content-between col-sm-4">
-                <div class="d-block">
-                    <h5 class="fw-bold">bot : </h5>
-                    <h5 class="fw-bold">eot : </h5>
-                </div>
-                <div class="d-block">
-                    <h5>beginning of term</h5>
-                    <h5>end of term</h5>
-                </div>
-            </div>{{-- result set --}}
-    
-            <div class="d-flex justify-content-between col-sm-2">
-                <div class="d-block">
-                    <h5 class="fw-bold">1 : </h5>
-                    <h5 class="fw-bold">2 : </h5>
-                    <h5 class="fw-bold">3 : </h5>
-                </div>
-                <div class="d-block">
-                    <h5>term 1</h5>
-                    <h5>term 2</h5>
-                    <h5>term 3</h5>
-                </div>
-            </div>{{-- term --}}
-        </div>
-
-        <div class="mb-3">
+        <div class="my-5">
             <form action="" method="post">
                 @csrf
                 <div class="row">
-                    <div class="col-sm-6 form-floating">
-                        <select name="classname" id="class" class="form-select">
-                            <option value="senior5">Senior 5</option>
-                            <option value="senior6">Senior 6</option>
-                        </select>
-                        <label for="" class="form-label fw-bold" style="color:blue;">Select Class</label>
-                    </div> {{-- Select class here --}}
-
-                    <div class="col-sm-6 form-floating">
-                        <select name="result_set" id="resultset" class="form-select">
-                            @foreach ($result_set as $result)
-                                <option value="{{ $result->result_set }}">{{ $result->result_set }}</option>
+                    <div class="col-md-3">
+                        <select name="" id="class_name" class="form-select rounded-0">
+                            @foreach ($classes as $class)
+                                <option value="{{ $class->class }}">{{ $class->class }}</option>
                             @endforeach
                         </select>
-                        <label for="" class="form-label fw-bold" style="color:red;">Select Result Set</label>
-                    </div>{{-- -Select Result set here --}}
+                    </div>{{-- Select Class --}}
+
+                    <div class="col-md-3">
+                        <select name="" id="table_name" class="form-select rounded-0 text-uppercase">
+                            @foreach ($results as $result)
+                                <option value="{{ $result->table_name }}">{{ explode('_', $result->table_name)[0] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>{{-- Select Table --}}
                 </div>
-                <button class="btn submit-btn mt-3 rounded-1" id="alevel-btn" type="button">SUBMIT</button>
+
+                <button class="submit-btn mt-3" id="submit_btn">Submit</button>
             </form>
-        </div><!-- Select class here -->
+        </div>
 
-        <hr>
+        <div class="container table_container d-none">
+            <div class="d-flex justify-content-end">
+                <div>
 
-        <div class="card marksheet d-none">
-            <div class="card-header">
-               <form action="">
-                @csrf
-                    <input type="hidden" id="result_print" value="">
-                    <input type="hidden" id="class_print" value="">
-                    <a id="marksheet" target="_blank"><button class="btn btn-warning bg-gradient px-3 rounded-1 text-uppercase fw-bold border border-secondary" id="download-btn" type="button">Download</button></a>
-               </form>
+                </div>
+                <form action="" method="post" class="mb-3">
+                    <input type="hidden" id="class_name_buffer">
+                    <input type="hidden" id="table_name_buffer">
+                    <button class="btn btn-warning bg-gradient rounded-0 px-4 text-uppercase"
+                        id="print_marksheet">print</button>
+                </form>
             </div>
-            <div class="card-body overflow-scroll">
-                <table id="alevel" class="table table-striped table-hover">
-                    <thead style="background-color:purple !important;" class="text-white">
-                        <th class="text-uppercase" scope="col">No.</th>
-                        <th scope="col">Student_ID</th>
-                        <th scope="col">student_Name</th>
-                        <th scope="col">combination</th>
-                        <th scope="col">resultset</th>
-                        <th scope="col">Class</th>
-                        @foreach ($merged as $m)
-                            <th class="text-uppercase" scope="col">{{ $m }}</th>
-                        @endforeach
-                        <th>Points</th>
-
+            <div class="overflow-scroll">
+                <table class="table">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Class</th>
+                            @foreach ($subjects as $subjects)
+                                <th scope="col">{{ $subjects->name }} {{ $subjects->paper }}</th>
+                            @endforeach
+                            <th scope="col">Points</th>
+                            <th scope="col">Position</th>
+                        </tr>
                     </thead>
-                    <tbody class="table-light">
-
+                    <tbody>
+    
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+@endsection
 
 
-    @include('common.scripts')
+@push('body-scripts')
+    <script src="{{ asset('js/jquery.min.js') }}"></script>
 
     <script>
         $(document).ready(function() {
-            function datatable(result, classname) {
-                var alevel = $("#alevel").DataTable({
-                    serverSide: true,
-                    processing: true,
-                    autoWidth: false,
-                    searchable: true,
-                    stateSave: true,
-                    ajax: {
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        type: "POST",
-                        data: {
-                            classname: classname,
-                            result: result
-                        },
-                        url: "{{ route('marksheet.display') }}"
-                    },
-                    columns: [{
-                            data: "DT_RowIndex"
-                        },
-                        {
-                            data: "stdID",
-                            render: function(data, type, row) {
-                                return '<div class="fw-bold text-info">' + data + '</div>'
-                            }
-                        },
-                        {
-                            data: "stdFName",
-                            render: function(data, type, row) {
-                                return row.stdFName + ' ' + row.stdLName
-                            }
-                        },
-                        {
-                            data: "combination",
-                            render: function(data, type, row) {
-                                if (!(data == null)) {
-                                    return '<div class="fw-bold text-success">' + data + '</div>'
-                                } else {
-                                    return '<div></div>'
-                                }
-                            }
-                        },
-                        {
-                            data: "result_set",
-                            render:function(){
-                                return '<div class="text-uppercase">'+result+'</div>'
-                            }
-                        },
-                        {
-                            data: "class"
-                        },
-                        
-                        {
-                            data: "Mathematics",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Mathematics2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "History",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "History2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
+            $("#submit_btn").on('click', function(event) {
+                event.preventDefault();
 
-                        {
-                            data: "Economics",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Economics2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Agriculture",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Agriculture2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Luganda",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Luganda2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Luganda3",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Physics",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Physics2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Physics3",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Chemistry",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Chemistry2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Chemistry3",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Biology",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Biology2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Biology3",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Geography",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Geography2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Geography3",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Divinity",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Divinity2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Divinity3",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Literature",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Literature2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Literature3",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Entrepreneurship",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Entrepreneurship2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Entrepreneurship3",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Art",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Art2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Art3",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Art4",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "general_paper",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Submath",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Subict",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "Subict2",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return data;
-                                } else {
-                                    return ''
-                                }
-                            }
-                        },
-                        {
-                            data: "points",
-                            render: function(data, type, row) {
-                                if (!(data == 0)) {
-                                    return '<div class="text-primary fw-bold">' + data + '</div';
-                                } else {
-                                    return '<div class="text-danger fw-bold">' + data + '</div';
-                                }
-                            }
-                        }
-                    ],
-                    columnDefs: [{
-                            targets: [0],
-                            width: 'auto',
-                            className: 'dt-center'
-                        },
-                        {
-                            targets: [1],
-                            width: "200px",
-                            className: 'dt-center'
-                        }
-                    ]
-                })
-            }
+                //Display the results
+                $(".table_container").removeClass('d-none');
 
-            //Fetch records for the table        
-            $("#alevel-btn").on('click', function() {
-                var classname = $("#class").val()
-                var result = $("#resultset").val()
+                var classname = $("#class_name").val();
+                var tablename = $("#table_name").val();
+                var level = 'A Level';
+                var paper = 1;
+                //console.log("Class = " + classname + ", Table = " + tablename);
 
-                $("#result_print").val(result)
-                $("#class_print").val(classname)
+                //Add buffer variables
+                $("#class_name_buffer").val(classname);
+                $("#table_name_buffer").val(tablename);
+
+                //Empty the previous table first
+                $('tbody').empty();
 
                 $.ajax({
-                    type: 'post',
-                    url: '{{ route("marksheet.a.fetch") }}',
+                    type: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: "{{ route('marksheet') }}",
                     data: {
                         classname: classname,
-                        result: result
+                        tablename: tablename,
+                        level: level,
+                        paper: paper
                     },
-                    dataType: 'json',
                     success: function(response) {
-                        $("#alevel").DataTable().destroy()
-                        $(".marksheet").removeClass("d-none")
-                        datatable(response.result, response.class)
+                        if (response != 'empty') {
+                            var position = 0;
+                            $.each((response), function(k, v) {
+                                position += 1;
 
+                                //Convert into array
+                                var array_objects = Object.values(v);
+                                var tr = '';
+
+                                //Push the position
+                                array_objects.push(position);
+
+                                //Get points 
+                                var points_pos = (array_objects.length - 2);
+                                var class_pos = array_objects[1];
+                                //array_objects[points_pos] = '-';
+
+                                $.each(array_objects, function(key, value) {
+                                    //console.log(value);
+                                    var td = '<td>' + (((value) === null || value === 'NULL' || value === " ")?" ": value )+ '</td>';
+                                    tr += td;
+                                });
+
+                                //console.log("Response = " + response.data);
+
+                                $('tbody').append('<tr>\
+                                            ' + tr + '\
+                                        </tr>');
+
+                            });
+                        } else {
+                            $('tbody').append(
+                                '<tr><td class="text-danger fw-bold">Table Empty</td></tr>');
+                        }
+
+                    },
+                    error: function(error) {
+                        console.error(error);
                     }
-                })
+                });
+            });
+
+            //Print marksheet
+            $("#print_marksheet").on('click', function(e) {
+                e.preventDefault()
+                var classname = $("#class_name_buffer").val();
+                var tablename = $("#table_name_buffer").val();
+                var level = 'A Level';
+
+                $.ajax({
+                    type: "get",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: "/marksheet/marksheet-print/"+classname+"/"+tablename+"/"+level+"",
+                    data: {
+                        classname: classname,
+                        tablename: tablename,
+                        level:level
+                    },
+                    success: function(response) {
+                        //console.log(response);
+                        window.open("/marksheet/marksheet-print/"+classname+"/"+tablename+"/"+level+"",'_blank')
+                    },
+                    error: function(error) {
+                        console.error(error);
+                    }
+                });
             })
-
-            //Print Marksheet here
-            $("#download-btn").on('click',function(){
-                var result = $("#result_print").val()
-                var classname = $("#class_print").val()
-
-                $("#marksheet").attr('href','/marksheet-pdf')
-                window.open(($("#marksheet").attr('href')+'/'+result+'/'+classname), '_blank')
-            })
-
-        })
+        });
     </script>
-@endsection
+@endpush

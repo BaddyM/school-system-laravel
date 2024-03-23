@@ -16,6 +16,7 @@ class CreateStdClassTable extends Migration
         Schema::create('std_class', function (Blueprint $table) {
             $table->id();
             $table->string('class');
+            $table->string('level');
             $table->timestamps();
         });
     }

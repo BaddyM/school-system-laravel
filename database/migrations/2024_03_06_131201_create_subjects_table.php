@@ -17,7 +17,7 @@ class CreateSubjectsTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('level')->nullable(true);
-            $table->tinyInteger('papers');
+            $table->tinyInteger('paper')->default(1);
             $table->timestamps();
         });
     }
