@@ -135,10 +135,10 @@
                             <a href="{{ route('olevel.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i> Results (O'Level)</a>
                         </li>
                         <li class="nav-item" title="Reports">
-                            <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> V.D Reports</a>
+                            <a href="{{ route('reports.alevel') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Reports (A'Level)</a>
                         </li>
                         <li class="nav-item" title="Reports">
-                            <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> E.O.T Reports</a>
+                            <a href="{{ route('reports.olevel') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Reports (O'Level)</a>
                         </li>
                     </div>
                 </div>{{-- Student Results --}}

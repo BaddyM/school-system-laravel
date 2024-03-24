@@ -106,7 +106,7 @@ class MarksheetController extends Controller
                 level = '" . $level . "'
         ");
 
-        info($subjects);
+        //info($subjects);
 
         //Deal with the subjects here
         if ($level == 'O Level') {
@@ -152,6 +152,8 @@ class MarksheetController extends Controller
                     student.std_id = " . $table . ".std_id
                 WHERE
                     " . $table . ".class = '" . $class . "'
+                AND
+                    status = 'continuing'
                 ORDER BY
                     total DESC
             ");
@@ -162,7 +164,8 @@ class MarksheetController extends Controller
                             SELECT 
                                 DISTINCT name,
                                 GROUP_CONCAT(paper) as papers,
-                                level 
+                                GROUP_CONCAT(paper) as paper_group,
+                                GROUP_CONCAT(DISTINCT level) 
                             FROM
                                 subjects
                             WHERE
@@ -170,6 +173,8 @@ class MarksheetController extends Controller
                             GROUP BY
                                 name
                         ");
+        
+            //info($subject_points);
 
             //Replace papers with paper_number
             foreach ($subject_points as $point) {
@@ -181,46 +186,61 @@ class MarksheetController extends Controller
                 foreach ($subject_points  as $subject_p) {
                     $paper_name = $subject_p->name;
                     //Two Paper grade
-                    if ($subject_p->papers == 2) {
-                        $p1 = $paper_name . "_1";
-                        $p2 = $paper_name . "_2";
+                    if ($subject_p->papers == 2 && $subject_p->name != 'SubICT') {
+                        $two_papers = explode(',', $subject_p->paper_group);
+                        $p1 = $paper_name . "_" . $two_papers[0];
+                        $p2 = $paper_name . "_" . $two_papers[1];
 
                         //Check nullability
                         if ($d->$p1 != null || $d->$p2 != null) {
                             $grade = $this->two_papers($d->$p1, $d->$p2);
                             $points_collector += $grade;
                         }
-
-                        //info("Name = " . $d->name . ", $paper_name = " . $d->$p1 . " " . $d->$p2 . ", Grade = " . $grade);
-
                     } elseif ($subject_p->papers == 3) {
                         //Three paper grade
-                        $p1 = $paper_name . "_1";
-                        $p2 = $paper_name . "_2";
-                        $p3 = $paper_name . "_3";
+                        $three_papers = explode(',', $subject_p->paper_group);
+                        $p1 = $paper_name . "_" . $three_papers[0];
+                        $p2 = $paper_name . "_" . $three_papers[1];
+                        $p3 = $paper_name . "_" . $three_papers[2];
 
                         //Check nullability
                         if ($d->$p1 != null || $d->$p2 != null || $d->$p3 != null) {
                             $grade = $this->three_papers($d->$p1, $d->$p2, $d->$p3);
                             $points_collector += $grade;
                         }
-
-                        info("Name = " . $d->name . ", $paper_name = " . $d->$p1 . " " . $d->$p2 . ", Grade = " . $grade);
                     } elseif ($subject_p->papers == 4) {
                         //Four paper grade
-                        info("Papers = " . $subject_p->papers);
-                        $p1 = $paper_name . "_1";
-                        $p2 = $paper_name . "_2";
-                        $p3 = $paper_name . "_3";
-                        $p4 = $paper_name . "_4";
+                        $four_papers = explode(',', $subject_p->paper_group);
+
+                        $p1 = $paper_name . "_" . $four_papers[0];
+                        $p2 = $paper_name . "_" . $four_papers[1];
+                        $p3 = $paper_name . "_" . $four_papers[2];
+                        $p4 = $paper_name . "_" . $four_papers[3];
 
                         //Check nullability
                         if ($d->$p1 != null || $d->$p2 != null || $d->$p3 != null || $d->$p4 != null) {
                             $grade = $this->four_papers($d->$p1, $d->$p2, $d->$p3, $d->$p4);
                             $points_collector += $grade;
                         }
+                    } elseif ($subject_p->name == 'SubICT') {
+                        //SubICT paper grade
+                        $p1 = $paper_name . "_1";
+                        $p2 = $paper_name . "_2";
 
-                        info("Name = " . $d->name . ", $paper_name = " . $d->$p1 . " " . $d->$p2 . " " . $d->$p3 . " " . $d->$p4 . ", Grade = " . $grade);
+                        //Check nullability
+                        if ($d->$p1 != null || $d->$p2 != null) {
+                            $grade = $this->sub_ict($d->$p1, $d->$p2);
+                            $points_collector += $grade;
+                        }
+                    } else {
+                        //One paper grade
+                        $p1 = $paper_name . "_1";
+
+                        //Check nullability
+                        if ($d->$p1 != null) {
+                            $grade = $this->one_paper($d->$p1);
+                            $points_collector += $grade;
+                        }
                     }
                 }
 
@@ -289,7 +309,7 @@ class MarksheetController extends Controller
         //Student data here
         $data = DB::select("
                 SELECT
-                    concat_ws(' ',student.fname, student.mname, student.lname) as name,
+                    concat_ws(' ',student.lname, student.mname, student.fname) as name,
                     student.class,
                     " . $subjects_list . ",
                     (" . $subjects_list_sum . ")as total                    
@@ -301,6 +321,8 @@ class MarksheetController extends Controller
                     student.std_id = " . $table . ".std_id
                 WHERE
                     " . $table . ".class = '" . $class . "'
+                AND
+                    status = 'continuing'
                 ORDER BY
                     total DESC
             ");
@@ -311,7 +333,8 @@ class MarksheetController extends Controller
                             SELECT 
                                 DISTINCT name,
                                 GROUP_CONCAT(paper) as papers,
-                                level 
+                                GROUP_CONCAT(paper) as paper_group,
+                                GROUP_CONCAT(DISTINCT level) 
                             FROM
                                 subjects
                             WHERE
@@ -330,38 +353,36 @@ class MarksheetController extends Controller
                 foreach ($subject_points  as $subject_p) {
                     $paper_name = $subject_p->name;
                     //Two Paper grade
-                    if ($subject_p->papers == 2) {
-                        $p1 = $paper_name . "_1";
-                        $p2 = $paper_name . "_2";
+                    if ($subject_p->papers == 2 && $subject_p->name != 'SubICT') {
+                        $two_papers = explode(',', $subject_p->paper_group);
+                        $p1 = $paper_name . "_" . $two_papers[0];
+                        $p2 = $paper_name . "_" . $two_papers[1];
 
                         //Check nullability
                         if ($d->$p1 != null || $d->$p2 != null) {
                             $grade = $this->two_papers($d->$p1, $d->$p2);
                             $points_collector += $grade;
                         }
-
-                        //info("Name = " . $d->name . ", $paper_name = " . $d->$p1 . " " . $d->$p2 . ", Grade = " . $grade);
-
                     } elseif ($subject_p->papers == 3) {
                         //Three paper grade
-                        $p1 = $paper_name . "_1";
-                        $p2 = $paper_name . "_2";
-                        $p3 = $paper_name . "_3";
+                        $three_papers = explode(',', $subject_p->paper_group);
+                        $p1 = $paper_name . "_" . $three_papers[0];
+                        $p2 = $paper_name . "_" . $three_papers[1];
+                        $p3 = $paper_name . "_" . $three_papers[2];
 
                         //Check nullability
                         if ($d->$p1 != null || $d->$p2 != null || $d->$p3 != null) {
                             $grade = $this->three_papers($d->$p1, $d->$p2, $d->$p3);
                             $points_collector += $grade;
                         }
-
-                        info("Name = " . $d->name . ", $paper_name = " . $d->$p1 . " " . $d->$p2 . ", Grade = " . $grade);
                     } elseif ($subject_p->papers == 4) {
                         //Four paper grade
-                        info("Papers = " . $subject_p->papers);
-                        $p1 = $paper_name . "_1";
-                        $p2 = $paper_name . "_2";
-                        $p3 = $paper_name . "_3";
-                        $p4 = $paper_name . "_4";
+                        $four_papers = explode(',', $subject_p->paper_group);
+
+                        $p1 = $paper_name . "_" . $four_papers[0];
+                        $p2 = $paper_name . "_" . $four_papers[1];
+                        $p3 = $paper_name . "_" . $four_papers[2];
+                        $p4 = $paper_name . "_" . $four_papers[3];
 
                         //Check nullability
                         if ($d->$p1 != null || $d->$p2 != null || $d->$p3 != null || $d->$p4 != null) {
@@ -369,18 +390,38 @@ class MarksheetController extends Controller
                             $points_collector += $grade;
                         }
 
-                        info("Name = " . $d->name . ", $paper_name = " . $d->$p1 . " " . $d->$p2 . " " . $d->$p3 . " " . $d->$p4 . ", Grade = " . $grade);
+                    } elseif ($subject_p->name == 'SubICT') {
+                        //SubICT paper grade
+                        $p1 = $paper_name . "_1";
+                        $p2 = $paper_name . "_2";
+
+                        //Check nullability
+                        if ($d->$p1 != null || $d->$p2 != null) {
+                            $grade = $this->sub_ict($d->$p1, $d->$p2);
+                            $points_collector += $grade;
+                        }
+                    } else {
+                        //One paper grade
+                        $p1 = $paper_name . "_1";
+
+                        //Check nullability
+                        if ($d->$p1 != null) {
+                            $grade = $this->one_paper($d->$p1);
+                            $points_collector += $grade;
+                        }
                     }
                 }
 
                 $d->total = $points_collector;
             }
-        }else{
+        } else {
             foreach ($data as $d) {
-                if($d->class == 'Senior 1' || $d->class == 'Senior 2'){
-                    $d->total = round((($d->total)/12),1);
-                }else{
-                    $d->total = round((($d->total)/9),1);
+                if ($d->class == 'Senior 1'){
+                    $d->total = round((($d->total) / 14), 1);
+                }elseif($d->class == 'Senior 2') {
+                    $d->total = round((($d->total) / 11), 1);
+                } else {
+                    $d->total = round((($d->total) / 9), 1);
                 }
             }
         }
@@ -432,7 +473,7 @@ class MarksheetController extends Controller
                         <th scope="col">Class</th>';
 
         foreach ($subjects as $subjects) {
-            $html .= '       <th scope="col">' . $subjects->name . ' ' . (($level == 'A Level')?$subjects->paper:''). '</th>';
+            $html .= '       <th scope="col">' .(($level == 'A Level')?substr(($subjects->name),0,3):$subjects->name). ' ' . (($level == 'A Level') ? $subjects->paper : '') . '</th>';
         }
 
         $html .=     '<th scope="col">' . (($level == 'O Level') ? 'Identifier' : 'Points') . '</th>
@@ -607,10 +648,38 @@ class MarksheetController extends Controller
 
         ) {
             $grade = 0;
+        }else{
+            $grade = 0;
         }
 
         return $grade;
     }
+
+    function sub_ict($p1, $p2)
+    {
+        $avg = (($p1 + $p2) / 2);
+
+        if ($avg >= 50) {
+            $grade = 1;
+        } else {
+            $grade = 0;
+        }
+        return $grade;
+    }
+
+    function one_paper($p1)
+    {
+        if ($p1 >= 50) {
+            $grade = 1;
+        } else {
+            $grade = 0;
+        }
+        return $grade;
+    }
+
+
+
+
 
     /*------------------------------ OLD CODE ---------------------------------*/
     public function fetchdata(Request $request)
@@ -1283,7 +1352,7 @@ class MarksheetController extends Controller
 
     public function print_olevel_marksheet($class, $result_set)
     {
-        info("Class = " . $class . ", REsult_set = " . $result_set);
+        //info("Class = " . $class . ", REsult_set = " . $result_set);
 
         $head = [
             "Mathematics",

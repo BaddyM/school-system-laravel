@@ -43,7 +43,9 @@
                             id="school_badge" required>
                     </div>
 
-                    <button class="submit-btn mt-3" id="save_school_btn" type="submit">Save</button>
+                    <small class="text-danger fst-italic fw-bold">Image should be of small size</small><br>
+
+                    <button class="submit-btn-disabled mt-3" id="save_school_btn" type="submit" disabled>Save</button>
                 </form>
             </div>
 
@@ -96,8 +98,14 @@
     <script src="{{ asset('js/jquery.min.js') }}"></script>
     <script>
         $(document).ready(function() {
+            //Enable the submit button
+            $("#school_badge").on('change',function(){
+                $("#save_school_btn").removeClass('submit-btn-disabled').addClass('submit-btn').prop('disabled',false);
+            })
+
             $("#save_school").on('submit', function(e) {
                 e.preventDefault();
+                $("#save_school_btn").addClass('submit-btn-disabled').removeClass('submit-btn').prop('disabled',true);
                 $.ajax({
                     type: "POST",
                     headers: {
@@ -127,6 +135,8 @@
                             $("#school_badge_buffer").attr('src', '/school_badge/' + data[0]
                                 .school_badge + '');
                         }
+
+                        location.reload();
                     },
                     error: function(error) {
                         alert('Failed to Save school details');

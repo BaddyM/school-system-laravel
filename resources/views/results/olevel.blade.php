@@ -168,6 +168,7 @@
             //Save student marks
             $("#save_student").on('click', function(e) {
                 e.preventDefault();
+                $(this).addClass('submit-btn-disabled').removeClass('submit-btn').prop('disabled',true);
                 var marks = [];
                 var subject = $("#subject_buffer").val();
                 var classname = $("#classname_buffer").val();
@@ -202,6 +203,7 @@
                         level: level
                     },
                     success: function(data) {
+                        $("#save_student").removeClass('submit-btn-disabled').addClass('submit-btn').prop('disabled',false);
                         alert(data);
                         location.reload();
                     },
@@ -209,8 +211,6 @@
                         alert('Failed to Save Subject details');
                     }
                 });
-
-                //console.log(marks);
             })
 
         });

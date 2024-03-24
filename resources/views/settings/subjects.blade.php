@@ -16,7 +16,7 @@
         <div class="row justify-content-between">
             <div class="col-md-4">
                 <p class="fw-bold text-uppercase text-center h5">Add Subjects</p>
-                <form action="" method="post" id="add_subject_form">
+                <form action="" method="post" id="add_subject_form" class="my-4 shadow-lg p-4 rounded-3">
                     <div>
                         <label for="" class="form-label fw-bold">Subject Name</label>
                         <input type="text" class="form-control rounded-0" name="subject_name" id="subject-name">
@@ -33,6 +33,22 @@
                             <option value="O Level">O Level</option>
                             <option value="A Level">A Level</option>
                         </select>
+                    </div>
+
+                    <p class="fw-bold text-uppercase text-center h5">Select Subsidiraries</p>
+                    <div class="mb-4">
+                        @php
+                            $subs = array('SubICT', 'SubMath', 'GeneralPaper');
+                        @endphp
+
+                        @foreach ($subs as $sub)
+                            <div class="d-flex align-items-center mb-2" style="gap:10px;">
+                                <input type="checkbox" name="{{ $sub }}" value="{{ $sub }}" id=""
+                                    class="form-check-input p-2 rounded-0">
+                                <p class="m-0 h6">{{ $sub }}</p>
+                            </div>
+                        @endforeach
+
                     </div>
 
                     <button class="submit-btn-disabled" id="add-subject-btn" disabled>ADD</button>
@@ -120,8 +136,9 @@
     <script>
         $(document).ready(function() {
             //Activate the submit btn
-            $("#subject-name").on('change',function(){
-                $("#add-subject-btn").removeClass('submit-btn-disabled').addClass('submit-btn').prop('disabled',false);
+            $("#subject-name").on('change', function() {
+                $("#add-subject-btn").removeClass('submit-btn-disabled').addClass('submit-btn').prop(
+                    'disabled', false);
             })
 
             //Delete Subject
@@ -135,7 +152,7 @@
                     },
                     url: "{{ route('setting.subjects.delete') }}",
                     data: {
-                        id:id
+                        id: id
                     },
                     success: function(data) {
                         alert(data);

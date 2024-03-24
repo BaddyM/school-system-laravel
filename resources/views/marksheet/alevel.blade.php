@@ -53,14 +53,18 @@
                             <th scope="col">Name</th>
                             <th scope="col">Class</th>
                             @foreach ($subjects as $subjects)
-                                <th scope="col">{{ $subjects->name }} {{ $subjects->paper }}</th>
+                                @if ($subjects->name == 'SubICT' || $subjects->name == 'GeneralPaper' || $subjects->name == 'SubMath')
+                                    <th scope="col">{{ substr($subjects->name, 0, 8) }} {{ $subjects->paper }}</th>
+                                @else
+                                <th scope="col">{{ substr($subjects->name, 0, 3) }} {{ $subjects->paper }}</th>
+                                @endif
                             @endforeach
                             <th scope="col">Points</th>
                             <th scope="col">Position</th>
                         </tr>
                     </thead>
                     <tbody>
-    
+
                     </tbody>
                 </table>
             </div>
@@ -125,20 +129,21 @@
 
                                 $.each(array_objects, function(key, value) {
                                     //console.log(value);
-                                    var td = '<td>' + (((value) === null || value === 'NULL' || value === " ")?" ": value )+ '</td>';
+                                    var td = '<td>' + (((value) === null ||
+                                        value === 'NULL' || value ===
+                                        " ") ? " " : value) + '</td>';
                                     tr += td;
                                 });
 
                                 //console.log("Response = " + response.data);
 
                                 $('tbody').append('<tr>\
-                                            ' + tr + '\
-                                        </tr>');
+                                                ' + tr + '\
+                                            </tr>');
 
                             });
                         } else {
-                            $('tbody').append(
-                                '<tr><td class="text-danger fw-bold">Table Empty</td></tr>');
+                            $('tbody').append('<tr><td colspan="25" class="text-center text-danger fw-bold">Table Empty</td></tr>');
                         }
 
                     },
@@ -160,15 +165,17 @@
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
-                    url: "/marksheet/marksheet-print/"+classname+"/"+tablename+"/"+level+"",
+                    url: "/marksheet/marksheet-print/" + classname + "/" + tablename + "/" + level +
+                        "",
                     data: {
                         classname: classname,
                         tablename: tablename,
-                        level:level
+                        level: level
                     },
                     success: function(response) {
                         //console.log(response);
-                        window.open("/marksheet/marksheet-print/"+classname+"/"+tablename+"/"+level+"",'_blank')
+                        window.open("/marksheet/marksheet-print/" + classname + "/" +
+                            tablename + "/" + level + "", '_blank')
                     },
                     error: function(error) {
                         console.error(error);

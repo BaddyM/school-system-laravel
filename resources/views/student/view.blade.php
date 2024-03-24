@@ -56,8 +56,8 @@
                 <thead>
                     <tr style="background: rgb(82, 82, 254); color:white;" class="bg-gradient">
                         <th scope="col">ID</th>
-                        <th scope="col">First Name</th>
                         <th scope="col">Last Name</th>
+                        <th scope="col">First Name</th>
                         <th scope="col">Class</th>
                         <th scope="col">Stream</th>
                         <th scope="col">Image</th>
@@ -116,13 +116,13 @@
                             data: 'DT_RowIndex'
                         },
                         {
-                            data: 'fname',
+                            data: 'lname',
                             render:(data, type, row)=>{
                                 return '<div class="text-uppercase">'+data+'</div>';
                             }
                         },
                         {
-                            data: 'lname',
+                            data: 'fname',
                             render:(data, type, row)=>{
                                 var lname;
                                 if(row.mname == null || row.mname == 'NULL' || row.mname == ''){

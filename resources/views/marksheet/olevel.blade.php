@@ -150,8 +150,7 @@
 
                             });
                         } else {
-                            $('tbody').append(
-                                '<tr><td class="text-danger fw-bold">Table Empty</td></tr>');
+                            $('tbody').append('<tr><td colspan="25" class="text-center text-danger fw-bold">Table Empty</td></tr>');
                         }
 
                     },
