@@ -63,7 +63,11 @@
                 </div>
             </div>
 
-            <button class="submit-btn mt-3" id="show_table">submit</button>
+            <div class="row justify-content-between">
+                <button class="submit-btn mt-3 col-md-1" id="show_table">submit</button>
+                <button class="submit-btn mt-3 col-md-1 d-none" id="print_marklist">print</button>
+            </div>
+
         </form>
 
         <div class="mt-3 d-none" id="table_container">
@@ -111,6 +115,9 @@
                 e.preventDefault();
                 //Show the table container
                 $("#table_container").removeClass('d-none');
+
+                //Show the print button
+                $("#print_marklist").removeClass('d-none');
 
                 var classname = $("#classname").val();
                 var subject = $("#subject").val();
@@ -227,9 +234,27 @@
                         alert('Failed to Save Subject details');
                     }
                 });
+            });
 
-                //console.log(marks);
-            })
+            //Print Marklist
+            $("#print_marklist").on('click',function(e){
+                e.preventDefault();
+                var subject = $("#subject_buffer").val();
+                var classname = $("#classname_buffer").val();
+                var paper = $("#paper_num_buffer").val();
+                $.ajax({
+                    type: "GET",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(data) {
+                        window.open('/Results/marklist_print/'+classname+'/'+paper+'/'+subject+'','_blank');
+                    },
+                    error: function(error) {
+                        alert('Failed to Print Marklist');
+                    }
+                });
+            });
 
         });
     </script>

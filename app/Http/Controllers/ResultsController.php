@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\Request;
@@ -117,6 +118,7 @@ class ResultsController extends Controller
                         student.class = '" . $classname . "'
                     AND
                         student.status = 'continuing'
+                    ORDER BY lname ASC
                 ");
         //info($data);
 
@@ -171,6 +173,93 @@ class ResultsController extends Controller
             }
         }
         return response($response);
+    }
+
+    public function print_marklist($class, $paper, $subject)
+    {
+        $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
+        $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+
+        //info("Paper = ".$paper);
+
+        $data = DB::select("
+                SELECT
+                    student.std_id,
+                    student.fname,
+                    student.mname,
+                    student.lname
+                FROM
+                    student
+                WHERE
+                    student.class = '" . $class . "'
+                AND
+                    student.status = 'continuing'
+                ORDER BY lname ASC
+            ");
+
+        $html = '
+        <style>
+            .container{
+                margin-top:-1.2cm;
+            }
+
+            .title{
+                text-align:center;
+                font-weight:bold;
+                font-size:20px;
+                text-transform:uppercase;
+                text-decoration:underline;
+            }
+
+            table{
+                width:100%;
+            }
+
+            table, th, td {
+                border: 1px solid black;
+                border-collapse: collapse;
+            }
+
+            thead tr{
+                background:black;
+                color:white;
+            }
+            th,td{
+                padding:5px;
+            }
+        </style>
+            <div class="container">
+                <p class="title">' . $class . ' ' . $subject . ' ' . (($class == 'Senior 6' || $class == 'Senior 5') ? $paper : '') . ' List Term ' . $term . ' ' . $year . '</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student Name</th>
+                            <th>Mark</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+
+        $counter = 0;
+        foreach ($data as $d) {
+            $counter += 1;
+            $html .= '
+            <tr>
+                <td style="text-align:center;">' . $counter . '</td>
+                <td>' . $d->lname . ' ' . (($d->lname == null || $d->mname == 'NULL' || $d->mname == '') ? '' : $d->mname) . ' ' . $d->fname . '</td>
+                <td></td>
+            </tr>
+        ';
+        }
+
+        $html .= '   </tbody>
+                </table>
+            </div>
+        ';
+
+        $pdf = Pdf::loadHTML($html)->setOption('a4', 'portrait');
+        return $pdf->stream('' . $class . '_ClassList');
     }
 
     public function enter_results_olevel(Request $req)
@@ -290,29 +379,25 @@ class ResultsController extends Controller
         return $data;
     }
 
+    //Teacher initials
+    function initials($subject, $class)
+    {
+        return DB::table('initials')->select('initials')->where(['subject' => $subject, 'class' => $class])->value('initials');
+    }
+
     public function oreports_print($table, $term, $year, $std_ids)
     {
-        //$std_ids = implode(',',($std_id));
         $tables = array();
-        array_push($tables, $table);
+        $table_collect = explode(',', $table);
 
-        //info('Std_ids = ' . $std_ids);
+        //Deal with the tables here
+        foreach ($table_collect as $t) {
+            array_push($tables, $t);
+        }
 
         $class = DB::table('student')->select('class')->whereIn('std_id', explode(',', $std_ids))->first();
-        //info("Class = ".$class->class);
 
-        //Check count of the tables
-        if (count($tables) > 1) {
-            //Multiple tables
-
-
-        } else {
-            //One table
-            $school = DB::table('school_details')->select('*')->where('id', 1)->first();
-
-            //info(json_encode($school));
-
-            $data = DB::select("
+        $data = DB::select("
                 SELECT 
                     *
                 FROM
@@ -323,17 +408,7 @@ class ResultsController extends Controller
                     (" . $std_ids . ")
             ");
 
-            $marks = DB::select("
-                SELECT
-                    *
-                FROM
-                    " . $tables[0] . "
-                WHERE
-                    std_id
-                IN
-                    (" . $std_ids . ")
-            ");
-        }
+        $school = DB::table('school_details')->select('*')->where('id', 1)->first();
 
         $subjects = DB::select("
                 SELECT
@@ -362,8 +437,9 @@ class ResultsController extends Controller
                 }
 
                 .container{
-                    margin-top:-1.3cm;
-                    margin-left:-0.7cm;
+                    margin-top:-0.5cm;
+                    margin-left:-0.5cm;
+                    margin-right:-0.5cm;
                 }
 
                 .school_address, .school_motto, .school_contact{
@@ -379,8 +455,9 @@ class ResultsController extends Controller
                 }
 
                 .school_badge{
-                    margin-top:1.3cm;
+                    margin-top:cm;
                     margin-left:-0.3cm;
+                    position:absolute;
                 }
 
                 .school_badge, .student_pic{
@@ -397,6 +474,7 @@ class ResultsController extends Controller
                     margin-top:-3.3cm;
                     margin-left:-0.3cm;
                     border-radius:100px;
+                    position:absolute;
                 }
 
                 table, th, td {
@@ -430,7 +508,7 @@ class ResultsController extends Controller
                 }
 
                 .average_row td{
-                    padding:10px;
+                    padding:5px;
                 }
 
                 .key td{
@@ -438,9 +516,44 @@ class ResultsController extends Controller
                     padding:3px;
                 }
 
+                .result_row td{
+                    font-size:14px;
+                }
+                .table_header{
+                    margin-bottom:0.7cm;
+                }
+                .table_header, .table_header tr td{
+                    text-align:center;
+                    border:none;
+                }
+
+                .header_title{
+                    font-size:25px;
+                    font-weight:bolder; 
+                    text-transform:uppercase;
+                }
+
+                .signature{
+                    width:100px;
+                }
+
             </style>';
 
-        //info($marks);
+        //Student Results
+        //Check table numbers
+        $table_counter = count($tables);
+
+        try {
+            $signature_hm = DB::table('signature')->select('signature')->where('signatory', 'head-teacher')->value('signature');
+        } catch (Exception $e) {
+            $signature_hm = 'empty';
+        }
+
+        try {
+            $signature_dos = DB::table('signature')->select('signature')->where('signatory', 'dos')->value('signature');
+        } catch (Exception $e) {
+            $signature_dos = 'empty';
+        }
 
         foreach ($data as $d) {
             //School Badge Here
@@ -451,12 +564,16 @@ class ResultsController extends Controller
                         <img class="school_badge" src="' . public_path('/') . 'school_badge/' . $school->school_badge . '">
                     </div>
                     
-                    <div class="school_details">
-                        <p class="school_name">' . $school->school_name . '</p>
-                        <p class="school_address">' . $school->address . '</p>
-                        <p class="school_contact">' . $school->contact . '</p>
-                        <p class="school_motto">"' . $school->motto . '"</p>
-                    </div>';
+                    <table class="table_header" style="width:100%;">
+                        <tbody>
+                            <tr rowspan=4><td class="header_title">' . $school->school_name . '</td></tr>
+                            <tr><td>' . $school->address . '</td></tr>
+                            <tr><td>' . $school->contact . '</td></tr>
+                            <tr><td class="school_motto">"' . $school->motto . '"</td></tr>
+                        </tbody>
+                    </table>
+                    
+                    ';
 
             //Student Image Section here
             if ($d->image == null || $d->image == 'NULL' || $d->image == '') {
@@ -479,7 +596,7 @@ class ResultsController extends Controller
                     </div>';
                     */
 
-                    $html .= '
+                $html .= '
                         <div>
                             <img class="student_pic" src="' . public_path('/') . 'images/static/male.jpg">
                         </div>';
@@ -568,59 +685,130 @@ class ResultsController extends Controller
 
             //Deal with the Results
             $total = array();
-            foreach ($subjects as $subject) {
-                foreach ($marks as $mark) {
-                    $subject_name = $subject->name . "_1";
-                    if ($mark->std_id == $d->std_id && floatval(($mark->$subject_name) >= 0.1)) {
-                        $result_sets = count($tables);
+            if (count($tables) > 1) {
+                //MULTIPLE TABLE RESULTS              
+                foreach ($subjects as $subject) {
+                    $avg = array();
+                    if ($table_counter > 1) {
+                        for ($i = 0; $i < $table_counter; $i++) {
+                            $mark = DB::table('' . $tables[$i] . '')->select('' . $subject->name . '_1')->where('std_id', $d->std_id)->value('' . $subject->name . '_1');
+                            array_push($avg, $mark);
 
-                        //Marks Row here
-                        $html .= '
-                        <tr>
-                            <td style="font-size:12px; padding:5px;">' . $subject->name . '</td>';
-
-                        //Calculate Average for all results
-                        if ($result_sets == 1) {
-                            //Single result set
-                            $std_mark = $mark->$subject_name;
-                            //Grade
-                            if ($std_mark >= 2.5 && $std_mark <= 3) {
-                                $identifier = 3;
-                                $desc = 'OUTSTANDING';
-                            } elseif ($std_mark >= 1.5 && $std_mark <= 2.4) {
-                                $identifier = 2;
-                                $desc = 'MODERATE';
-                            } elseif ($std_mark > 0 && $std_mark <= 1.4) {
-                                $identifier = 1;
-                                $desc = 'BASIC';
-                            } else {
-                                $identifier = '';
-                                $desc = '';
+                            if ($i == 0 && $mark > 0) {
+                                //OPENING ROW TAG
+                                $html .= '<tr class="result_row">';
+                                $html .= '<td style="padding:5px;">' . $subject->name . '</td>';
                             }
 
-                            $html .= '
-                            <td style="font-size:12px; padding:5px; text-align:center;">' . $mark->$subject_name . '</td>
-                            <td style="font-size:12px; padding:5px; text-align:center;">' . $mark->$subject_name . '</td>
-                            <td style="font-size:12px; padding:5px; text-align:center;">' . $identifier . '</td>
-                            <td style="font-size:12px; padding:5px; text-align:center;">' . $desc . '</td>
-                            <td style="font-size:12px; padding:5px; text-align:center;">    </td>
-                        </tr>';
-                        } else {
-                            //Multiple Result Set
+                            if ($mark > 0) {
+                                $html .= '<td style="text-align:center;">' . $mark . '</td>';
+                            }
                         }
-                        //Push to the total
-                        array_push($total, $mark->$subject_name);
+                    }
+
+                    if (array_sum($avg) > 0) {
+                        $average = round((array_sum($avg) / count($avg)), 1);
+                        //Push the average
+                        array_push($total, $average);
+
+                        if ($average >= 2.5 && $average <= 3) {
+                            $identifier = 3;
+                            $desc = 'OUTSTANDING';
+                        } elseif ($average >= 1.5 && $average <= 2.4) {
+                            $identifier = 2;
+                            $desc = 'MODERATE';
+                        } elseif ($average > 0 && $average <= 1.4) {
+                            $identifier = 1;
+                            $desc = 'BASIC';
+                        } else {
+                            $identifier = '';
+                            $desc = '';
+                        }
+
+                        //Average
+                        $html .= '<td style="text-align:center;">' . $average . '</td>';
+
+                        //Identifier
+                        $html .= '<td style="text-align:center;">' . $identifier . '</td>';
+
+                        //Descriptor
+                        $html .= '<td style="text-align:center;">' . $desc . '</td>';
+
+                        //Teacher Initials
+                        $html .= '<td style="text-align:center;">' . $this->initials($subject->name, $d->class) . '</td>';
+                    }
+
+                    //CLOSING ROW TAG
+                    $html .= '</tr>';
+                }
+            } else {
+                //ONE TABLE RESULTS
+                $marks = DB::select("
+                        SELECT
+                            *
+                        FROM
+                            " . $tables[0] . "
+                        WHERE
+                            std_id
+                        IN
+                            (" . $std_ids . ")
+                    ");
+
+                foreach ($subjects as $subject) {
+                    foreach ($marks as $mark) {
+                        $subject_name = $subject->name . "_1";
+                        if ($mark->std_id == $d->std_id && floatval(($mark->$subject_name) >= 0.1)) {
+                            $result_sets = count($tables);
+
+                            //Marks Row here
+                            $html .= '
+                            <tr class="result_row">
+                                <td style="padding:5px;">' . $subject->name . '</td>';
+
+                            //Calculate Average for all results
+                            if ($result_sets == 1) {
+                                //Single result set
+                                $std_mark = $mark->$subject_name;
+                                //Grade
+                                if ($std_mark >= 2.5 && $std_mark <= 3) {
+                                    $identifier = 3;
+                                    $desc = 'OUTSTANDING';
+                                } elseif ($std_mark >= 1.5 && $std_mark <= 2.4) {
+                                    $identifier = 2;
+                                    $desc = 'MODERATE';
+                                } elseif ($std_mark > 0 && $std_mark <= 1.4) {
+                                    $identifier = 1;
+                                    $desc = 'BASIC';
+                                } else {
+                                    $identifier = '';
+                                    $desc = '';
+                                }
+
+                                $html .= '
+                                <td style="font-size:12px; padding:5px; text-align:center;">' . $mark->$subject_name . '</td>
+                                <td style="font-size:12px; padding:5px; text-align:center;">' . $mark->$subject_name . '</td>
+                                <td style="font-size:12px; padding:5px; text-align:center;">' . $identifier . '</td>
+                                <td style="font-size:12px; padding:5px; text-align:center;">' . $desc . '</td>
+                                <td style="font-size:12px; padding:5px; text-align:center;">' . $this->initials($subject->name, $d->class) . '</td>
+                            </tr>';
+                            }
+                            //Push to the total
+                            array_push($total, $mark->$subject_name);
+                        }
                     }
                 }
             }
 
+            //Close the Results Table here
+            $html .= '</tbody>   
+            </table>';
+
             //Deal with the Average row
             $sum = array_sum($total);
 
-            if ($d->class == 'Senior 1'){
+            if ($d->class == 'Senior 1') {
                 $avg = $sum / 14;
-            }
-            elseif($d->class == 'Senior 2') {
+            } elseif ($d->class == 'Senior 2') {
                 $avg = $sum / 11;
             } else {
                 $avg = $sum / 9;
@@ -640,20 +828,24 @@ class ResultsController extends Controller
                 $desc = '';
             }
 
+            //Average table
             $html .= '
-                <tr class="average_row" style="background:black; color:white;">
-                    <td style="font-weight:bold; text-transform:uppercase; text-align:center;">Average</td>
-                    <td style="font-weight:bold; text-transform:uppercase; text-align:center;">' . round($avg, 1) . '</td>
-                    <td style="font-weight:bold; text-transform:uppercase; text-align:center;"></td>
-                    <td style="font-weight:bold; text-transform:uppercase; text-align:center;"></td>
-                    <td style="font-weight:bold; text-transform:uppercase; text-align:center;">' . $desc . '</td>
-                    <td style="font-weight:bold; text-transform:uppercase; text-align:center;"></td>
-                </tr>';
+            <table style="width:100%;">
+                <tbody>
+                    <tr class="average_row" style="background:black; color:white;">
+                        <td style="font-weight:bold; text-transform:uppercase; text-align:center;">Average</td>
+                        <td style="font-weight:bold; text-transform:uppercase; text-align:center;">' . round($avg, 1) . '</td>
+                        <td style="font-weight:bold; text-transform:uppercase; text-align:center;"></td>
+                        <td style="font-weight:bold; text-transform:uppercase; text-align:center;"></td>
+                        <td style="font-weight:bold; text-transform:uppercase; text-align:center;">' . $desc . '</td>
+                        <td style="font-weight:bold; text-transform:uppercase; text-align:center;"></td>
+                    </tr>
+                </tbody>
+            </table>    
+            ';
 
+            //Key
             $html .= '
-                        </tbody>   
-                    </table>
-
                     <table class="key" style="width:70%;">
                         <thead>
                             <tr>
@@ -683,33 +875,43 @@ class ResultsController extends Controller
                         </tbody>
                     </table>';
 
-                    
-                    $html .='
 
-                    <table style="width:50%;">
+            //Remarks
+            $html .= '
+
+                    <table style="width:100%;">
                         <thead>
                             <tr>
-                                <th colspan=2>Remarks</th>
+                                <th colspan=4>Remarks</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td style="padding:10px;">HeadTeacher</td>
-                                <td>
+                                <td style="padding:10px; width:50%;">HeadTeacher</td>
+                                <td style="width:50%; text-align:center;">';
+            if ($signature_hm == null) {
+                $html .= '';
+            } else {
+                $html .= '<img class="signature" src="' . public_path('/') . 'images/signatures/' . $signature_hm . '">';
+            }
 
+            $html .= '
                                 </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:10px;">Director Of Studies</td>
-                                <td>
-
+                                <td style="padding:10px; width:50%;">Director Of Studies</td>
+                                <td style="width:50%; text-align:center;">';
+            if ($signature_dos == '') {
+                $html .= ' ';
+            } else {
+                $html .= '<img class="signature" src="' . public_path('/') . 'images/signatures/' . $signature_dos . '">';
+            }
+            $html .= '
                                 </td>
                             </tr>
                         </tbody>
                     </table>';
 
-                    
-                    $html .='
+            //Stamp note
+            $html .= '
 
                     <p style="text-align:center; color:black; font-style:italics; font-size:11px;">This Report is invalid without a stamp</p>
                 ';
@@ -730,57 +932,71 @@ class ResultsController extends Controller
     public function areports_print($table, $term, $year, $std_ids)
     {
         $tables = array();
-        array_push($tables, $table);
+
+        //Deal with the table counter here
+        foreach (explode(',', $table) as $t) {
+            array_push($tables, $t);
+        }
 
         $class = DB::table('student')->select('class')->whereIn('std_id', explode(',', $std_ids))->first();
 
-        //Check count of the tables
-        if (count($tables) > 1) {
-            //Multiple tables
+        //Signatures
+        $signature_hm = DB::table('signature')->select('signature')->where('signatory', 'head-teacher')->value('signature');
+        $signature_dos = DB::table('signature')->select('signature')->where('signatory', 'dos')->value('signature');
 
+        //School Details
+        $school = DB::table('school_details')->select('*')->where('id', 1)->first();
 
-        } else {
-            //One table
-            $school = DB::table('school_details')->select('*')->where('id', 1)->first();
+        $data = DB::select("
+            SELECT 
+                *
+            FROM
+                student                    
+            WHERE
+                std_id
+            IN
+                (" . $std_ids . ")
+        ");
 
-            //info(json_encode($school));
-
-            $data = DB::select("
-                SELECT 
-                    *
-                FROM
-                    student                    
-                WHERE
-                    std_id
-                IN
-                    (" . $std_ids . ")
-            ");
-
-            $marks = DB::select("
-                SELECT
-                    *
-                FROM
-                    " . $tables[0] . "
-                WHERE
-                    std_id
-                IN
-                    (" . $std_ids . ")
-            ");
+        /*
+        function paper_counter($subject){
+            $papers = DB::select("
+                        SELECT  
+                            name, 
+                            GROUP_CONCAT(paper) AS paper
+                        FROM subjects 
+                        WHERE
+                            level = 'A Level'
+                        AND
+                            name = '".$subject."'
+                        GROUP BY
+                            name
+                    ");
+                    
+            foreach($papers as $paper){
+                return count(explode(',',$paper->paper));
+            }
         }
+        */
+
+        function std_marks($table, $std_id, $subject)
+        {
+            return DB::table('' . $table . '')->select('' . $subject . '')->where('std_id', $std_id)->value('' . $subject . '');
+        }
+
+        //info("Paper = ".paper_counter('ART'));
 
         $subjects = DB::select("
                 SELECT 
-                    DISTINCT name,
+                    name,
                     GROUP_CONCAT(paper) as paper
                 FROM
                     subjects
                 WHERE
                     level = 'A Level'
-                GROUP BY
+                GROUP BY 
                     name
-            ");
-
-
+                ");
 
         $html = '
             <style>
@@ -800,8 +1016,9 @@ class ResultsController extends Controller
                 }
 
                 .container{
-                    margin-top:-1.3cm;
-                    margin-left:-0.7cm;
+                    margin-top:-0.5cm;
+                    margin-left:-0.5cm;
+                    margin-right:-0.5cm;
                 }
 
                 .school_address, .school_motto, .school_contact{
@@ -817,8 +1034,9 @@ class ResultsController extends Controller
                 }
 
                 .school_badge{
-                    margin-top:1.3cm;
+                    margin-top:cm;
                     margin-left:-0.3cm;
+                    position:absolute;
                 }
 
                 .school_badge, .student_pic{
@@ -868,12 +1086,35 @@ class ResultsController extends Controller
                 }
 
                 .average_row td{
-                    padding:10px;
+                    padding:5px;
                 }
 
                 .key td{
                     font-size:12px;
                     padding:3px;
+                }
+
+                .signature{
+                width:100px;
+                }
+
+                .results_table td{
+                    padding:3px;
+                }
+
+                .table_header{
+                    margin-bottom:0.7cm;
+                }
+
+                .table_header, .table_header tr td{
+                    text-align:center;
+                    border:none;
+                }
+
+                .header_title{
+                    font-size:25px;
+                    font-weight:bolder; 
+                    text-transform:uppercase;
                 }
 
             </style>';
@@ -884,17 +1125,19 @@ class ResultsController extends Controller
             //School Badge Here
             $html .= '<div class="container">';
             $html .= '
-                <div >
+                <div>
                     <div>
                         <img class="school_badge" src="' . public_path('/') . 'school_badge/' . $school->school_badge . '">
                     </div>
                     
-                    <div class="school_details">
-                        <p class="school_name">' . $school->school_name . '</p>
-                        <p class="school_address">' . $school->address . '</p>
-                        <p class="school_contact">' . $school->contact . '</p>
-                        <p class="school_motto">"' . $school->motto . '"</p>
-                    </div>';
+                    <table class="table_header" style="width:100%;">
+                        <tbody>
+                            <tr rowspan=4><td class="header_title">' . $school->school_name . '</td></tr>
+                            <tr><td>' . $school->address . '</td></tr>
+                            <tr><td>' . $school->contact . '</td></tr>
+                            <tr><td class="school_motto">"' . $school->motto . '"</td></tr>
+                        </tbody>
+                    </table>';
 
             //Student Image Section here
             if ($d->image == null || $d->image == 'NULL' || $d->image == '') {
@@ -910,16 +1153,18 @@ class ResultsController extends Controller
                         </div>';
                 }
             } else {
-                /*
+
                 $html .= '
                     <div>
                         <img class="student_pic" src="' . public_path('/') . 'images/student_photos/' . $d->image . '">
                     </div>';
+
+                /*
+                $html .= '
+                    <div>
+                        <img class="student_pic" src="' . public_path('/') . 'images/static/male.jpg">
+                    </div>';
                     */
-                    $html .= '
-                        <div>
-                            <img class="student_pic" src="' . public_path('/') . 'images/static/male.jpg">
-                        </div>';
             }
 
             //Student Details Area
@@ -1010,133 +1255,331 @@ class ResultsController extends Controller
 
             //Deal with the Results
             $total = array();
+
             foreach ($subjects as $subject) {
-                $papers = explode(',', $subject->paper);
-                $paper_name = $subject->name;
-                $paper_counter = count($papers);
+                $paper_counter = count(explode(',', $subject->paper));
+                $paper_num = explode(',', $subject->paper);
+                $subject_name = $subject->name;
 
-                //info($marks);
-
-                if ($paper_counter == 2 && $paper_name != 'SubICT') {
+                //Two Papers
+                if ($paper_counter == 2 && $subject->name != 'SubICT') {
+                    $subject_avg = array();
                     for ($i = 0; $i < $paper_counter; $i++) {
-                        $paper_name_mark = $paper_name."_".$papers[$i];
-                        $mark = array();
-                        foreach ($marks as $mark) {
-                            if ($mark->std_id == $d->std_id && $mark->$paper_name_mark > 0) {
-                                $html .= '
-                        <tr>
-                            <td>' . $paper_name . ' '.$papers[$i].'</td>
-                            <td style="text-align:center;">'.$mark->$paper_name_mark.'</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        </tr>';
+                        $subject_name_paper = $subject_name . '_' . $paper_num[$i];
+
+                        for ($t = 0; $t < count($tables); $t++) {
+                            $std_mark = std_marks($tables[$t], $d->std_id, $subject_name_paper);
+
+                            //ONLY ADD SUBJECTS WITH RESULTS
+                            if ($std_mark > 0) {
+                                //START ROW HERE
+                                $html .= '<tr class="results_table">';
+                                //Subject Name
+                                $html .= '<td>' . $subject->name . ' ' . $paper_num[$i] . '</td>';
+
+                                $avg = array();
+                                //Subject Mark
+                                for ($t = 0; $t < count($tables); $t++) {
+                                    $mark = std_marks($tables[$t], $d->std_id, $subject_name_paper);
+
+                                    //Add the student marks for each subject
+                                    //Add Average for every paper
+                                    array_push($avg, $mark);
+                                    $html .= '<td style="text-align:center;">' . $mark . '</td>';
+                                }
+
+                                //Calculate average for each paper
+                                $mark_avg = round((array_sum($avg) / count($avg)), 0);
+                                array_push($subject_avg, $mark_avg);
+
+                                //Average for Each Paper
+                                $html .= '<td style="text-align:center;">' . (($mark_avg > 0) ? $mark_avg : '') . '</td>';
+
+                                //GRADE AND POINTS CALCULATION
+                                if (count($subject_avg) == $paper_counter && array_sum($subject_avg) > 0) {
+                                    $grade = explode('-', $this->two_papers($subject_avg))[0];
+                                    $points = explode('-', $this->two_papers($subject_avg))[1];
+
+                                    //Get total Points
+                                    array_push($total, $points); 
+
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade . '</td>';
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $points . '</td>';
+                                    
+                                } else {
+                                    $html .= '<td style="text-align:center;">-</td>';
+                                    $html .= '<td style="text-align:center;">-</td>';
+                                }
+
+                                //Teacher Initials
+                                $html .= '<td style="text-align:center;">' . $this->initials($subject->name, $d->class) . '</td>';
+
+                                //END ROW HERE
+                                $html .= '</tr>';
                             }
                         }
                     }
-                }elseif ($paper_counter == 3) {
+                }
+                
+                //Three Papers
+                if ($paper_counter == 3) {
+                    $subject_avg = array();
                     for ($i = 0; $i < $paper_counter; $i++) {
-                        $paper_name_mark = $paper_name."_".$papers[$i];
-                        $mark_point = array();
+                        $subject_name_paper = $subject_name . '_' . $paper_num[$i];
 
-                        foreach ($marks as $mark) {
-                            array_push($mark_point, $mark->$paper_name_mark);
-                            
-                        }
+                        for ($t = 0; $t < count($tables); $t++) {
+                            $std_mark = std_marks($tables[$t], $d->std_id, $subject_name_paper);
 
-                        //$this->three_papers($mark_point);
+                            //ONLY ADD SUBJECTS WITH RESULTS
+                            if ($std_mark > 0) {
+                                //START ROW HERE
+                                $html .= '<tr class="results_table">';
+                                //Subject Name
+                                $html .= '<td>' . $subject->name . ' ' . $paper_num[$i] . '</td>';
 
-                        info($paper_name."_".$papers[$i]."  ".count($mark_point));
-                        foreach ($marks as $mark) {
-                            
-                            if ($mark->std_id == $d->std_id && $mark->$paper_name_mark > 0) {
-                                $html .= '
-                        <tr>
-                            <td>' . $paper_name . ' '.$papers[$i].'</td>
-                            <td style="text-align:center;">'.$mark->$paper_name_mark.'</td>
-                            <td></td>';
-                        $html .='
-                        <td></td>
-                            <td></td>
-                            <td></td>
-                        </tr>';
+                                $avg = array();
+                                //Subject Mark
+                                for ($t = 0; $t < count($tables); $t++) {
+                                    $mark = std_marks($tables[$t], $d->std_id, $subject_name_paper);
+
+                                    //Add the student marks for each subject
+                                    //Add Average for every paper
+                                    array_push($avg, $mark);
+                                    $html .= '<td style="text-align:center;">' . $mark . '</td>';
+                                }
+
+                                //Calculate average for each paper
+                                $mark_avg = round((array_sum($avg) / count($avg)), 0);
+                                array_push($subject_avg, $mark_avg);
+
+                                //Average for Each Paper
+                                $html .= '<td style="text-align:center;">' . (($mark_avg > 0) ? $mark_avg : '') . '</td>';
+
+                                //GRADE AND POINTS CALCULATION
+                                if (count($subject_avg) == $paper_counter && array_sum($subject_avg) > 0) {
+                                    $grade = explode('-', $this->three_papers($subject_avg))[0];
+                                    $points = explode('-', $this->three_papers($subject_avg))[1];
+
+                                    //Get total Points
+                                    array_push($total, $points); 
+
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade. '</td>';
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $points . '</td>';
+                                    
+                                } else {
+                                    $html .= '<td style="text-align:center;">-</td>';
+                                    $html .= '<td style="text-align:center;">-</td>';
+                                }
+
+                                //Teacher Initials
+                                $html .= '<td style="text-align:center;">' . $this->initials($subject->name, $d->class) . '</td>';
+
+                                //END ROW HERE
+                                $html .= '</tr>';
                             }
                         }
                     }
-                }elseif ($paper_counter == 4) {
-                    for ($i = 0; $i < $paper_counter; $i++) {
-                        $paper_name_mark = $paper_name."_".$papers[$i];
-                        $mark = array();
-                        foreach ($marks as $mark) {
-                            if ($mark->std_id == $d->std_id && $mark->$paper_name_mark > 0) {
-                                $html .= '
-                        <tr>
-                            <td>' . $paper_name . ' '.$papers[$i].'</td>
-                            <td style="text-align:center;">'.$mark->$paper_name_mark.'</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        </tr>';
-                            }
-                        }
-                    }
-                }elseif($paper_name == 'SubICT'){
-                    for ($i = 0; $i < $paper_counter; $i++) {
-                        $paper_name_mark = $paper_name."_".$papers[$i];
-                        $mark = array();
-                        foreach ($marks as $mark) {
-                            if ($mark->std_id == $d->std_id && $mark->$paper_name_mark > 0) {
-                                $html .= '
-                        <tr>
-                            <td>' . $paper_name . ' '.$papers[$i].'</td>
-                            <td style="text-align:center;">'.$mark->$paper_name_mark.'</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        </tr>';
-                            }
-                        }
-                    }
-                }else{
-                        $paper_name_mark = $paper_name."_1";
-                        $mark = array();
-                        foreach ($marks as $mark) {
-                            if ($mark->std_id == $d->std_id && $mark->$paper_name_mark > 0) {
-                                $html .= '
-                        <tr>
-                            <td>' . $paper_name . '</td>
-                            <td style="text-align:center;">'.$mark->$paper_name_mark.'</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        </tr>';
-                            }
-                        }
+                }
 
+                if ($paper_counter == 4) {
+                    $subject_avg = array();
+                    for ($i = 0; $i < $paper_counter; $i++) {
+                        $subject_name_paper = $subject_name . '_' . $paper_num[$i];
+
+                        for ($t = 0; $t < count($tables); $t++) {
+                            $std_mark = std_marks($tables[$t], $d->std_id, $subject_name_paper);
+
+                            //ONLY ADD SUBJECTS WITH RESULTS
+                            if ($std_mark > 0) {
+                                //START ROW HERE
+                                $html .= '<tr class="results_table">';
+                                //Subject Name
+                                $html .= '<td>' . $subject->name . ' ' . $paper_num[$i] . '</td>';
+
+                                $avg = array();
+                                //Subject Mark
+                                for ($t = 0; $t < count($tables); $t++) {
+                                    $mark = std_marks($tables[$t], $d->std_id, $subject_name_paper);
+
+                                    //Add the student marks for each subject
+                                    //Add Average for every paper
+                                    array_push($avg, $mark);
+                                    $html .= '<td style="text-align:center;">' . $mark . '</td>';
+                                }
+
+                                //Calculate average for each paper
+                                $mark_avg = round((array_sum($avg) / count($avg)), 0);
+                                array_push($subject_avg, $mark_avg);
+
+                                //Average for Each Paper
+                                $html .= '<td style="text-align:center;">' . (($mark_avg > 0) ? $mark_avg : '') . '</td>';
+
+                                //GRADE AND POINTS CALCULATION
+                                if (count($subject_avg) == $paper_counter && array_sum($subject_avg) > 0) {
+                                    $grade = explode('-', $this->four_papers($subject_avg))[0];
+                                    $points = explode('-', $this->four_papers($subject_avg))[1];
+
+                                    //Get total Points
+                                    array_push($total, $points); 
+
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade. '</td>';
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $points . '</td>';
+                                    
+                                } else {
+                                    $html .= '<td style="text-align:center;">-</td>';
+                                    $html .= '<td style="text-align:center;">-</td>';
+                                }
+
+                                //Teacher Initials
+                                $html .= '<td style="text-align:center;">' . $this->initials($subject->name, $d->class) . '</td>';
+
+                                //END ROW HERE
+                                $html .= '</tr>';
+                            }
+                        }
+                    }
+                }
+
+                //One Paper
+                if ($paper_counter == 1) {
+                    $subject_avg = array();
+                    for ($i = 0; $i < $paper_counter; $i++) {
+                        $subject_name_paper = $subject_name . '_' . $paper_num[$i];
+
+                        for ($t = 0; $t < count($tables); $t++) {
+                            $std_mark = std_marks($tables[$t], $d->std_id, $subject_name_paper);
+
+                            //ONLY ADD SUBJECTS WITH RESULTS
+                            if ($std_mark > 0) {
+                                //START ROW HERE
+                                $html .= '<tr class="results_table">';
+                                //Subject Name
+                                $html .= '<td>' . $subject->name . '</td>';
+
+                                $avg = array();
+                                //Subject Mark
+                                for ($t = 0; $t < count($tables); $t++) {
+                                    $mark = std_marks($tables[$t], $d->std_id, $subject_name_paper);
+
+                                    //Add the student marks for each subject
+                                    //Add Average for every paper
+                                    array_push($avg, $mark);
+                                    $html .= '<td style="text-align:center;">' . $mark . '</td>';
+                                }
+
+                                //Calculate average for each paper
+                                $mark_avg = round((array_sum($avg) / count($avg)), 0);
+                                array_push($subject_avg, $mark_avg);
+
+                                //Average for Each Paper
+                                $html .= '<td style="text-align:center;">' . (($mark_avg > 0) ? $mark_avg : '') . '</td>';
+
+                                //GRADE AND POINTS CALCULATION
+                                if (count($subject_avg) == $paper_counter && array_sum($subject_avg) > 0) {
+                                    $grade = explode('-', $this->one_paper($subject_avg))[0];
+                                    $points = explode('-', $this->one_paper($subject_avg))[1];
+
+                                    //Get total Points
+                                    array_push($total, $points); 
+
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade. '</td>';
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $points . '</td>';
+                                    
+                                } else {
+                                    $html .= '<td style="text-align:center;">-</td>';
+                                    $html .= '<td style="text-align:center;">-</td>';
+                                }
+
+                                //Teacher Initials
+                                $html .= '<td style="text-align:center;">' . $this->initials($subject->name, $d->class) . '</td>';
+
+                                //END ROW HERE
+                                $html .= '</tr>';
+                            }
+                        }
+                    }
+                }
+
+                //SubICT
+                if ($subject->name == 'SubICT') {
+                    $subject_avg = array();
+                    for ($i = 0; $i < $paper_counter; $i++) {
+                        $subject_name_paper = $subject_name . '_' . $paper_num[$i];
+
+                        for ($t = 0; $t < count($tables); $t++) {
+                            $std_mark = std_marks($tables[$t], $d->std_id, $subject_name_paper);
+
+                            //ONLY ADD SUBJECTS WITH RESULTS
+                            if ($std_mark > 0) {
+                                //START ROW HERE
+                                $html .= '<tr class="results_table">';
+                                //Subject Name
+                                $html .= '<td>' . $subject->name .' ' . $paper_num[$i] . '</td>';
+
+                                $avg = array();
+                                //Subject Mark
+                                for ($t = 0; $t < count($tables); $t++) {
+                                    $mark = std_marks($tables[$t], $d->std_id, $subject_name_paper);
+
+                                    //Add the student marks for each subject
+                                    //Add Average for every paper
+                                    array_push($avg, $mark);
+                                    $html .= '<td style="text-align:center;">' . $mark . '</td>';
+                                }
+
+                                //Calculate average for each paper
+                                $mark_avg = round((array_sum($avg) / count($avg)), 0);
+                                array_push($subject_avg, $mark_avg);
+
+                                //Average for Each Paper
+                                $html .= '<td style="text-align:center;">' . (($mark_avg > 0) ? $mark_avg : '') . '</td>';
+
+                                //GRADE AND POINTS CALCULATION
+                                if (count($subject_avg) == $paper_counter && array_sum($subject_avg) > 0) {
+                                    $grade = explode('-', $this->sub_ict($subject_avg))[0];
+                                    $points = explode('-', $this->sub_ict($subject_avg))[1];
+
+                                    //Get total Points
+                                    array_push($total, $points); 
+
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade. '</td>';
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $points . '</td>';
+                                    
+                                } else {
+                                    $html .= '<td style="text-align:center;">-</td>';
+                                    $html .= '<td style="text-align:center;">-</td>';
+                                }
+
+                                //Teacher Initials
+                                $html .= '<td style="text-align:center;">' . $this->initials($subject->name, $d->class) . '</td>';
+
+                                //END ROW HERE
+                                $html .= '</tr>';
+                            }
+                        }
+                    }
                 }
             }
 
-            $html .= '
-                <tr class="average_row" style="background:black; color:white;">
-                    <td style="font-weight:bold; text-transform:uppercase; text-align:center;">Average</td>
-                    <td style="font-weight:bold; text-transform:uppercase; text-align:center;"></td>
-                    <td style="font-weight:bold; text-transform:uppercase; text-align:center;"></td>
-                    <td style="font-weight:bold; text-transform:uppercase; text-align:center;"></td>
-                    <td style="font-weight:bold; text-transform:uppercase; text-align:center;"></td>
-                    <td style="font-weight:bold; text-transform:uppercase; text-align:center;"></td>
-                </tr>';
-
+            //Close the Results Table here
             $html .= '
                     </tbody>   
                 </table>';
 
-                
+            //Calculate Points here
+            $html .= '
+                <table style="width:50%;">
+                    <tbody>
+                        <tr class="average_row" style="background:black; color:white;">
+                            <td style="font-weight:bold; width:50%; text-transform:uppercase; text-align:center;">Total Points :</td>
+                            <td style="font-weight:bold; width:50%; text-transform:uppercase; text-align:center;">' . array_sum($total) . '</td>
+                        </tr>
+                    </tbody>
+                </table>    
+            ';
+
             //Key
-            $html .='<table class="key" style="width:100%;">
+            $html .= '<table class="key" style="width:100%;">
                         <thead>
                             <tr>
                                 <th colspan=18>Grading</th>
@@ -1193,30 +1636,39 @@ class ResultsController extends Controller
     
                         </tbody>
                     </table>';
-                    
 
-                //Remarks
-                $html .='<table style="width:50%;">
-                        <thead>
-                            <tr>
-                                <th colspan=2>Remarks</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding:10px; width:20%;">HeadTeacher</td>
-                                <td>
-                                  
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:10px;">Director Of Studies</td>
-                                <td>
-                                    
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+
+            //Remarks
+            $html .= '<table style="width:100%;">
+                <thead>
+                    <tr>
+                        <th colspan=4>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding:10px; width:50%;">HeadTeacher</td>
+                        <td style="width:50%; text-align:center;">';
+            if ($signature_hm == null) {
+                $html .= '';
+            } else {
+                $html .= '<img class="signature" src="' . public_path('/') . 'images/signatures/' . $signature_hm . '">';
+            }
+
+            $html .= '
+                        </td>
+                        <td style="padding:10px; width:50%;">Director Of Studies</td>
+                        <td style="width:50%; text-align:center;">';
+            if ($signature_dos == '') {
+                $html .= ' ';
+            } else {
+                $html .= '<img class="signature" src="' . public_path('/') . 'images/signatures/' . $signature_dos . '">';
+            }
+            $html .= '
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
                     <p style="text-align:center; color:black; font-style:italics; font-size:11px;">This Report is invalid without a stamp</p>
                 ';
@@ -1229,191 +1681,233 @@ class ResultsController extends Controller
             $html .= '<div class="page_break"></div>';
         }
 
-        
+
 
         $pdf = Pdf::loadHTML($html)->setOption('a4', 'portrait');
 
         return $pdf->stream('' . $class->class . ' Reports');
     }
-    function two_papers($two_paper){
-        $p1 = (explode(',',$two_paper))[0];
-        $p2 = (explode(',',$two_paper))[1];
 
-    if (($p1 >= 75 and $p2 >= 75) and ($p1 <= 100 and $p2 <= 100)) {
-        $grade = 6;
-    } elseif (($p1 >= 65 and $p2 >= 75) || ($p1 >= 75 and $p2 >= 65)
-        || ($p1 >= 65 and $p2 >= 65)  and ($p1 <= 100 and $p2 <= 100)
-    ) {
-        $grade = 5;
-    } elseif (($p1 >= 60 and $p2 >= 65) || ($p1 >= 65 and $p2 >= 60)
-        || ($p1 >= 60 and $p2 >= 60)  and ($p1 <= 100 and $p2 <= 100)
-    ) {
-        $grade = 4;
-    } elseif (($p1 >= 55 and $p2 >= 60) || ($p1 >= 60 and $p2 >= 55)
-        || ($p1 >= 55 and $p2 >= 55)  and ($p1 <= 100 and $p2 <= 100)
-    ) {
-        $grade = 3;
-    } elseif (($p1 >= 50 and $p2 >= 55) || ($p1 >= 55 and $p2 >= 50)
-        || ($p1 >= 50 and $p2 >= 50) || ($p1 >= 50 and $p2 >= 55) || ($p1 >= 55 and $p2 >= 50)
-        || ($p1 >= 45 and $p2 >= 55) || ($p1 >= 55 and $p2 >= 45)  and ($p1 <= 100 and $p2 <= 100)
-    ) {
-        $grade = 2;
-    } elseif (($p1 >= 50 and $p2 >= 40) || ($p1 >= 40 and $p2 >= 50)
-        || ($p1 >= 50 and $p2 >= 60) || ($p1 >= 60 and $p2 >= 50) || ($p1 >= 65 and $p2 >= 0)
-        || ($p1 >= 0 and $p2 >= 65) || ($p1 >= 60 and $p2 >= 0) || ($p1 >= 0 and $p2 >= 60)
-        || ($p1 >= 50 and $p2 >= 50) || ($p1 >= 50 and $p2 >= 0) || ($p1 >= 0 and $p2 >= 50)
-        || ($p1 >= 40 and $p2 >= 40)  and ($p1 <= 100 and $p2 <= 100)
-    ) {
-        $grade = 1;
-    } elseif (($p1 >= 40 and $p2 >= 0) || ($p1 >= 0 and $p2 >= 40) || ($p1 >= 0 and $p2 >= 0)
-        and ($p1 <= 49 and $p2 <= 49)
-    ) {
-        $grade = 0;
-    } else {
-        $grade = 0;
+    function two_papers($two_paper)
+    {
+        $p1 = $two_paper[0];
+        $p2 = $two_paper[1];
+
+        if (($p1 >= 75 and $p2 >= 75) and ($p1 <= 100 and $p2 <= 100)) {
+            $grade = 'A';
+            $points = 6;
+        } elseif (($p1 >= 65 and $p2 >= 75) || ($p1 >= 75 and $p2 >= 65)
+            || ($p1 >= 65 and $p2 >= 65)  and ($p1 <= 100 and $p2 <= 100)
+        ) {
+            $grade = 'B';
+            $points = 5;
+        } elseif (($p1 >= 60 and $p2 >= 65) || ($p1 >= 65 and $p2 >= 60)
+            || ($p1 >= 60 and $p2 >= 60)  and ($p1 <= 100 and $p2 <= 100)
+        ) {
+            $grade = 'C';
+            $points = 4;
+        } elseif (($p1 >= 55 and $p2 >= 60) || ($p1 >= 60 and $p2 >= 55)
+            || ($p1 >= 55 and $p2 >= 55)  and ($p1 <= 100 and $p2 <= 100)
+        ) {
+            $grade = 'D';
+            $points = 3;
+        } elseif (($p1 >= 50 and $p2 >= 55) || ($p1 >= 55 and $p2 >= 50)
+            || ($p1 >= 50 and $p2 >= 50) || ($p1 >= 50 and $p2 >= 55) || ($p1 >= 55 and $p2 >= 50)
+            || ($p1 >= 45 and $p2 >= 55) || ($p1 >= 55 and $p2 >= 45)  and ($p1 <= 100 and $p2 <= 100)
+        ) {
+            $grade = 'E';
+            $points = 2;
+        } elseif (($p1 >= 50 and $p2 >= 40) || ($p1 >= 40 and $p2 >= 50)
+            || ($p1 >= 50 and $p2 >= 60) || ($p1 >= 60 and $p2 >= 50) || ($p1 >= 65 and $p2 >= 0)
+            || ($p1 >= 0 and $p2 >= 65) || ($p1 >= 60 and $p2 >= 0) || ($p1 >= 0 and $p2 >= 60)
+            || ($p1 >= 50 and $p2 >= 50) || ($p1 >= 50 and $p2 >= 0) || ($p1 >= 0 and $p2 >= 50)
+            || ($p1 >= 40 and $p2 >= 40)  and ($p1 <= 100 and $p2 <= 100)
+        ) {
+            $grade = 'O';
+            $points = 1;
+        } elseif (($p1 >= 40 and $p2 >= 0) || ($p1 >= 0 and $p2 >= 40) || ($p1 >= 0 and $p2 >= 0)
+            and ($p1 <= 49 and $p2 <= 49)
+        ) {
+            $grade = 'F';
+            $points = 0;
+        } else {
+            $grade = 'F';
+            $points = 0;
+        }
+
+        $std_grade = $grade . '-' . $points;
+        return $std_grade;
     }
 
-    return $grade;
-}
+    function three_papers($three_paper)
+    {
+        $p1 = $three_paper[0];
+        $p2 = $three_paper[1];
+        $p3 = $three_paper[2];
 
-function three_papers($three_paper)
-{
-    $p1 = $three_paper[0];
-    $p2 = $three_paper[1];
-    $p3 = $three_paper[2];
+        if ((($p1 >= 75 and $p2 >= 75 and $p3 >= 64) || ($p1 >= 64 and $p2 >= 75 and $p3 >= 75)
+            || ($p1 >= 75 and $p2 >= 64 and $p3 >= 75) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
+            $grade = 'A';
+            $points = 6;
+        } elseif ((($p1 >= 65 and $p2 >= 65 and $p3 >= 60) || ($p1 >= 60 and $p2 >= 65 and $p3 >= 65)
+            || ($p1 >= 65 and $p2 >= 60 and $p3 >= 65) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
+            $grade = 'B';
+            $points = 5;
+        } elseif ((($p1 >= 60 and $p2 >= 60 and $p3 >= 55) || ($p1 >= 55 and $p2 >= 60 and $p3 >= 60)
+            || ($p1 >= 60 and $p2 >= 55 and $p3 >= 60) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
+            $grade = 'C';
+            $points = 4;
+        } elseif ((($p1 >= 55 and $p2 >= 55 and $p3 >= 50) || ($p1 >= 50 and $p2 >= 55 and $p3 >= 55)
+            || ($p1 >= 55 and $p2 >= 50 and $p3 >= 55) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
+            $grade = 'D';
+            $points = 3;
+        } elseif ((($p1 >= 50 and $p2 >= 50 and $p3 >= 45)
+            || ($p1 >= 45 and $p2 >= 50 and $p3 >= 50) || ($p1 >= 50 and $p2 >= 45 and $p3 >= 50)
+            || ($p1 >= 40 and $p2 >= 50 and $p3 >= 65) || ($p1 >= 65 and $p2 >= 40 and $p3 >= 50)
+            || ($p1 >= 50 and $p2 >= 65 and $p3 >= 40) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
+            $grade = 'E';
+            $points = 2;
+        } elseif (($p1 >= 50 and $p2 >= 50 and $p3 >= 50) || ($p1 >= 40 and $p2 >= 40 and $p3 >= 40)
+            || ($p1 >= 0 and $p2 >= 40 and $p3 >= 40) || ($p1 >= 40 and $p2 >= 0 and $p3 >= 40)
+            || ($p1 >= 40 and $p2 >= 40 and $p3 >= 0) || ($p1 >= 50 and $p2 >= 0 and $p3 >= 50)
+            || ($p1 >= 50 and $p2 >= 50 and $p3 >= 0) || ($p1 >= 0 and $p2 >= 50 and $p3 >= 50 and $p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+        ) {
+            $grade = 'O';
+            $points = 1;
+        } elseif (($p1 >= 0 and $p2 >= 40 and $p3 >= 40) || ($p1 >= 40 and $p2 >= 0 and $p3 >= 40)
+            || ($p1 >= 40 and $p2 >= 40 and $p3 >= 0) || ($p1 >= 0 and $p2 >= 0 and $p3 >= 0 and $p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+        ) {
+            $grade = 'F';
+            $points = 0;
+        } else {
+            $grade = 'F';
+            $points = 0;
+        }
 
-    if ((($p1 >= 75 and $p2 >= 75 and $p3 >= 64) || ($p1 >= 64 and $p2 >= 75 and $p3 >= 75)
-        || ($p1 >= 75 and $p2 >= 64 and $p3 >= 75) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
-        $grade = 6;
-    } elseif ((($p1 >= 65 and $p2 >= 65 and $p3 >= 60) || ($p1 >= 60 and $p2 >= 65 and $p3 >= 65)
-        || ($p1 >= 65 and $p2 >= 60 and $p3 >= 65) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
-        $grade = 5;
-    } elseif ((($p1 >= 60 and $p2 >= 60 and $p3 >= 55) || ($p1 >= 55 and $p2 >= 60 and $p3 >= 60)
-        || ($p1 >= 60 and $p2 >= 55 and $p3 >= 60) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
-        $grade = 4;
-    } elseif ((($p1 >= 55 and $p2 >= 55 and $p3 >= 50) || ($p1 >= 50 and $p2 >= 55 and $p3 >= 55)
-        || ($p1 >= 55 and $p2 >= 50 and $p3 >= 55) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
-        $grade = 3;
-    } elseif ((($p1 >= 50 and $p2 >= 50 and $p3 >= 45)
-        || ($p1 >= 45 and $p2 >= 50 and $p3 >= 50) || ($p1 >= 50 and $p2 >= 45 and $p3 >= 50)
-        || ($p1 >= 40 and $p2 >= 50 and $p3 >= 65) || ($p1 >= 65 and $p2 >= 40 and $p3 >= 50)
-        || ($p1 >= 50 and $p2 >= 65 and $p3 >= 40) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
-        $grade = 2;
-    } elseif (($p1 >= 50 and $p2 >= 50 and $p3 >= 50) || ($p1 >= 40 and $p2 >= 40 and $p3 >= 40)
-        || ($p1 >= 0 and $p2 >= 40 and $p3 >= 40) || ($p1 >= 40 and $p2 >= 0 and $p3 >= 40)
-        || ($p1 >= 40 and $p2 >= 40 and $p3 >= 0) || ($p1 >= 50 and $p2 >= 0 and $p3 >= 50)
-        || ($p1 >= 50 and $p2 >= 50 and $p3 >= 0) || ($p1 >= 0 and $p2 >= 50 and $p3 >= 50 and $p1 <= 100 and $p2 <= 100 and $p3 <= 100)
-    ) {
-        $grade = 1;
-    } elseif (($p1 >= 0 and $p2 >= 40 and $p3 >= 40) || ($p1 >= 40 and $p2 >= 0 and $p3 >= 40)
-        || ($p1 >= 40 and $p2 >= 40 and $p3 >= 0) || ($p1 >= 0 and $p2 >= 0 and $p3 >= 0 and $p1 <= 100 and $p2 <= 100 and $p3 <= 100)
-    ) {
-        $grade = 0;
-    } else {
-        $grade = 0;
+        $std_grade = $grade . '-' . $points;
+        return $std_grade;
     }
 
-    return $grade;
-}
+    function four_papers($four_papers){
+        $p1 = $four_papers[0];
+        $p2 = $four_papers[1];
+        $p3 = $four_papers[2];
+        $p4 = $four_papers[3];
 
-function four_papers($p1, $p2, $p3, $p4)
-{
-    if (
-        $p1 >= 75 and $p2 >= 80 and $p3 >= 80 and $p4 >= 80 ||
-        $p1 >= 80 and $p2 >= 75 and $p3 >= 80 and $p4 >= 80 ||
-        $p1 >= 80 and $p2 >= 80 and $p3 >= 75 and $p4 >= 80 ||
-        $p1 >= 80 and $p2 >= 80 and $p3 >= 80 and $p4 >= 75
+        if (
+            $p1 >= 75 and $p2 >= 80 and $p3 >= 80 and $p4 >= 80 ||
+            $p1 >= 80 and $p2 >= 75 and $p3 >= 80 and $p4 >= 80 ||
+            $p1 >= 80 and $p2 >= 80 and $p3 >= 75 and $p4 >= 80 ||
+            $p1 >= 80 and $p2 >= 80 and $p3 >= 80 and $p4 >= 75
 
-    ) {
-        $grade = 6;
-    } elseif (
-        $p1 >= 70 and $p2 >= 75 and $p3 >= 75 and $p4 >= 75 ||
-        $p1 >= 75 and $p2 >= 70 and $p3 >= 75 and $p4 >= 75 ||
-        $p1 >= 75 and $p2 >= 75 and $p3 >= 70 and $p4 >= 75 ||
-        $p1 >= 75 and $p2 >= 75 and $p3 >= 75 and $p4 >= 70
+        ) {
+            $grade = 'A';
+            $points = 6;
+        } elseif (
+            $p1 >= 70 and $p2 >= 75 and $p3 >= 75 and $p4 >= 75 ||
+            $p1 >= 75 and $p2 >= 70 and $p3 >= 75 and $p4 >= 75 ||
+            $p1 >= 75 and $p2 >= 75 and $p3 >= 70 and $p4 >= 75 ||
+            $p1 >= 75 and $p2 >= 75 and $p3 >= 75 and $p4 >= 70
 
-    ) {
-        $grade = 5;
-    } elseif (
-        $p1 >= 65 and $p2 >= 70 and $p3 >= 70 and $p4 >= 70 ||
-        $p1 >= 70 and $p2 >= 65 and $p3 >= 70 and $p4 >= 70 ||
-        $p1 >= 70 and $p2 >= 70 and $p3 >= 65 and $p4 >= 70 ||
-        $p1 >= 70 and $p2 >= 70 and $p3 >= 70 and $p4 >= 65
+        ) {
+            $grade = 'B';
+            $points = 5;
+        } elseif (
+            $p1 >= 65 and $p2 >= 70 and $p3 >= 70 and $p4 >= 70 ||
+            $p1 >= 70 and $p2 >= 65 and $p3 >= 70 and $p4 >= 70 ||
+            $p1 >= 70 and $p2 >= 70 and $p3 >= 65 and $p4 >= 70 ||
+            $p1 >= 70 and $p2 >= 70 and $p3 >= 70 and $p4 >= 65
 
-    ) {
-        $grade = 4;
-    } elseif (
-        $p1 >= 60 and $p2 >= 65 and $p3 >= 65 and $p4 >= 65 ||
-        $p1 >= 65 and $p2 >= 60 and $p3 >= 65 and $p4 >= 65 ||
-        $p1 >= 65 and $p2 >= 65 and $p3 >= 60 and $p4 >= 65 ||
-        $p1 >= 65 and $p2 >= 65 and $p3 >= 65 and $p4 >= 60
+        ) {
+            $grade = 'C';
+            $points = 4;
+        } elseif (
+            $p1 >= 60 and $p2 >= 65 and $p3 >= 65 and $p4 >= 65 ||
+            $p1 >= 65 and $p2 >= 60 and $p3 >= 65 and $p4 >= 65 ||
+            $p1 >= 65 and $p2 >= 65 and $p3 >= 60 and $p4 >= 65 ||
+            $p1 >= 65 and $p2 >= 65 and $p3 >= 65 and $p4 >= 60
 
-    ) {
-        $grade = 3;
-    } elseif (
-        $p1 >= 50 and $p2 >= 60 and $p3 >= 60 and $p4 >= 60 ||
-        $p1 >= 60 and $p2 >= 50 and $p3 >= 60 and $p4 >= 60 ||
-        $p1 >= 60 and $p2 >= 60 and $p3 >= 50 and $p4 >= 60 ||
-        $p1 >= 60 and $p2 >= 60 and $p3 >= 60 and $p4 >= 50 ||
-        $p1 >= 40 and $p2 >= 60 and $p3 >= 60 and $p4 >= 65 ||
-        $p1 >= 65 and $p2 >= 60 and $p3 >= 60 and $p4 >= 40 ||
-        $p1 >= 60 and $p2 >= 65 and $p3 >= 40 and $p4 >= 60 ||
-        $p1 >= 60 and $p2 >= 40 and $p3 >= 65 and $p4 >= 60 ||
-        $p1 >= 60 and $p2 >= 60 and $p3 >= 40 and $p4 >= 65
+        ) {
+            $grade = 'D';
+            $points = 3;
+        } elseif (
+            $p1 >= 50 and $p2 >= 60 and $p3 >= 60 and $p4 >= 60 ||
+            $p1 >= 60 and $p2 >= 50 and $p3 >= 60 and $p4 >= 60 ||
+            $p1 >= 60 and $p2 >= 60 and $p3 >= 50 and $p4 >= 60 ||
+            $p1 >= 60 and $p2 >= 60 and $p3 >= 60 and $p4 >= 50 ||
+            $p1 >= 40 and $p2 >= 60 and $p3 >= 60 and $p4 >= 65 ||
+            $p1 >= 65 and $p2 >= 60 and $p3 >= 60 and $p4 >= 40 ||
+            $p1 >= 60 and $p2 >= 65 and $p3 >= 40 and $p4 >= 60 ||
+            $p1 >= 60 and $p2 >= 40 and $p3 >= 65 and $p4 >= 60 ||
+            $p1 >= 60 and $p2 >= 60 and $p3 >= 40 and $p4 >= 65
 
-    ) {
-        $grade = 2;
-    } elseif (
-        $p1 >= 50 and $p2 >= 50 and $p3 >= 50 and $p4 >= 50 ||
-        $p1 >= 40 and $p2 >= 40 and $p3 >= 40 and $p4 >= 40 ||
-        $p1 >= 0 and $p2 >= 40 and $p3 >= 40 and $p4 >= 40 ||
-        $p1 >= 40 and $p2 >= 0 and $p3 >= 40 and $p4 >= 40 ||
-        $p1 >= 40 and $p2 >= 40 and $p3 >= 0 and $p4 >= 40 ||
-        $p1 >= 40 and $p2 >= 40 and $p3 >= 40 and $p4 >= 0 ||
-        $p1 >= 0 and $p2 >= 0 and $p3 >= 50 and $p4 >= 50 ||
-        $p1 >= 50 and $p2 >= 50 and $p3 >= 0 and $p4 >= 0 ||
-        $p1 >= 50 and $p2 >= 0 and $p3 >= 0 and $p4 >= 50 ||
-        $p1 >= 0 and $p2 >= 50 and $p3 >= 0 and $p4 >= 50 ||
-        $p1 >= 0 and $p2 >= 50 and $p3 >= 50 and $p4 >= 0
+        ) {
+            $grade = 'E';
+            $points = 2;
+        } elseif (
+            $p1 >= 50 and $p2 >= 50 and $p3 >= 50 and $p4 >= 50 ||
+            $p1 >= 40 and $p2 >= 40 and $p3 >= 40 and $p4 >= 40 ||
+            $p1 >= 0 and $p2 >= 40 and $p3 >= 40 and $p4 >= 40 ||
+            $p1 >= 40 and $p2 >= 0 and $p3 >= 40 and $p4 >= 40 ||
+            $p1 >= 40 and $p2 >= 40 and $p3 >= 0 and $p4 >= 40 ||
+            $p1 >= 40 and $p2 >= 40 and $p3 >= 40 and $p4 >= 0 ||
+            $p1 >= 0 and $p2 >= 0 and $p3 >= 50 and $p4 >= 50 ||
+            $p1 >= 50 and $p2 >= 50 and $p3 >= 0 and $p4 >= 0 ||
+            $p1 >= 50 and $p2 >= 0 and $p3 >= 0 and $p4 >= 50 ||
+            $p1 >= 0 and $p2 >= 50 and $p3 >= 0 and $p4 >= 50 ||
+            $p1 >= 0 and $p2 >= 50 and $p3 >= 50 and $p4 >= 0
 
-    ) {
-        $grade = 1;
-    } elseif (
-        $p1 >= 0 and $p2 >= 0 and $p3 >= 40 and $p4 >= 40 ||
-        $p1 >= 40 and $p2 >= 40 and $p3 >= 0 and $p4 >= 0 ||
-        $p1 >= 40 and $p2 >= 0 and $p3 >= 0 and $p4 >= 40 ||
-        $p1 >= 0 and $p2 >= 40 and $p3 >= 0 and $p4 >= 40 ||
-        $p1 >= 0 and $p2 >= 40 and $p3 >= 40 and $p4 >= 0 ||
-        $p1 >= 0 and $p2 >= 0 and $p3 >= 0 and $p4 >= 0
+        ) {
+            $grade = 'O';
+            $points = 1;
+        } elseif (
+            $p1 >= 0 and $p2 >= 0 and $p3 >= 40 and $p4 >= 40 ||
+            $p1 >= 40 and $p2 >= 40 and $p3 >= 0 and $p4 >= 0 ||
+            $p1 >= 40 and $p2 >= 0 and $p3 >= 0 and $p4 >= 40 ||
+            $p1 >= 0 and $p2 >= 40 and $p3 >= 0 and $p4 >= 40 ||
+            $p1 >= 0 and $p2 >= 40 and $p3 >= 40 and $p4 >= 0 ||
+            $p1 >= 0 and $p2 >= 0 and $p3 >= 0 and $p4 >= 0
 
-    ) {
-        $grade = 0;
-    }else{
-        $grade = 0;
+        ) {
+            $grade = 'F';
+            $points = 0;
+        } else {
+            $grade = 'F';
+            $points = 0;
+        }
+
+        $std_grade = $grade . '-' . $points;
+        return $std_grade;
     }
 
-    return $grade;
-}
+    function sub_ict($sub_ict){
+        $p1 = $sub_ict[0];
+        $p2 = $sub_ict[1];
 
-function sub_ict($p1, $p2)
-{
-    $avg = (($p1 + $p2) / 2);
+        $avg = (($p1 + $p2) / 2);
 
-    if ($avg >= 50) {
-        $grade = 1;
-    } else {
-        $grade = 0;
+        if ($avg >= 50) {
+            $grade = 'O';
+            $points = 1;
+        } else {
+            $grade = 'F';
+            $points = 0;
+        }
+        $std_grade = $grade . '-' . $points;
+        return $std_grade;
     }
-    return $grade;
-}
 
-function one_paper($p1)
-{
-    if ($p1 >= 50) {
-        $grade = 1;
-    } else {
-        $grade = 0;
+    function one_paper($one_paper){
+        $p1 = $one_paper[0];
+
+        if ($p1 >= 50) {
+            $grade = 'O';
+            $points = 1;
+        } else {
+            $grade = 'F';
+            $points = 0;
+        }
+        $std_grade = $grade . '-' . $points;
+        return $std_grade;
     }
-    return $grade;
-}
 }

@@ -12,4 +12,12 @@ Route::middleware('auth')->prefix('Settings')->group(function(){
     Route::get('/results_subjects_list',[SettingController::class,'results_table_index'])->name('setting.results.index');
     Route::post('/results_table_create',[SettingController::class,'create_results_table'])->name('setting.results.table.create');
     Route::post('/results_table_delete',[SettingController::class,'delete_results_table'])->name('setting.results.table.delete');
+    Route::get('/signature_index',[SettingController::class,'signature_index'])->name('setting.signatures');
+    Route::post('/signature_upload',[SettingController::class,'upload_signature'])->name('setting.signatures.upload');
+    Route::post('/signature_delete',[SettingController::class,'delete_signature'])->name('setting.signatures.delete');
+    Route::get('/teacher_initials',[SettingController::class,'teacher_initials_index'])->name('setting.initials');
+    Route::post('/teacher_initials',[SettingController::class,'teacher_initials_save'])->name('setting.initials.save');
+    Route::post('/teacher_initials_delete',[SettingController::class,'delete_initials'])->name('setting.initials.delete');
+    Route::post('/teacher_initials_edit',[SettingController::class,'show_initials'])->name('setting.initials.edit');
+    Route::post('/teacher_initials_update',[SettingController::class,'update_initials'])->name('setting.initials.update');
 });

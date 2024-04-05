@@ -117,8 +117,7 @@ class SettingController extends Controller
         return response($new_data);
     }
 
-    public function term_index()
-    {
+    public function term_index(){
         $term_list = DB::select("
             SELECT
                 *
@@ -314,7 +313,6 @@ class SettingController extends Controller
     public function delete_results_table(Request $req){
         $table_id = $req->table_id;
         $table_name = (DB::table('results_table')->select('table_name')->where('id',$table_id)->first())->table_name;
-        //info("Table_id = ".$table_id.", table_name = ".$table_name);
         
         try{
             //Drop the table
@@ -342,9 +340,130 @@ class SettingController extends Controller
         }catch(Exception $e){
             info($e);
             $response = 'Failed To Delete Table';
-        }
-
-        
+        }        
         return $response;
     }
+
+    public function signature_index(){
+        $data = DB::table('signature')->select('*')->get();
+        return view('settings.signatures',compact('data'));
+    }
+
+    public function upload_signature(Request $req){
+        $signatory = $req->signatory;
+        $signature = $signatory.'.'.$req->signature->extension();
+        $exists = file_exists(public_path('images/signatures'));
+        $file_check = DB::table('signature')->select('signature')->where('signatory',$signatory)->exists('signature');
+
+        if($exists == 1){
+            //If Directory Exists
+            //Check if file exists
+            if($file_check == 1){
+                //Delete the old file
+                $sign = DB::table('signature')->select('signature')->where('signatory',$signatory)->value('signature');
+                unlink(public_path('images/signatures/'.$sign.''));
+
+                //Add the new files
+                $req->signature->move(public_path('images/signatures'), $signature);
+                //Update the DB
+                DB::table('signature')->where('signatory',$signatory)->update([
+                    'signatory' => $signatory,
+                    'signature' => $signature,
+                    'updated_at' => now()
+                ]);
+            }else{
+                //Add the new files
+                $req->signature->move(public_path('images/signatures'), $signature);
+
+                //Insert into DB
+                DB::table('signature')->insert([
+                    'signatory' => $signatory,
+                    'signature' => $signature,
+                    'created_at' => now()
+                ]);
+            }
+
+        }else{
+            //If directory doesn't exist
+            //Create the directory
+            mkdir(public_path('images/signatures'));
+
+            //Add the new files
+            $req->signature->move(public_path('images/signatures'), $signature);
+
+            //Insert into DB
+            DB::table('signature')->insert([
+                'signatory' => $signatory,
+                'signature' => $signature,
+                'created_at' => now()
+            ]);
+        }
+    }
+
+    public function delete_signature(Request $req){
+        $id = $req->delete_id;
+        $signature = DB::table('signature')->select('signature')->where('id',$id)->value('signature');
+        //Delete the file
+        unlink(public_path('images/signatures/'.$signature.''));
+        //Delete from the DB
+        DB::table('signature')->where('id',$id)->delete();       
+    }
+
+    public function teacher_initials_index(){
+        $data = DB::table('initials')->select('*')->orderBy('id','desc')->get();
+        $subjects = DB::table('subjects')->distinct()->select('name')->get();
+        $classes = DB::table('std_class')->select('class')->get();
+        return view('settings.teacher_initials',compact('data','subjects','classes'));
+    }
+
+    public function teacher_initials_save(Request $req){
+        $subject = $req->subject;
+        $class = $req->classname;
+        $teacher_name = $req->teacher_name;
+        $initials = $req->initials;
+
+        //Save into the DB
+        try{
+            DB::table('initials')->insert([
+                'subject' => $subject,
+                'class' => $class,
+                'teacher_name' => $teacher_name,
+                'initials' => $initials,
+                'created_at' => now()
+            ]);
+        }catch(Exception $e){
+            info($e);
+        }
+    }
+
+    public function delete_initials(Request $req){
+        $id = $req->id;
+        DB::table('initials')->where('id',$id)->delete();
+    }
+
+    public function show_initials(Request $req){
+        $id = $req->id;
+        $data = DB::table('initials')->where('id',$id)->get();
+        //info($data);
+        return response()->json([
+            'data'=>$data
+        ]);
+    }
+
+    public function update_initials(Request $req){
+        $id = $req->update_initials_id;
+        $teacher_name = $req->teacher_name_edit;
+        $class = $req->classname_edit;
+        $subject = $req->subject_edit;
+        $initials = $req->initials_edit;
+
+        DB::table('initials')->where('id',$id)->update([
+            'teacher_name'=>$teacher_name,
+            'class'=>$class,
+            'subject'=>$subject,
+            'initials'=>$initials
+        ]);
+    }
+
+
 }

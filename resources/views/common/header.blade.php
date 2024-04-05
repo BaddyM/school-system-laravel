@@ -12,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title')</title>
     <link rel="stylesheet" href="{{ asset('css/bootstrap-icons/bootstrap-icons.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/all.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/fontawesome/css/all.css') }}">
     <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
     <link rel="stylesheet" href="{{ asset('css/bootstrap.css') }}">
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
@@ -124,10 +124,6 @@
                             <a href="{{ route('marksheet.olevel') }}" class="nav-link"><i class="bi bi-file-earmark-check"></i> O'Level Marksheet</a>
                         </li>
 
-                        <li class="nav-item" title="Reports">
-                            <a href="" class="nav-link"><i class="bi bi-arrow-down-square"></i> Download Marklist</a>
-                        </li>
-
                         <li class="nav-item" title="A'Level">
                             <a href="{{ route('alevel.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i> Results (A'Level)</a>
                         </li>
@@ -161,7 +157,7 @@
                         </li>
 
                         <li class="nav-item" title="Classes">
-                            <a href="{{ route('setting.results.index') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Results Table</a>
+                            <a href="{{ route('setting.results.index') }}" class="nav-link"><i class="bi bi-table"></i> Results Table</a>
                         </li>
 
                         <li class="nav-item" title="Classes">
@@ -172,11 +168,23 @@
                             <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> Streams</a>
                         </li>
 
-                        <li class="nav-item" title="Classes">
-                            <a href="{{ route('setting.school') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> School Details</a>
+                        <li class="nav-item" title="School Details">
+                            <a href="{{ route('setting.school') }}" class="nav-link"><i class="fa fa-school"></i> School Details</a>
                         </li>
 
-                        <li class="nav-item" title="Streams">
+                        <li class="nav-item" title="Initials">
+                            <a href="{{ route('setting.initials') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Teacher Initials</a>
+                        </li>
+
+                        <li class="nav-item" title="Signatures">
+                            <a href="{{ route('setting.signatures') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Signatures</a>
+                        </li>
+
+                        <li class="nav-item" title="Signatures">
+                            <a href="" class="nav-link"><i class="fa fa-users"></i> Users</a>
+                        </li>
+
+                        <li class="nav-item" title="Student Cards">
                             <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> Student Cards</a>
                         </li>
                     </div>
@@ -233,6 +241,7 @@
 
     <script src="{{ asset('') }}js/jquery.min.js"></script>
     <script src="{{ asset('') }}js/datatable.min.js"></script>
+    <script src="{{ asset('') }}js/bootstrap.bundle.js"></script>
     <script src="{{ asset('') }}js/bootstrap-datepicker.js"></script>
     <script>
         //Hide the nav items

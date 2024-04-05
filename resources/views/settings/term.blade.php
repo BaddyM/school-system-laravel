@@ -42,6 +42,14 @@
             </div>
             <div class="col bg-white pt-3">
                 <p class="text-center">Terms List</p>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                        </tr>
+                    </thead>
+                </table>
             </div>
         </div>
 

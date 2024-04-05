@@ -44,7 +44,7 @@
                 <table class="table table-hover">
                     <thead class="table-dark">
                         <tr>
-                            <th scope="col">#</th>
+                            <th scope="col"><input type="checkbox" class="form-check-input p-2 rounded-0 border-dark" id="all_select"></th>
                             <th scope="col">Student Name</th>
                         </tr>
                     </thead>
@@ -76,6 +76,16 @@
     <script src="{{ asset('/') }}js/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
+            //Check all checkboxes
+            $("#all_select").on('click',function(){
+                var checked = $(this).is(':checked');
+                if(checked == true){
+                    $('input[name="std_id"]').prop('checked',true);
+                }else{
+                    $('input[name="std_id"]').prop('checked',false);
+                }
+            });
+
             //Select the class
             $('#report_olevel').on('click', function(e) {
                 e.preventDefault();
@@ -130,7 +140,7 @@
                 var year = $("#year").text();
 
                 //Disable the button
-                $(this).removeClass('submit-btn').addClass('submit-btn-disabled').prop('disabled',true);
+                //$(this).removeClass('submit-btn').addClass('submit-btn-disabled').prop('disabled',true);
 
                 //Select the IDs
                 $("input[name='std_id']:checked").each(function() {
@@ -142,23 +152,8 @@
                     tables.push(this.value);
                 });
 
-                $.ajax({
-                    type: "GET",
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    url: "/Results/report_alevel_print/"+tables+"/"+term+"/"+year+"/"+student_ids+"",
-                    success: function(data) {
-                        window.open("/Results/report_alevel_print/"+tables+"/"+term+"/"+year+"/"+student_ids+"", '_blank');
-                        //Enable the button
-                        $('#print_reports').addClass('submit-btn').removeClass('submit-btn-disabled').prop('disabled',false);
-                    },
-                    error: function(error) {
-                        alert('Failed to Print');
-                        //Enable the button
-                        $('#print_reports').addClass('submit-btn').removeClass('submit-btn-disabled').prop('disabled',false);
-                    }
-                });
+                //Print the report
+                window.open("/Results/report_alevel_print/"+tables+"/"+term+"/"+year+"/"+student_ids+"", '_blank');
             })
 
         });
