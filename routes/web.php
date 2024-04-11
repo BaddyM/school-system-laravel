@@ -6,7 +6,7 @@ use App\Models\Student;
 use Illuminate\Support\Facades\DB;
 
 include 'custom/marksheet.php';
-include 'custom/staff.php';
+include 'custom/staff_routes.php';
 include 'custom/student_routes.php';
 include 'custom/home_routes.php';
 include 'custom/login_routes.php';

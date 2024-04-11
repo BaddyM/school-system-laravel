@@ -232,6 +232,7 @@
 
             //Yes comfirm
             $("#yes-confirm").on('click', () => {
+                $("#confirmModal").modal('hide');
                 var add_std_form = document.getElementById("add_student_form");
                 var myForm = new FormData(add_std_form);
                 $.ajax({
@@ -248,7 +249,6 @@
                         console.log(response);
                         //Clear the form inputs
                         $("#add_student_form")[0].reset();
-                        $("#confirmModal").modal('hide');
                         alert(response);
                     },
                     error: function(error) {

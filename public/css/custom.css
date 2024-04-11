@@ -303,3 +303,8 @@ select:focus{
     background:white;
     border: 1px rgb(128, 56, 0) solid;
 }
+
+.underline{
+    border-bottom: 3px purple solid;
+    padding: 3px 15px;
+}

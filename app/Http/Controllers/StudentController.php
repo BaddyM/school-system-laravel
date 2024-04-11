@@ -21,9 +21,9 @@ class StudentController extends Controller
 
     public function addStudentToDB(Request $req) {
         //Student variables
-        $fname = $req->fname;
-        $lname = $req->lname;
-        $mname = $req->mname;
+        $fname = ucfirst($req->fname);
+        $lname = ucfirst($req->lname);
+        $mname = ucfirst($req->mname);
         $house = $req->house;
         $dob = $req->dob;
         $std_class = $req->std_class;
@@ -46,21 +46,21 @@ class StudentController extends Controller
         $relationship = $req->relationship;
 
         if ($guard_fname == '') {
-            $guard_fname = 'NULL';
+            $guard_fname = '';
         } elseif ($guard_lname == '') {
-            $guard_lname = 'NULL';
+            $guard_lname = '';
         } elseif ($occupation == '') {
-            $occupation = 'NULL';
+            $occupation = '';
         } elseif ($nin == '') {
-            $nin = 'NULL';
+            $nin = '';
         } elseif ($contact == '') {
-            $contact = 'NULL';
+            $contact = '';
         } elseif ($relationship == '') {
-            $relationship = 'NULL';
+            $relationship = '';
         } elseif ($dob == '') {
-            $dob = 'NULL';
+            $dob = '';
         } elseif ($house == '') {
-            $house = 'NULL';
+            $house = '';
         }
 
         if ($dob != null) {
@@ -70,7 +70,8 @@ class StudentController extends Controller
 
         //Save into the DB
         //Create a student ID
-        $std_id = $year . "" . random_int(1000, 5000);
+        $id_counter = count(Student::all());
+        $std_id = $year . "" . (5000 + $id_counter);
 
         //Apply fixed values for combination and registration
         if ($combination == null) {
@@ -104,81 +105,59 @@ class StudentController extends Controller
         }
 
         try {
+            //Check if data exists
+            $exists = Student::where(['fname' => $fname, 'mname' => $mname, 'lname' => $lname])->exists();
 
-            //Add to the Student Table 
-            Student::create(
-                [
-                    'std_id' => $std_id,
-                    'fname' => $fname,
-                    'mname' => $mname,
-                    'lname' => $lname,
-                    'dob' => $dob,
-                    'class' => $std_class,
-                    'stream' => $std_stream,
-                    'house' => $house,
-                    'section' => $section,
-                    'image' => $file_name,
-                    'year_of_entry' => $year,
-                    'status' => 'continuing',
-                    'gender' => $gender,
-                    'combination' => $combination,
-                    'password' => $std_id,
-                    'lin' => $lin,
-                    'residence' => $residence,
-                    'nationality' => $nationality
-                ]
-            );
-
-            //Add to the Guardian/Parent table
-            if ($guard_fname != 'NULL') {
-                DB::table('student_guardian')->insert(
+            if($exists == null){
+                //Add to the Student Table 
+                Student::create(
                     [
                         'std_id' => $std_id,
-                        'guard_fname' => $guard_fname,
-                        'guard_lname' => $guard_lname,
-                        'occupation' => $occupation,
-                        'nin' => $nin,
-                        'contact' => $contact,
-                        'relationship' => $relationship
+                        'fname' => $fname,
+                        'mname' => $mname,
+                        'lname' => $lname,
+                        'dob' => $dob,
+                        'class' => $std_class,
+                        'stream' => $std_stream,
+                        'house' => $house,
+                        'section' => $section,
+                        'image' => $file_name,
+                        'year_of_entry' => $year,
+                        'status' => 'continuing',
+                        'gender' => $gender,
+                        'combination' => $combination,
+                        'password' => $std_id,
+                        'lin' => $lin,
+                        'residence' => $residence,
+                        'nationality' => $nationality
                     ]
                 );
+
+                //Add to the Guardian/Parent table
+                if ($guard_fname != 'NULL') {
+                    DB::table('student_guardian')->insert(
+                        [
+                            'std_id' => $std_id,
+                            'guard_fname' => ucfirst($guard_fname),
+                            'guard_lname' => ucfirst($guard_lname),
+                            'occupation' => $occupation,
+                            'nin' => $nin,
+                            'contact' => $contact,
+                            'relationship' => $relationship
+                        ]
+                    );
+                }
+                
+                $response = "Student Added Successfully";
+            }else{
+                $response = "Student Already Exists";
             }
+
         } catch (Exception $e) {
             info($e);
         }
 
-        $std_details = array(
-            'std_id' => $std_id,
-            'fname' => $fname,
-            'mname' => $mname,
-            'lname' => $lname,
-            'dob' => $dob,
-            'class' => $std_class,
-            'stream' => $std_stream,
-            'house' => $house,
-            'section' => $section,
-            'image' => $file_name,
-            'year_of_entry' => $year,
-            'status' => 'continuing',
-            'gender' => $gender,
-            'combination' => $combination,
-            'password' => $std_id,
-            'lin' => $lin,
-            'residence' => $residence,
-            'nationality' => $nationality
-        );
-
-        $parents_details = array(
-            'std_id' => $std_id,
-            'guard_fname' => $guard_fname,
-            'guard_lname' => $guard_lname,
-            'occupation' => $occupation,
-            'nin' => $nin,
-            'contact' => $contact,
-            'relationship' => $relationship
-        );
-
-        return response("Student Added Successfully");
+        return response($response);
     }
 
     public function viewStudentIndex() {
@@ -191,10 +170,7 @@ class StudentController extends Controller
     public function fetchStudentData(Request $req) {
         $class_name = $req->classname;
         $category = $req->category;
-        //info("Class_Name = ".$class_name.", category = ".$category);
-        $data = Student::where([['class', $class_name], ['status', $category]])->get();
-
-        //info($data);
+        $data = Student::where(['class' => $class_name,'status' => $category])->get();
 
         return DataTables::of($data)
             ->addIndexColumn()
@@ -229,18 +205,18 @@ class StudentController extends Controller
         if ($combination == null) {
             $combination = '-';
         } elseif ($lin == null) {
-            $lin = 'NULL';
+            $lin = '';
         } elseif ($nationality == null) {
-            $nationality = 'NULL';
+            $nationality = '';
         }elseif ($password == null) {
             $password = '-';
         }
 
         try{
             Student::where('std_id', $std_id)->update([
-                'fname' => $fname,
-                'lname' => $lname,
-                'mname' => $mname,
+                'fname' => ucfirst($fname),
+                'lname' => ucfirst($lname),
+                'mname' => ucfirst($mname),
                 'class' => $class,
                 'section' => $section,
                 'house' => $house,
@@ -259,35 +235,41 @@ class StudentController extends Controller
     }
 
     public function import_index() {
-        return view('student.import_student');
+        $classes = DB::table('std_class')->select('class')->get();
+        $streams = DB::table('class_stream')->select('stream')->get();
+        return view('student.import_student',compact('classes','streams'));
     }
 
     public function import_students(Request $req) {
         $file = $req->std_upload_file->getClientOriginalName();
+        $class = $req->std_class;
+        $stream = $req->std_stream;
 
-        //Move the file temporarily
+        //Move the file temporarily to a temp location
         $req->std_upload_file->move(public_path('temp_import'), $file);
         $path = (public_path('temp_import') . '/' . $file);
 
         $rows = SimpleExcelReader::create($path)->getRows();
 
+        //Exists array
+        $response = array();
+
         foreach ($rows as $row) {
-            $fname = $row['fname'];
-            $mname = $row['mname'];
-            $lname = $row['lname'];
+            $fname = ucfirst($row['fname']);
+            $mname = ucfirst($row['mname']);
+            $lname = ucfirst($row['lname']);
             if(($row['dob']) != null){
                 $dob = date('y-m-d', strtotime($row['dob']));
             }else{
                 $dob = date('y-m-d', strtotime(now()));
             }            
-            $class = $row['class'];
-            $stream = $row['stream'];
+            //$class = $row['class'];
+            //$stream = $row['stream'];
             $house = $row['house'];
             $section = $row['section'];
             $image = $row['image'];
             $gender = $row['gender'];
             $year_of_entry = $row['year_of_entry'];
-            $status = $row['status'];
             $combination = $row['combination'];
             $lin = $row['lin'];
             $residence = $row['residence'];
@@ -295,48 +277,59 @@ class StudentController extends Controller
 
             //Check nullability
             if ($mname == null) {
-                $mname = 'NULL';
+                $mname = '';
             } elseif ($dob == null) {
-                $dob = 'NULL';
+                $dob = '';
             } elseif ($house == null) {
-                $house = 'NULL';
+                $house = '';
             } elseif ($image == null) {
-                $image = 'NULL';
+                $image = '';
             } elseif ($combination == null) {
-                $combination = 'NULL';
+                $combination = '';
             } elseif ($lin == null) {
-                $lin = 'NULL';
+                $lin = '';
             } elseif ($residence == null) {
-                $residence = 'NULL';
+                $residence = '';
             } elseif ($nationality == null) {
-                $nationality = 'NULL';
+                $nationality = '';
             }
 
             try {
-                //Upload to the Student table
-                $year = date('Y', strtotime(now()));
-                $std_id = $year . "" . random_int(1000, 5000);
+                //Check if data exists
+                $exists = Student::where(['fname' => $fname, 'mname' => $mname, 'lname' => $lname])->exists();
 
-                Student::create([
-                    'std_id' => $std_id,
-                    'fname' => $fname,
-                    'lname' => $lname,
-                    'mname' => $mname,
-                    'dob' => $dob,
-                    'class' => $class,
-                    'stream' => $stream,
-                    'house' => $house,
-                    'section' => $section,
-                    'image' => $image,
-                    'gender' => $gender,
-                    'year_of_entry' => $year_of_entry,
-                    'status' => 'continuing',
-                    'combination' => $combination,
-                    'password' => $std_id,
-                    'lin' => $lin,
-                    'residence' => $residence,
-                    'nationality' => $nationality
-                ]);
+                if($exists == null){
+                    //Upload to the Student table
+                    $year = date('Y', strtotime(now()));
+                    $id_counter = count(Student::all());
+                    $std_id = $year . "" . (5000 + $id_counter);
+
+                    Student::create([
+                        'std_id' => $std_id,
+                        'fname' => $fname,
+                        'lname' => $lname,
+                        'mname' => $mname,
+                        'dob' => $dob,
+                        'class' => $class,
+                        'stream' => $stream,
+                        'house' => $house,
+                        'section' => $section,
+                        'image' => $image,
+                        'gender' => $gender,
+                        'year_of_entry' => $year_of_entry,
+                        'status' => 'continuing',
+                        'combination' => $combination,
+                        'password' => $std_id,
+                        'lin' => $lin,
+                        'residence' => $residence,
+                        'nationality' => $nationality
+                    ]);
+
+                    array_push($response, $lname." ".$mname." ".$fname." Uploaded");
+                }else{
+                    array_push($response, $lname." ".$mname." ".$fname." Exists");
+                }
+                
             } catch (Exception $e) {
                 info($e);
             }
@@ -345,7 +338,7 @@ class StudentController extends Controller
         //Delete the temporary file after upload
         unlink($path);
 
-        return response("File Successfully Uploaded");
+        return response($response);
     }
 
     public function print_students($class, $status) {
@@ -386,7 +379,7 @@ class StudentController extends Controller
             </style>
 
             <div class='body'>
-                <h3 style='text-align:center;'>" . $class . " Student List</h3>
+                <h3 style='text-align:center;'>" . $class . " ".strtoupper($status)." Student List</h3>
 
                 <table>
                     <thead>
@@ -463,7 +456,7 @@ class StudentController extends Controller
 
         //First delete the original file
         if($std_image == null || $std_image == ' ' || $std_image == 'NULL' || $std_image == 'male.jpg' || $std_image == 'female.jpg'){
-            //info("Image is null");
+            
         }else{
             unlink(public_path('images/student_photos/'.$original_record->image.''));
         }
@@ -518,7 +511,6 @@ class StudentController extends Controller
     public function update_std_status(Request $req){
         $std_list = implode(',',$req->selected);
         $status = $req->std_status;
-        //info("Status = ".$status.", List = ".$std_list);
 
         try{
             DB::update('

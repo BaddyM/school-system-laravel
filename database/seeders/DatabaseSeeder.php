@@ -7,6 +7,7 @@ use App\Models\Staff;
 use App\Models\Student;
 use App\Models\Term;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder {
 
@@ -33,6 +34,7 @@ class DatabaseSeeder extends Seeder {
         ");
         */
 
+        /*
         //$subjects = array('Geography', 'Literature', 'Luganda', 'Biology', 'Physics','Chemistry');
         $subjects = array('Mathematics','English','Agriculture','History');
         
@@ -44,6 +46,30 @@ class DatabaseSeeder extends Seeder {
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
+        }
+        */
+
+        //Add user
+        $data = [
+            'Mansoor' => 'male',
+            'Annet' => 'female',
+            'Sahya' => 'male'
+        ];
+
+        function create_user($username, $gender){
+            return DB::table('users')->insert([
+                'username' => $username,
+                'email' => ''.strtolower($username).'@gmail.com',
+                'gender' => $gender,
+                'dept' => 'it-support',
+                'is_super_admin' => 1,
+                'password' => Hash::make(''.strtolower($username).''),
+                'created_at' => now()
+            ]);
+        }
+
+        foreach($data as $key => $value){
+            create_user($key, $value);
         }
         
     }

@@ -11,7 +11,7 @@ class HomeController extends Controller
 {
     function index(){
         $staff = User::all();
-        $students = Student::all();
+        $students = Student::where('status','continuing')->get();
 
         $subjects = DB::select("
             SELECT 

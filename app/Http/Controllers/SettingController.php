@@ -8,6 +8,7 @@ use Exception;
 
 class SettingController extends Controller
 {
+    //SCHOOL DETAILS
     public function school_settings_index()
     {
         $data = DB::select("
@@ -72,8 +73,6 @@ class SettingController extends Controller
 
         if (!empty($data)) {
             //If DB is not empty
-            //info("DB not empty");
-
             DB::update("
                 UPDATE
                     school_details
@@ -89,8 +88,6 @@ class SettingController extends Controller
             ");
         } else {
             //If DB is empty
-            //info("DB is empty");
-
             DB::insert("
                 INSERT INTO
                     school_details (school_name, motto, address, contact, school_badge, created_at, updated_at)
@@ -117,12 +114,16 @@ class SettingController extends Controller
         return response($new_data);
     }
 
+    //TERM
     public function term_index(){
         $term_list = DB::select("
             SELECT
                 *
             FROM
                 term
+            ORDER BY
+                id 
+            DESC
         ");
 
         $year = DB::select("
@@ -142,7 +143,77 @@ class SettingController extends Controller
         return view('settings.term', compact('term', 'year', 'term_list'));
     }
 
-    //Deal with subjects here
+    public function add_term(Request $req){
+        $term = $req->add_term;
+        $year = $req->add_year;
+
+        //Check if term exists
+        $exists = DB::table('term')->where(['term'=>$term,'year'=>$year])->exists();
+
+        if($exists == 1){
+            $response = 'Term Already Exists';
+        }else{
+            try{
+                DB::table('term')->insert([
+                    'term'=>$term,
+                    'year'=>$year,
+                    'active'=>0,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }catch(Exception $e){
+                info($e);
+            }
+
+            $response = 'Term Added Successfully';
+        }
+        return response($response);
+    }
+
+    public function change_term(Request $req){
+        $new_term = $req->term;
+        $new_year = $req->year;
+
+        //Change old term first
+        try{
+            DB::table('term')->where('active',1)->update(['active'=>0]);
+        }catch(Exception $e){
+            info($e);
+        }
+
+        //Update to new Term
+        try{
+            DB::table('term')->where(['term'=>$new_term, 'year'=>$new_year])->update(['active'=>1]);
+            $response = 'Term Updated';
+        }catch(Exception $e){
+            info($e);
+        }
+
+        return response($response);
+    }
+
+    public function delete_term(Request $req){
+        $id = $req->delete_id;
+
+        //Don't delete active term
+        $active = DB::table('term')->where(['id'=>$id, 'active'=>1])->exists();
+
+        if($active == 1){
+            $response = 'Error: Can\'t Delete Active Term';
+        }else{
+            //Delete inactive term
+            try{
+                DB::table('term')->where('id',$id)->delete();
+                $response = 'Term Deleted';
+            }catch(Exception $e){
+                info($e);
+            }
+        }
+
+        return response($response);
+    }
+
+    //SUBJECTS
     public function subjects_index()
     {
         $olevel = DB::select("
@@ -152,6 +223,9 @@ class SettingController extends Controller
                 subjects
             WHERE
                 level = 'O Level'
+            ORDER BY
+                id
+            DESC
         ");
 
         $alevel = DB::select("
@@ -161,20 +235,25 @@ class SettingController extends Controller
                 subjects
             WHERE
                 level = 'A Level'
+            ORDER BY
+                id
+            DESC
         ");
 
         return view('settings.subjects', compact('olevel', 'alevel'));
     }
 
     //Add Subject
-    public function add_subject(Request $req)
-    {
-        $name = $req->subject_name;
+    public function add_subject(Request $req){
+        $name = strtoupper($req->subject_name);
         $level = $req->level;
         $paper = $req->papers;
 
-        if ($name == '' || $name == null) {
-            $response = "Subject Is Empty";
+        //Check if that subject exists
+        $exists = DB::table('subjects')->where(['name'=>$name,'level'=>$level,'paper'=>$paper])->exists();
+
+        if($exists == 1) {
+            $response = "".$name." Already Exists";
         } else {
             try {
                 //Save into the DB
@@ -188,6 +267,36 @@ class SettingController extends Controller
                 info($e);
             }
             $response = "Subject Added Successfully";
+        }
+
+        return response($response);
+    }
+
+    //Add subsidiary
+    public function add_subsidiary(Request $req){
+        $subs = $req->subs;
+        
+        foreach($subs as $sub){
+            $level = 'A Level';
+
+            if($sub == 'SubICT'){
+                $paper = 2;
+            }else{
+                $paper = 1;
+            }
+
+            $exists = DB::table('subjects')->where(['name'=>$sub,'level'=>$level,'paper'=>$paper])->exists();
+
+            if($exists == 1){
+                $response = "".$sub." Already Exists";
+            }else{
+                DB::table('subjects')->insert([
+                    'name' => $sub,
+                    'level' => $level,
+                    'paper' => $paper
+                ]);
+                $response = 'Added Subsidiary';
+            }
         }
 
         return response($response);
@@ -212,13 +321,11 @@ class SettingController extends Controller
         return response("Subject Deleted Successfully");
     }
 
-    //Results tables
+    //RESULT TABLES
     public function results_table_index() {
         //Get the active term
         $term = (DB::table('term')->select('term')->where('active',1)->first())->term;
         $year =  (DB::table('term')->select('year')->where('active',1)->first())->year;   
-        
-        //info("Term = ".$term.", Term = ".$year);
 
         $olevel = DB::select("
             SELECT
@@ -252,7 +359,6 @@ class SettingController extends Controller
         return view('settings.results_table', compact('olevel', 'alevel','results'));
     }
 
-    //Create Results Table
     public function create_results_table(Request $req) {
         $table_name = $req->table_name;
         $table_heads = $req->subject_heads;
@@ -344,6 +450,7 @@ class SettingController extends Controller
         return $response;
     }
 
+    //SIGNATURES
     public function signature_index(){
         $data = DB::table('signature')->select('*')->get();
         return view('settings.signatures',compact('data'));
@@ -409,6 +516,7 @@ class SettingController extends Controller
         DB::table('signature')->where('id',$id)->delete();       
     }
 
+    //TEACHER INITIALS
     public function teacher_initials_index(){
         $data = DB::table('initials')->select('*')->orderBy('id','desc')->get();
         $subjects = DB::table('subjects')->distinct()->select('name')->get();
@@ -444,7 +552,6 @@ class SettingController extends Controller
     public function show_initials(Request $req){
         $id = $req->id;
         $data = DB::table('initials')->where('id',$id)->get();
-        //info($data);
         return response()->json([
             'data'=>$data
         ]);
@@ -465,5 +572,37 @@ class SettingController extends Controller
         ]);
     }
 
+    //STUDENT STATUS
+    public function status_list_index(){
+        $data = DB::table('std_status')->select("*")->get();
+        return view('settings.std_status',compact('data'));
+    }
 
+    public function status_list_add(Request $req){
+        $status = strtolower($req->add_status);        
+        $check = DB::table('std_status')->where('status',$status)->exists();
+
+        if($check == 1){
+            $response = 'Status Exists';
+        }else{
+            try{
+                DB::table('std_status')->insert([
+                    'status' => $status,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+                $response = 'Added Status';
+            }catch(Exception $e){
+                info($e);
+            }
+        }        
+        return response($response);
+    }
+
+    public function delete_status(Request $req){
+        $id = $req->delete_status;
+        DB::table('std_status')->where('id',$id)->delete();
+        $response = 'Deleted Status';
+        return response($response);
+    }
 }

@@ -15,44 +15,52 @@
         <h5 class="mb-0 text-uppercase fw-bold text-center mb-3" style="color: purple;">Update/Add Subjects</h5>
         <div class="row justify-content-between">
             <div class="col-md-4">
-                <p class="fw-bold text-uppercase text-center h5">Add Subjects</p>
-                <form action="" method="post" id="add_subject_form" class="my-4 shadow-lg p-4 rounded-3">
-                    <div>
-                        <label for="" class="form-label fw-bold">Subject Name</label>
-                        <input type="text" class="form-control rounded-0" name="subject_name" id="subject-name">
-                    </div>
+                <div>
+                    <p class="fw-bold text-uppercase text-center h5">Add Subjects</p>
+                    <form action="" method="post" id="add_subject_form" class="my-4 shadow-lg p-4 rounded-3">
+                        @csrf
+                        <div>
+                            <label for="" class="form-label fw-bold">Subject Name</label>
+                            <input type="text" class="form-control rounded-0" name="subject_name" id="subject-name" required>
+                        </div>
 
-                    <div class="mt-2">
-                        <label for="" class="form-label fw-bold">Paper</label>
-                        <input type="number" min=0 class="form-control rounded-0" name="papers" id="papers-name">
-                    </div>
+                        <div class="mt-2">
+                            <label for="" class="form-label fw-bold">Paper</label>
+                            <input type="number" min=0 class="form-control rounded-0" name="papers" id="papers-name" required>
+                        </div>
 
-                    <div class="mt-2 mb-4">
-                        <label for="" class="form-label fw-bold">Level</label>
-                        <select class="form-select rounded-0" name="level">
-                            <option value="O Level">O Level</option>
-                            <option value="A Level">A Level</option>
-                        </select>
-                    </div>
+                        <div class="mt-2 mb-4">
+                            <label for="" class="form-label fw-bold">Level</label>
+                            <select class="form-select rounded-0" name="level" required>
+                                <option value="O Level">O Level</option>
+                                <option value="A Level">A Level</option>
+                            </select>
+                        </div>
 
-                    <p class="fw-bold text-uppercase text-center h5">Select Subsidiraries</p>
-                    <div class="mb-4">
-                        @php
-                            $subs = array('SubICT', 'SubMath', 'GeneralPaper');
-                        @endphp
+                        <button class="submit-btn-disabled" id="add-subject-btn" disabled>ADD</button>
+                    </form>
+                </div>
 
-                        @foreach ($subs as $sub)
-                            <div class="d-flex align-items-center mb-2" style="gap:10px;">
-                                <input type="checkbox" name="{{ $sub }}" value="{{ $sub }}" id=""
-                                    class="form-check-input p-2 rounded-0">
-                                <p class="m-0 h6">{{ $sub }}</p>
-                            </div>
-                        @endforeach
+                <div>
+                    <form action="" method="post" id="add_subs_form" class="mt-5 shadow-lg p-4 rounded-3">
+                        @csrf
+                        <p class="fw-bold text-uppercase text-center h5">Select Subsidiaries</p>
+                        <div class="mb-4">
+                            @php
+                                $subs = ['SubICT', 'SubMath', 'GeneralPaper'];
+                            @endphp
 
-                    </div>
-
-                    <button class="submit-btn-disabled" id="add-subject-btn" disabled>ADD</button>
-                </form>
+                            @foreach ($subs as $sub)
+                                <div class="d-flex align-items-center mb-2" style="gap:10px;">
+                                    <input type="checkbox" name="subsidiary" value="{{ $sub }}"
+                                        id="" class="form-check-input p-2 rounded-0" required>
+                                    <p class="m-0 h6">{{ $sub }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                        <button class="submit-btn" type="button" id="subs-btn">Add</button>
+                    </form>
+                </div>
             </div>
 
             <div class="col-md-6 bg-white rounded-3 p-3">
@@ -78,6 +86,7 @@
                                     <td>{{ $a->paper }}</td>
                                     <td class="text-center">
                                         <form action="" method="post" class="m-0">
+                                            @csrf
                                             <button class="btn btn-sm btn-danger rounded-5 delete-subject"
                                                 value="{{ $a->id }}" type="submit">
                                                 <i class="bi bi-x" style="font-size:20px;"></i>
@@ -187,6 +196,34 @@
                     }
                 });
             });
+
+            //Add subsidiaries
+            $("#subs-btn").on('click',function(){
+                var subs = [];
+                $('input[name="subsidiary"]:checked').each(function(){
+                    subs.push(this.value);
+                });
+
+                if(subs.length > 0){
+                    $.ajax({
+                        type: "POST",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        url: "{{ route('setting.subjects.add.subs') }}",
+                        data: {
+                            subs:subs
+                        },
+                        success: function(data) {
+                            alert(data);
+                            location.reload();
+                        },
+                        error: function(error) {
+                            alert('Failed to Save Subject details');
+                        }
+                    });
+                }
+            })
 
         });
     </script>

@@ -90,17 +90,20 @@ class ResultsController extends Controller
     }
 
     //Select students to award marks
-    public function select_students(Request $req)
-    {
+    public function select_students(Request $req){
         $classname = $req->classname;
         $table = $req->result_set;
         $subject = $req->subject;
         $paper = $req->paper;
+
+        //Select Term
         $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
         $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+
         $results_table = $table . "_" . $term . "_" . $year;
         $subject_paper = $subject . "_" . $paper;
-        //info("Column = " . $subject_paper.", table = ".$results_table);
+
+        //Fetch Data
         $data = DB::select("
                     SELECT
                         student.std_id,
@@ -120,14 +123,12 @@ class ResultsController extends Controller
                         student.status = 'continuing'
                     ORDER BY lname ASC
                 ");
-        //info($data);
 
         return response($data);
     }
 
     //Enter student results 
-    public function enter_results_alevel(Request $req)
-    {
+    public function enter_results_alevel(Request $req){
         $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
         $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
         $class = $req->classname;
@@ -136,9 +137,6 @@ class ResultsController extends Controller
         $paper = $req->paper;
         $subject = (($req->subject) . "_" . $paper);
         $level = $req->level;
-
-        //info("Class = " . $class . ", table = " . $results_table . ", subject = " . $subject . ", paper = " . $paper . ", level = " . $level);
-        //info($results);
 
         foreach ($results as $result) {
             $std_id = $result[0];
@@ -179,8 +177,6 @@ class ResultsController extends Controller
     {
         $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
         $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
-
-        //info("Paper = ".$paper);
 
         $data = DB::select("
                 SELECT
@@ -958,29 +954,7 @@ class ResultsController extends Controller
                 (" . $std_ids . ")
         ");
 
-        /*
-        function paper_counter($subject){
-            $papers = DB::select("
-                        SELECT  
-                            name, 
-                            GROUP_CONCAT(paper) AS paper
-                        FROM subjects 
-                        WHERE
-                            level = 'A Level'
-                        AND
-                            name = '".$subject."'
-                        GROUP BY
-                            name
-                    ");
-                    
-            foreach($papers as $paper){
-                return count(explode(',',$paper->paper));
-            }
-        }
-        */
-
-        function std_marks($table, $std_id, $subject)
-        {
+        function std_marks($table, $std_id, $subject){
             return DB::table('' . $table . '')->select('' . $subject . '')->where('std_id', $std_id)->value('' . $subject . '');
         }
 
@@ -1118,8 +1092,6 @@ class ResultsController extends Controller
                 }
 
             </style>';
-
-        //info($marks);
 
         foreach ($data as $d) {
             //School Badge Here
@@ -1381,6 +1353,7 @@ class ResultsController extends Controller
                     }
                 }
 
+                //Four Papers
                 if ($paper_counter == 4) {
                     $subject_avg = array();
                     for ($i = 0; $i < $paper_counter; $i++) {

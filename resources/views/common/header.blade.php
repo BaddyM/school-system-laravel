@@ -74,10 +74,10 @@
                     </div>
                     <div id="staff_items_list">
                         <li class="nav-item" title="Add Staff">
-                            <a href="" class="nav-link"><i class="bi bi-plus-circle"></i> Add Staff</a>
+                            <a href="{{ route('staff.data.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i> Add Staff</a>
                         </li>
                         <li class="nav-item" title="View Staff">
-                            <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> View Staff</a>
+                            <a href="{{ route('staff.display') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> View Staff</a>
                         </li>
                     </div>
                 </div>{{-- Staff --}}
@@ -149,7 +149,7 @@
                         </li>
 
                         <li class="nav-item" title="Status">
-                            <a href="" class="nav-link"><i class="bi bi-plus-circle"></i> Status List</a>
+                            <a href="{{ route('status.list.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i> Status List</a>
                         </li>
 
                         <li class="nav-item" title="Classes">

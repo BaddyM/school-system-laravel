@@ -20,10 +20,8 @@ class LoginController extends Controller {
 
         //Check if the credentials match those in the database
         if(Auth::attempt($credentials)){
-            info("Correct Credentials");
             $response = redirect()->intended(route('home'));
         }else{            
-            info("Incorrect Credentials");
             $response =  redirect()->route('login')->with('error','Incorrect Credentials');
         }
 

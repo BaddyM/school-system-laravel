@@ -219,8 +219,6 @@
                 var classname = $("#classname").val();
                 var category = $("#category").val();
 
-                //console.log("Class = " +classname+", category = "+category);
-
                 $.ajax({
                     type: 'POST',
                     headers: {
@@ -284,8 +282,6 @@
                 })
                 return formatted.format(value);
             }
-
-            //var std_id = "74586718980";
 
             //Disable modal inputs by default
             $(".inner-elements input, .inner-elements select, #std_gender").prop('disabled',true).css('color','black');
@@ -415,8 +411,6 @@
                     password:password,
                     gender:gender
                 }
-
-                //console.log(data);
 
                 $.ajax({
                     headers: {
