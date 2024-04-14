@@ -39,4 +39,17 @@ Route::middleware('auth')->prefix('Settings')->group(function(){
     Route::get('/status_list',[SettingController::class, 'status_list_index'])->name('status.list.index');
     Route::post('/status_list_add',[SettingController::class, 'status_list_add'])->name('setting.status.add');
     Route::post('/status_list_delete',[SettingController::class, 'delete_status'])->name('setting.status.delete');
+
+    //Classes
+    Route::get("/classes",[SettingController::class,'classes_index'])->name('class.index');
+    Route::post("/add_class",[SettingController::class,'add_class'])->name('class.add');
+    Route::post("/delete_class",[SettingController::class,'delete_class'])->name('class.delete');
+
+    //Streams
+    Route::get("streams",[SettingController::class,'stream_index'])->name('stream.index');
+    Route::post("/add_streams",[SettingController::class,'add_stream'])->name('stream.add');
+    Route::post("/delete_streams",[SettingController::class,'delete_stream'])->name('stream.delete');
+
+    //Users
+    Route::get("/users",[SettingController::class,'user_index'])->name('users.index');
 });

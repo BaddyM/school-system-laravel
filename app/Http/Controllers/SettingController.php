@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use App\Models\User;
+use Yajra\DataTables\Facades\DataTables;
 
 class SettingController extends Controller
 {
@@ -604,5 +606,98 @@ class SettingController extends Controller
         DB::table('std_status')->where('id',$id)->delete();
         $response = 'Deleted Status';
         return response($response);
+    }
+
+    //Classes
+    public function classes_index(){
+        $classes = DB::table('std_class')->orderBy('id','desc')->get();
+        return view('settings.std_class',compact('classes'));
+    }
+
+    public function add_class(Request $req){
+        $class = $req->classname;
+        $level = $req->level;
+
+        //Check if Class exists
+        $old_class = DB::table('std_class')->where('class',$class)->exists();
+        
+        if($old_class != 1){
+            DB::table('std_class')->insert([
+                'class' => $class,
+                'level'=>$level,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            $response = "Added Data successfully!";
+        }else{
+            $response = "Class Exists!";
+        }
+
+        return response($response);
+    }
+
+    public function delete_class(Request $req){
+        $id = $req->delete_id;
+        try{
+            DB::table('std_class')->where('id',$id)->delete();
+            $response = "Class Deleted";
+        }catch(Exception $e){
+            info($e);
+            $response = "Failed to Delete Class!";
+        }
+        return response($response);
+    }
+
+    //Streams
+    public function stream_index(){
+        $streams = DB::table('class_stream')->orderBy('id','desc')->get();
+        return view('settings.streams',compact('streams'));
+    }
+
+    public function add_stream(Request $req){
+        $stream = $req->stream;
+
+        //Check if Stream exists
+        $old_stream = DB::table('class_stream')->where('stream',$stream)->exists();
+        
+        if($old_stream != 1){
+            DB::table('class_stream')->insert([
+                'stream' => $stream,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            $response = "Added Data successfully!";
+        }else{
+            $response = "Stream Exists!";
+        }
+
+        return response($response);
+    }
+
+    public function delete_stream(Request $req){
+        $id = $req->delete_id;
+        try{
+            DB::table('class_stream')->where('id',$id)->delete();
+            $response = "Stream Deleted";
+        }catch(Exception $e){
+            info($e);
+            $response = "Failed to Delete Stream!";
+        }
+        return response($response);
+    }
+
+    //Users
+    public function user_index(){
+        $users = User::all();
+        return view('settings.users',compact('users'));
+    }
+
+    public function user_dt(Request $req){
+        $data = User::all();
+        return DataTables::of($data)
+                ->addIndexColumn()
+                ->make(true);
     }
 }

@@ -522,11 +522,13 @@ class StudentController extends Controller
                     std_id
                 IN('.$std_list.')
             ');
+            $response = "Student Status Updated";
         }catch(Exception $e){
             info($e);
+            $response = "There was an Error!";
         }
 
-        return response("Student Status Updated");
+        return response($response);
     }
 
 }

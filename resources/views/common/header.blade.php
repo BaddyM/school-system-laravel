@@ -1,6 +1,5 @@
 @php
-    $system_header = 'Online Academic school Management System';
-    //$system_header = 'Cornerstone High School Nangabo - Admin';
+    $system_header = 'Online Academic Management Information System';
 @endphp
 
 <!DOCTYPE html>
@@ -24,7 +23,7 @@
 
 <body>
 
-    <div class="school-dashboard">
+    <div class="school-dashboard d-none">
         <div class="dashboard-nav" id="dash_nav">
             <div class="mt-3 text-center user_section">
                 <p class="mb-0 text-white text-center h5">User: <span
@@ -32,12 +31,15 @@
                 {{-- If The image is empty --}}
                 @if (Auth::user()->image == null || Auth::user()->image == '')
                     @if (Auth::user()->gender == 'male')
-                        <img src="{{ asset('/') }}images/static/male.jpg" class="img-fluid w-50 mt-2" style="border-radius: 60px;" alt="">
+                        <img src="{{ asset('/') }}images/static/male.jpg" class="img-fluid w-50 mt-2"
+                            style="border-radius: 60px;" alt="">
                     @elseif(Auth::user()->gender == 'female')
-                        <img src="{{ asset('/') }}images/static/female.jpg" class="img-fluid w-50 mt-2" style="border-radius: 60px;"  alt="">
+                        <img src="{{ asset('/') }}images/static/female.jpg" class="img-fluid w-50 mt-2"
+                            style="border-radius: 60px;" alt="">
                     @endif
                 @else
-                    <img src="{{ asset('/') }}images/users/{{ Auth::user()->image }}" class="img-fluid w-50 mt-2" style="border-radius: 60px;"  alt="">
+                    <img src="{{ asset('/') }}images/users/{{ Auth::user()->image }}" class="img-fluid w-50 mt-2"
+                        style="border-radius: 60px;" alt="">
                 @endif
                 <div>
                     <a href="" class="nav-link mt-2">My Profile</a>
@@ -74,10 +76,12 @@
                     </div>
                     <div id="staff_items_list">
                         <li class="nav-item" title="Add Staff">
-                            <a href="{{ route('staff.data.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i> Add Staff</a>
+                            <a href="{{ route('staff.data.index') }}" class="nav-link"><i
+                                    class="bi bi-plus-circle"></i> Add Staff</a>
                         </li>
                         <li class="nav-item" title="View Staff">
-                            <a href="{{ route('staff.display') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> View Staff</a>
+                            <a href="{{ route('staff.display') }}" class="nav-link"><i
+                                    class="bi bi-clipboard-plus"></i> View Staff</a>
                         </li>
                     </div>
                 </div>{{-- Staff --}}
@@ -121,20 +125,25 @@
                                 <i class="bi bi-file-earmark-check"></i> A'Level Marksheet</a>
                         </li>
                         <li class="nav-item" title="Marksheet">
-                            <a href="{{ route('marksheet.olevel') }}" class="nav-link"><i class="bi bi-file-earmark-check"></i> O'Level Marksheet</a>
+                            <a href="{{ route('marksheet.olevel') }}" class="nav-link"><i
+                                    class="bi bi-file-earmark-check"></i> O'Level Marksheet</a>
                         </li>
 
                         <li class="nav-item" title="A'Level">
-                            <a href="{{ route('alevel.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i> Results (A'Level)</a>
+                            <a href="{{ route('alevel.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i>
+                                Results (A'Level)</a>
                         </li>
                         <li class="nav-item" title="O'Level">
-                            <a href="{{ route('olevel.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i> Results (O'Level)</a>
+                            <a href="{{ route('olevel.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i>
+                                Results (O'Level)</a>
                         </li>
                         <li class="nav-item" title="Reports">
-                            <a href="{{ route('reports.alevel') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Reports (A'Level)</a>
+                            <a href="{{ route('reports.alevel') }}" class="nav-link"><i
+                                    class="bi bi-clipboard-plus"></i> Reports (A'Level)</a>
                         </li>
                         <li class="nav-item" title="Reports">
-                            <a href="{{ route('reports.olevel') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Reports (O'Level)</a>
+                            <a href="{{ route('reports.olevel') }}" class="nav-link"><i
+                                    class="bi bi-clipboard-plus"></i> Reports (O'Level)</a>
                         </li>
                     </div>
                 </div>{{-- Student Results --}}
@@ -145,43 +154,51 @@
                     </div>
                     <div id="settings_items_list">
                         <li class="nav-item" title="Term">
-                            <a href="{{ route('setting.term') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Change Term</a>
+                            <a href="{{ route('setting.term') }}" class="nav-link"><i
+                                    class="bi bi-clipboard-plus"></i> Change Term</a>
                         </li>
 
                         <li class="nav-item" title="Status">
-                            <a href="{{ route('status.list.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i> Status List</a>
+                            <a href="{{ route('status.list.index') }}" class="nav-link"><i
+                                    class="bi bi-plus-circle"></i> Status List</a>
                         </li>
 
                         <li class="nav-item" title="Classes">
-                            <a href="{{ route('setting.subjects.index') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Subjects</a>
+                            <a href="{{ route('setting.subjects.index') }}" class="nav-link"><i
+                                    class="bi bi-clipboard-plus"></i> Subjects</a>
                         </li>
 
                         <li class="nav-item" title="Classes">
-                            <a href="{{ route('setting.results.index') }}" class="nav-link"><i class="bi bi-table"></i> Results Table</a>
+                            <a href="{{ route('setting.results.index') }}" class="nav-link"><i
+                                    class="bi bi-table"></i> Results Table</a>
                         </li>
 
                         <li class="nav-item" title="Classes">
-                            <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> Classes</a>
+                            <a href="{{ route('class.index') }}" class="nav-link"><i
+                                    class="bi bi-clipboard-plus"></i> Classes</a>
                         </li>
 
                         <li class="nav-item" title="Streams">
-                            <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> Streams</a>
+                            <a href="{{ route('stream.index') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Streams</a>
                         </li>
 
                         <li class="nav-item" title="School Details">
-                            <a href="{{ route('setting.school') }}" class="nav-link"><i class="fa fa-school"></i> School Details</a>
+                            <a href="{{ route('setting.school') }}" class="nav-link"><i class="fa fa-school"></i>
+                                School Details</a>
                         </li>
 
                         <li class="nav-item" title="Initials">
-                            <a href="{{ route('setting.initials') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Teacher Initials</a>
+                            <a href="{{ route('setting.initials') }}" class="nav-link"><i
+                                    class="bi bi-clipboard-plus"></i> Teacher Initials</a>
                         </li>
 
                         <li class="nav-item" title="Signatures">
-                            <a href="{{ route('setting.signatures') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Signatures</a>
+                            <a href="{{ route('setting.signatures') }}" class="nav-link"><i
+                                    class="bi bi-clipboard-plus"></i> Signatures</a>
                         </li>
 
                         <li class="nav-item" title="Signatures">
-                            <a href="" class="nav-link"><i class="fa fa-users"></i> Users</a>
+                            <a href="{{ route('users.index') }}" class="nav-link"><i class="fa fa-users"></i> Users</a>
                         </li>
 
                         <li class="nav-item" title="Student Cards">
@@ -212,6 +229,17 @@
                 </div>
                 <h5 class="mb-0">{{ $system_header }}</h5>
                 <div class="sign_lock align-items-center" style="gap:10px;">
+                    <div title="Notifications" id="messages">
+                        <a href="" class="text-dark d-flex">
+                            <div class="envelope">
+                                <i class="bi bi-envelope"></i>
+                            </div>
+                            <div class="badge text-white fw-bold"
+                                style="background:purple; position: absolute; margin-left:12px;">
+                                100
+                            </div>
+                        </a>
+                    </div>
                     <div title="Sign-out" id="sign-out">
                         <a href="{{ route('logout') }}" class="text-dark"><i class="bi bi-lock-fill"></i></a>
                     </div>
@@ -226,7 +254,7 @@
                     </button>
                 </div>
             </div>
-            
+
             {{-- Header here --}}
 
             <div class="system-body">
@@ -237,6 +265,12 @@
         </div>
     </div>
 
+    <div class="loader-container justify-content-center w-100 d-flex">
+        <div class="loader">
+
+        </div>
+    </div>
+
     @stack('body-scripts')
 
     <script src="{{ asset('') }}js/jquery.min.js"></script>
@@ -244,6 +278,25 @@
     <script src="{{ asset('') }}js/bootstrap.bundle.js"></script>
     <script src="{{ asset('') }}js/bootstrap-datepicker.js"></script>
     <script>
+        $(window).on('load', function() {
+            $(".loader-container").addClass('d-none');
+
+            var counter = 0;
+
+            function increment(value){
+                counter += value
+                return counter;
+            }
+
+            const counterInterval = setInterval(function(){
+                value = ((increment(1))/10);
+                $(".school-dashboard").removeClass('d-none').css({'opacity':value});
+                if(value == 1){
+                    clearInterval(counterInterval);
+                }
+            }, 100);
+        });
+
         //Hide the nav items
         $("#student_items_list").hide();
         $("#staff_items_list").hide();
@@ -287,11 +340,10 @@
         });
 
         //Nav-bar
-        $(".hamburger").on('click',function(){
+        $(".hamburger").on('click', function() {
             $(".dashboard-nav").toggleClass('is_mob_active');
             $(".bar").toggleClass('is_active');
         });
-
     </script>
 
 </body>

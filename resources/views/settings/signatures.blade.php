@@ -141,25 +141,28 @@
             //Delete a Signature
             $(".delete_form").on('submit', function(e) {
                 e.preventDefault();
-                $.ajax({
-                    type: "POST",
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    url: "{{ route('setting.signatures.delete') }}",
-                    data: new FormData(this),
-                    processData: false,
-                    contentType: false,
-                    cache: false,
-                    success: function(data) {
-                        $(".delete_form")[0].reset();
-                        alert("Successfully Deleted Signature");
-                        location.reload();
-                    },
-                    error: function(error) {
-                        alert('Failed to Delete Signature');
-                    }
-                });
+                const confirm_delete = confirm("Are you sure?");
+                if(confirm_delete == true){
+                    $.ajax({
+                        type: "POST",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        url: "{{ route('setting.signatures.delete') }}",
+                        data: new FormData(this),
+                        processData: false,
+                        contentType: false,
+                        cache: false,
+                        success: function(data) {
+                            $(".delete_form")[0].reset();
+                            alert("Successfully Deleted Signature");
+                            location.reload();
+                        },
+                        error: function(error) {
+                            alert('Failed to Delete Signature');
+                        }
+                    });
+                }
             });
 
         });

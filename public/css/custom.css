@@ -308,3 +308,35 @@ select:focus{
     border-bottom: 3px purple solid;
     padding: 3px 15px;
 }
+
+.class_list > div{
+    padding: 5px;
+    font-size: 16px;
+}
+
+.class_list > div:nth-child(even){
+    background: grey;
+    color: white;
+}
+
+/*--------------------------------------- SPINNER ---------------------------------------*/
+.loader-container {
+    position: absolute;
+    top: 50vh;
+}
+.loader{
+    width: 3rem;
+    height: 3rem;
+    border: 5px solid #09203f;
+    border-top: 5px solid transparent;
+    border-radius: 50%;
+    animation: loader-rotate 1.5s infinite;
+}
+@keyframes loader-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to{
+        transform: rotate(360deg);
+    }
+}
