@@ -50,20 +50,29 @@ class DatabaseSeeder extends Seeder {
         */
 
         //Add user
+        /*
         $data = [
             'Mansoor' => 'male',
             'Annet' => 'female',
             'Sahya' => 'male'
         ];
+        */
+
+        $data = [
+            'Patrick' => 'male'
+        ];
 
         function create_user($username, $gender){
             return DB::table('users')->insert([
                 'username' => $username,
-                'email' => ''.strtolower($username).'@gmail.com',
+                //'email' => ''.strtolower($username).'@gmail.com',
+                'email' => 'patrick@gmail.com',
                 'gender' => $gender,
-                'dept' => 'it-support',
-                'is_super_admin' => 1,
-                'password' => Hash::make(''.strtolower($username).''),
+                'dept' => 'teacher',
+                'is_active' => 1,
+                'is_teacher' => 1,
+                //'password' => Hash::make(''.strtolower($username).''),
+                'password' => Hash::make('patrick'),
                 'created_at' => now()
             ]);
         }

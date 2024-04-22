@@ -104,7 +104,7 @@
                     </div>
                 </div>{{-- Student Fees --}}
 
-                <div>
+                <div class="d-none">
                     <div class="nav-item nav-title" id="parents_items" title="Parents Data">
                         Parents - Information
                     </div>
@@ -194,6 +194,11 @@
 
                         <li class="nav-item" title="Signatures">
                             <a href="{{ route('setting.signatures') }}" class="nav-link"><i
+                                    class="bi bi-clipboard-plus"></i> Positions</a>
+                        </li>
+
+                        <li class="nav-item" title="Signatures">
+                            <a href="{{ route('setting.signatures') }}" class="nav-link"><i
                                     class="bi bi-clipboard-plus"></i> Signatures</a>
                         </li>
 
@@ -278,6 +283,12 @@
     <script src="{{ asset('') }}js/bootstrap.bundle.js"></script>
     <script src="{{ asset('') }}js/bootstrap-datepicker.js"></script>
     <script>
+        //Tooltip
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+
         $(window).on('load', function() {
             $(".loader-container").addClass('d-none');
 

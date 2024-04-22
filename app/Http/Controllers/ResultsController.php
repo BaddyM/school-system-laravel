@@ -1091,6 +1091,10 @@ class ResultsController extends Controller
                     text-transform:uppercase;
                 }
 
+                .remarks-table td{
+                    padding:10px !important;
+                }
+
             </style>';
 
         foreach ($data as $d) {
@@ -1218,7 +1222,8 @@ class ResultsController extends Controller
 
             $html .= '
                     <th>Average</th>
-                    <th>Grade</th>
+                    <th>Grade</td>
+                    <th></th>
                     <th>Points</th>
                     <th>Teacher Initials</th>
                 </tr>
@@ -1266,6 +1271,7 @@ class ResultsController extends Controller
 
                                 //Average for Each Paper
                                 $html .= '<td style="text-align:center;">' . (($mark_avg > 0) ? $mark_avg : '') . '</td>';
+                                $html .= '<td style="text-align:center; font-weight:bold;">' . (($mark_avg > 0) ? $this->get_grade($mark_avg) : '') . '</td>';
 
                                 //GRADE AND POINTS CALCULATION
                                 if (count($subject_avg) == $paper_counter && array_sum($subject_avg) > 0) {
@@ -1326,6 +1332,7 @@ class ResultsController extends Controller
 
                                 //Average for Each Paper
                                 $html .= '<td style="text-align:center;">' . (($mark_avg > 0) ? $mark_avg : '') . '</td>';
+                                $html .= '<td style="text-align:center; font-weight:bold;">' . (($mark_avg > 0) ? $this->get_grade($mark_avg) : '') . '</td>';
 
                                 //GRADE AND POINTS CALCULATION
                                 if (count($subject_avg) == $paper_counter && array_sum($subject_avg) > 0) {
@@ -1386,6 +1393,7 @@ class ResultsController extends Controller
 
                                 //Average for Each Paper
                                 $html .= '<td style="text-align:center;">' . (($mark_avg > 0) ? $mark_avg : '') . '</td>';
+                                $html .= '<td style="text-align:center; font-weight:bold;">' . (($mark_avg > 0) ? $this->get_grade($mark_avg) : '') . '</td>';
 
                                 //GRADE AND POINTS CALCULATION
                                 if (count($subject_avg) == $paper_counter && array_sum($subject_avg) > 0) {
@@ -1446,6 +1454,7 @@ class ResultsController extends Controller
 
                                 //Average for Each Paper
                                 $html .= '<td style="text-align:center;">' . (($mark_avg > 0) ? $mark_avg : '') . '</td>';
+                                $html .= '<td style="text-align:center; font-weight:bold;">' . (($mark_avg > 0) ? $this->get_grade($mark_avg) : '') . '</td>';
 
                                 //GRADE AND POINTS CALCULATION
                                 if (count($subject_avg) == $paper_counter && array_sum($subject_avg) > 0) {
@@ -1506,6 +1515,7 @@ class ResultsController extends Controller
 
                                 //Average for Each Paper
                                 $html .= '<td style="text-align:center;">' . (($mark_avg > 0) ? $mark_avg : '') . '</td>';
+                                $html .= '<td style="text-align:center; font-weight:bold;">' . (($mark_avg > 0) ? $this->get_grade($mark_avg) : '') . '</td>';
 
                                 //GRADE AND POINTS CALCULATION
                                 if (count($subject_avg) == $paper_counter && array_sum($subject_avg) > 0) {
@@ -1532,6 +1542,7 @@ class ResultsController extends Controller
                         }
                     }
                 }
+                
             }
 
             //Close the Results Table here
@@ -1612,7 +1623,8 @@ class ResultsController extends Controller
 
 
             //Remarks
-            $html .= '<table style="width:100%;">
+            $html .= '
+            <table class="remarks-table" style="width:100%;">
                 <thead>
                     <tr>
                         <th colspan=4>Remarks</th>
@@ -1620,7 +1632,7 @@ class ResultsController extends Controller
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="padding:10px; width:50%;">HeadTeacher</td>
+                        <td style="padding:10px; width:50%;" rowspan="2">HeadTeacher</td>
                         <td style="width:50%; text-align:center;">';
             if ($signature_hm == null) {
                 $html .= '';
@@ -1630,7 +1642,7 @@ class ResultsController extends Controller
 
             $html .= '
                         </td>
-                        <td style="padding:10px; width:50%;">Director Of Studies</td>
+                        <td style="padding:10px; width:50%;" rowspan="2">Director Of Studies</td>
                         <td style="width:50%; text-align:center;">';
             if ($signature_dos == '') {
                 $html .= ' ';
@@ -1639,6 +1651,10 @@ class ResultsController extends Controller
             }
             $html .= '
                         </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>
@@ -1882,5 +1898,30 @@ class ResultsController extends Controller
         }
         $std_grade = $grade . '-' . $points;
         return $std_grade;
+    }
+
+    function get_grade($value){
+        if($value >= 85 and $value <=100){
+            $grade = "D1";
+        }elseif($value >= 80 and $value <=84){
+            $grade = "D2";
+        }elseif($value >= 75 and $value <=79){
+            $grade = "C3";
+        }elseif($value >= 70 and $value <=74){
+            $grade = "C4";
+        }elseif($value >= 65 and $value <=69){
+            $grade = "C5";
+        }elseif($value >= 60 and $value <= 64){
+            $grade = "C6";
+        }elseif($value >= 50 and $value <=59){
+            $grade = "P7";
+        }elseif($value >= 40 and $value <=49){
+            $grade = "P8";
+        }elseif($value >= 0 and $value <=39){
+            $grade = "F9";
+        }else{
+            $grade = "F9";
+        }
+        return $grade;
     }
 }

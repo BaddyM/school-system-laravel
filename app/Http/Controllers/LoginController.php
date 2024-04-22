@@ -14,14 +14,24 @@ class LoginController extends Controller {
     public function validate_login(Request $req){              
         $credentials = $req->validate([
             'email' => ['required','email'],
-            'password' => ['required']
+            'password' => ['required'],
         ]);
 
         //Check if the credentials match those in the database
         if(Auth::attempt($credentials)){
-            $response = redirect()->intended(route('home'));
+            $active = Auth::user()->is_active;
+            $email_verified = Auth::user()->email_verified;
+            
+            if($active == 0){
+                $response =  redirect()->route('login')->withErrors("Sorry, User Inactive!");
+            }elseif($email_verified == 0){
+                $response =  redirect()->route('login')->withErrors("Sorry, Email Not Verified!");
+            }else{
+                $response = redirect()->intended(route('home'));
+            }
+            
         }else{            
-            $response =  redirect()->route('login')->with('error','Incorrect Credentials');
+            $response =  redirect()->route('login')->withErrors("Incorrect credentials!");
         }
 
         return $response;

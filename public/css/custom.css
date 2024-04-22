@@ -340,3 +340,29 @@ select:focus{
         transform: rotate(360deg);
     }
 }
+
+.is_active{
+    border:2px solid green;
+    color: green;
+    font-weight: bold;
+    transition: .5s;
+    border-radius: 15px;
+}
+
+.is_active:hover{
+    background: green;
+    color: white;
+}
+
+.is_inactive{
+    border:2px solid grey;
+    color: grey;
+    font-weight: bold;
+    transition: .5s;
+    border-radius: 15px;
+}
+
+.is_inactive:hover{
+    background: grey;
+    color: white;
+}

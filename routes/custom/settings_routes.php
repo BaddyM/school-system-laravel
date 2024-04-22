@@ -52,4 +52,6 @@ Route::middleware('auth')->prefix('Settings')->group(function(){
 
     //Users
     Route::get("/users",[SettingController::class,'user_index'])->name('users.index');
+    Route::post("/fetch_users",[SettingController::class,'fetch_user'])->name('users.fetch');
+    Route::post("/update_users",[SettingController::class,'update_user'])->name('users.update');
 });

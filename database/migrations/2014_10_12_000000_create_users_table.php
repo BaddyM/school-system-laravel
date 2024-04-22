@@ -20,6 +20,7 @@ class CreateUsersTable extends Migration {
             $table->boolean('is_bursar')->default(0);
             $table->boolean('is_librarian')->default(0);
             $table->boolean('is_student')->default(0);
+            $table->boolean('is_active')->default(0);
             $table->boolean('email_verified')->default(0);
             $table->string('password')->nullable(true);
             $table->timestamps();

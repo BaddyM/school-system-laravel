@@ -52,25 +52,29 @@
         </div>
 
         <div class="mt-3 update-students-table-container">
-            <table class="table" id="update-students-table">
-                <thead>
-                    <tr style="background: rgb(82, 82, 254); color:white;" class="bg-gradient">
-                        <th scope="col">ID</th>
-                        <th scope="col">Last Name</th>
-                        <th scope="col">First Name</th>
-                        <th scope="col">Class</th>
-                        <th scope="col">Stream</th>
-                        <th scope="col">Image</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Year Of Entry</th>
-                        <th scope="col">Combination</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-
-                </tbody>
-            </table>
+            <div class="card">
+                <div class="card-body overflow-scroll">
+                    <table class="table" id="update-students-table">
+                        <thead>
+                            <tr style="background: rgb(82, 82, 254); color:white;" class="bg-gradient">
+                                <th scope="col">ID</th>
+                                <th scope="col">Last Name</th>
+                                <th scope="col">First Name</th>
+                                <th scope="col">Class</th>
+                                <th scope="col">Stream</th>
+                                <th scope="col">Image</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Year Of Entry</th>
+                                <th scope="col">Combination</th>
+                                <th scope="col">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
     </div>

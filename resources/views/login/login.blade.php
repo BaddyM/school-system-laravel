@@ -22,12 +22,13 @@
             <div>
                 {{-- check if there exists any errors --}}
                 @if($errors->any())
-                    <div class="alert alert-danger rounded-2 bg-gradient px-2 py-2 bg-gradient my-2">
-                        @foreach ($errors->all() as $error)
-                        {{ $error }}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        @foreach ($errors->all() as $err)
+                        <strong><i class="bi bi-exclamation-triangle"></i></strong> {{ $err }}
                         @endforeach
-                    </div>
-                @endif
+                    </div>                  
+                @endif                
             </div>
             <div>
                 <label for="" class="form-label fw-bold">Email</label>
@@ -50,13 +51,14 @@
     </div>
 
     <script src="{{ asset('/') }}js/jquery.min.js"></script>
+    <script src="{{ asset('') }}js/bootstrap.bundle.js"></script>
     <script>
         $(document).ready(function(){
             $("#login-btn").removeClass('submit-btn').addClass('submit-btn-disabled');
 
             $("#email, #password").on('change',function(){
                 $("#login-btn").addClass('submit-btn').removeClass('submit-btn-disabled').prop('disabled',false);
-            })
+            });
         })
     </script>
 </body>

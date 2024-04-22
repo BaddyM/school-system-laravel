@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use App\Models\User;
-use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Hash;
 
 class SettingController extends Controller
 {
@@ -691,13 +691,103 @@ class SettingController extends Controller
     //Users
     public function user_index(){
         $users = User::all();
-        return view('settings.users',compact('users'));
+        $position = DB::table('position')->get();
+        return view('settings.users',compact('users','position'));
     }
 
-    public function user_dt(Request $req){
-        $data = User::all();
-        return DataTables::of($data)
-                ->addIndexColumn()
-                ->make(true);
+    public function fetch_user(Request $req){
+        $id = $req->user_id;
+        $data = User::where('id',$id)->first();
+        return response($data);
+    }
+
+    public function update_user(Request $req){
+        $id = $req->user_update_id;
+
+        //Check Active
+        if($req->active == "on"){
+            $active = 1;
+        }else{
+            $active = 0;
+        }
+
+        //Check email verified
+        if($req->verify_email == "on"){
+            $email_verified = 1;
+        }else{
+            $email_verified = 0;
+        }
+        
+        $username = $req->username;
+        $email = $req->email;
+        $gender = $req->gender;
+        $priviledge = $req->priviledge;
+        $dept = $req->department;
+
+        if($priviledge == 'admin'){
+            $is_admin = 1;
+            $is_bursar = 0;
+            $is_teacher = 0;
+            $is_librarian = 0;
+            $is_super_admin = 0;
+            $is_student = 0;
+        }elseif($priviledge == 'teacher'){
+            $is_admin = 0;
+            $is_bursar = 0;
+            $is_teacher = 1;
+            $is_librarian = 0;
+            $is_super_admin = 0;
+            $is_student = 0;
+        }elseif($priviledge == 'bursar'){
+            $is_admin = 0;
+            $is_bursar = 1;
+            $is_teacher = 0;
+            $is_librarian = 0;
+            $is_super_admin = 0;
+            $is_student = 0;
+        }elseif($priviledge == 'librarian'){
+            $is_admin = 0;
+            $is_bursar = 0;
+            $is_teacher = 0;
+            $is_librarian = 1;
+            $is_super_admin = 0;
+            $is_student = 0;
+        }else{
+            $is_admin = 0;
+            $is_bursar = 0;
+            $is_teacher = 0;
+            $is_librarian = 0;
+            $is_super_admin = 0;
+            $is_student = 0;
+        }
+
+        $data = [
+            'id' => $id,
+            'is_active' => $active,
+            'email_verified' => $email_verified,
+            'username' => $username,
+            'email' => $email,
+            'gender' => $gender,
+            'dept' => $dept,
+            'is_admin' => $is_admin,
+            'is_librarian' => $is_librarian,
+            'is_teacher' => $is_teacher,
+            'is_super_admin' => $is_super_admin,
+            'is_student' => $is_student,
+            'is_bursar' => $is_bursar
+        ];
+
+        //If Password Field is Not null
+        if($req->password != null || $req->password != ""){
+            $password = Hash::make($req->password);
+            array_push($data, ['password' => $password]);
+        }
+
+        info($data);
+
+        $response = "User Updated";
+        return response($response);
     }
 }
+
+
