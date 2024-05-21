@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Exception;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 
 class SettingController extends Controller
 {
@@ -690,9 +692,10 @@ class SettingController extends Controller
 
     //Users
     public function user_index(){
-        $users = User::all();
+        $users = User::where('is_super_admin','!=',1)->get();
         $position = DB::table('position')->get();
-        return view('settings.users',compact('users','position'));
+        $departments = DB::table('department')->get();
+        return view('settings.users',compact('users','position','departments'));
     }
 
     public function fetch_user(Request $req){
@@ -703,6 +706,7 @@ class SettingController extends Controller
 
     public function update_user(Request $req){
         $id = $req->user_update_id;
+        info("Update the user");
 
         //Check Active
         if($req->active == "on"){
@@ -762,7 +766,6 @@ class SettingController extends Controller
         }
 
         $data = [
-            'id' => $id,
             'is_active' => $active,
             'email_verified' => $email_verified,
             'username' => $username,
@@ -780,12 +783,134 @@ class SettingController extends Controller
         //If Password Field is Not null
         if($req->password != null || $req->password != ""){
             $password = Hash::make($req->password);
-            array_push($data, ['password' => $password]);
+            $data['password'] = $password;
         }
+
+        //info($data);
+
+        try{
+            //update the DB
+            User::where('id',$id)->update($data);
+            $response = "User Records Updated";
+        }catch(Exception $e){
+            $response = "User Update Failed";
+        }
+
+        return response($response);
+    }
+
+    public function update_image(Request $req){
+        $id = $req->update_user_image_id;
+        $image = Str::random().'.'.$req->user_image->extension();
+
+        //Delete the old image
+        $old_image = (User::where('id',$id)->first())->image;
+
+        //Check if the old image isn't empty
+        if($old_image != null){
+            unlink(public_path('images/users/'.$old_image.''));
+        }        
+
+        //Update to the new Image
+        try{
+            User::where('id',$id)->update([
+                'image' => $image
+            ]);
+
+            //Save the image
+            $req->user_image->move(public_path('images/users'),$image);
+        }catch(Exception $e){
+            info("Failed to Save Image");
+        }
+    }
+
+    public function add_user(Request $req){
+        $username = $req->username;
+        $email = $req->email;
+        $pass = $req->password;
+        $priviledge = $req->department;
+        $gender = $req->gender;
+
+        if($priviledge == 'admin'){
+            $is_admin = 1;
+            $is_bursar = 0;
+            $is_teacher = 0;
+            $is_librarian = 0;
+            $is_super_admin = 0;
+            $is_student = 0;
+        }elseif($priviledge == 'teacher'){
+            $is_admin = 0;
+            $is_bursar = 0;
+            $is_teacher = 1;
+            $is_librarian = 0;
+            $is_super_admin = 0;
+            $is_student = 0;
+        }elseif($priviledge == 'bursar'){
+            $is_admin = 0;
+            $is_bursar = 1;
+            $is_teacher = 0;
+            $is_librarian = 0;
+            $is_super_admin = 0;
+            $is_student = 0;
+        }elseif($priviledge == 'librarian'){
+            $is_admin = 0;
+            $is_bursar = 0;
+            $is_teacher = 0;
+            $is_librarian = 1;
+            $is_super_admin = 0;
+            $is_student = 0;
+        }else{
+            $is_admin = 0;
+            $is_bursar = 0;
+            $is_teacher = 0;
+            $is_librarian = 0;
+            $is_super_admin = 0;
+            $is_student = 0;
+        }
+
+        $data = [
+            'username' => $username,
+            'email' => $email,
+            'gender' => $gender,
+            'dept' => $priviledge,
+            'is_admin' => $is_admin,
+            'is_librarian' => $is_librarian,
+            'is_teacher' => $is_teacher,
+            'is_super_admin' => $is_super_admin,
+            'is_student' => $is_student,
+            'is_bursar' => $is_bursar,
+            'created_at' => Carbon::now()
+        ];
 
         info($data);
 
-        $response = "User Updated";
+        //Check Password
+        if($pass != null){
+            $password = Hash::make($pass);
+            $data['password'] = $password;
+        }
+
+        try{
+            $check_email = User::where('email', $email)->exists();
+
+            if($check_email == 1){
+                $response = "User Already Exists";
+            }else{
+                //Check Image
+                if($req->user_image != null){
+                    $image = Str::random().'.'.$req->user_image->extension();
+                    $req->user_image->move(public_path('images/users/'),$image);
+                    $data['image'] = $image;
+                }
+
+                User::insert($data);
+                $response = "User Added Successfully";
+            }
+        }catch(Exception $e){
+            info($e);
+            $response = "Failed to Save Data";
+        }
+
         return response($response);
     }
 }

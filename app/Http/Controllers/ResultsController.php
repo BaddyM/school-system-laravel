@@ -592,10 +592,17 @@ class ResultsController extends Controller
                     </div>';
                     */
 
-                $html .= '
+                if ($d->gender == 'Female') {
+                    $html .= '
+                        <div>
+                            <img class="student_pic" src="' . public_path('/') . 'images/static/female.jpg">
+                        </div>';
+                } else {
+                    $html .= '
                         <div>
                             <img class="student_pic" src="' . public_path('/') . 'images/static/male.jpg">
                         </div>';
+                }  
             }
 
             //Student Details Area
@@ -657,7 +664,7 @@ class ResultsController extends Controller
 
             //foreach($subjects as $subject){
             $html .= '
-                <p style="text-align:center; margin-bottom:10px; font-weight:bold; text-transform:uppercase; font-size:18px;">Student Results</p>
+                <p style="text-align:center; margin-bottom:4px; margin-top:-7px; font-weight:bold; text-transform:uppercase; font-size:18px;">Student Results</p>
 
                     <table style="width:100%;">
                         <thead>
@@ -874,17 +881,16 @@ class ResultsController extends Controller
 
             //Remarks
             $html .= '
-
-                    <table style="width:100%;">
-                        <thead>
-                            <tr>
-                                <th colspan=4>Remarks</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding:10px; width:50%;">HeadTeacher</td>
-                                <td style="width:50%; text-align:center;">';
+            <table class="remarks-table" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th colspan=6>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding:10px; width:10%; text-align:center;" rowspan="2">HeadTeacher</td>
+                        <td style="width:20%; text-align:center;">';
             if ($signature_hm == null) {
                 $html .= '';
             } else {
@@ -892,19 +898,26 @@ class ResultsController extends Controller
             }
 
             $html .= '
-                                </td>
-                                <td style="padding:10px; width:50%;">Director Of Studies</td>
-                                <td style="width:50%; text-align:center;">';
+                        </td>
+                        <td style="padding:10px; width:10%; text-align:center;" rowspan="2">Director Of Studies</td>
+                        <td style="width:20%; text-align:center;">';
             if ($signature_dos == '') {
                 $html .= ' ';
             } else {
                 $html .= '<img class="signature" src="' . public_path('/') . 'images/signatures/' . $signature_dos . '">';
             }
             $html .= '
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>';
+                        </td>
+                        <td style="padding:10px; width:10%; text-align:center;" rowspan="2">Class Teacher</td>
+                        <td style="width:30%; text-align:center;"></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:bold;">'.$this->hm_comment(round($avg, 1)).'</td>
+                        <td style="font-weight:bold;">'.$this->dos_comment(round($avg, 1)).'</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>';
 
             //Stamp note
             $html .= '
@@ -1129,18 +1142,26 @@ class ResultsController extends Controller
                         </div>';
                 }
             } else {
+                /*
 
                 $html .= '
                     <div>
                         <img class="student_pic" src="' . public_path('/') . 'images/student_photos/' . $d->image . '">
                     </div>';
-
-                /*
-                $html .= '
-                    <div>
-                        <img class="student_pic" src="' . public_path('/') . 'images/static/male.jpg">
-                    </div>';
                     */
+
+                if ($d->gender == 'Female') {
+                    $html .= '
+                        <div>
+                            <img class="student_pic" src="' . public_path('/') . 'images/static/female.jpg">
+                        </div>';
+                } else {
+                    $html .= '
+                        <div>
+                            <img class="student_pic" src="' . public_path('/') . 'images/static/male.jpg">
+                        </div>';
+                }                
+                    
             }
 
             //Student Details Area
@@ -1627,13 +1648,13 @@ class ResultsController extends Controller
             <table class="remarks-table" style="width:100%;">
                 <thead>
                     <tr>
-                        <th colspan=4>Remarks</th>
+                        <th colspan=6>Remarks</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="padding:10px; width:50%;" rowspan="2">HeadTeacher</td>
-                        <td style="width:50%; text-align:center;">';
+                        <td style="padding:10px; width:10%; text-align:center;" rowspan="2">HeadTeacher</td>
+                        <td style="width:20%; text-align:center;">';
             if ($signature_hm == null) {
                 $html .= '';
             } else {
@@ -1642,8 +1663,8 @@ class ResultsController extends Controller
 
             $html .= '
                         </td>
-                        <td style="padding:10px; width:50%;" rowspan="2">Director Of Studies</td>
-                        <td style="width:50%; text-align:center;">';
+                        <td style="padding:10px; width:10%; text-align:center;" rowspan="2">Director Of Studies</td>
+                        <td style="width:20%; text-align:center;">';
             if ($signature_dos == '') {
                 $html .= ' ';
             } else {
@@ -1651,14 +1672,16 @@ class ResultsController extends Controller
             }
             $html .= '
                         </td>
+                        <td style="padding:10px; width:10%; text-align:center;" rowspan="2">Class Teacher</td>
+                        <td style="width:30%; text-align:center;"></td>
                     </tr>
                     <tr>
+                        <td></td>
                         <td></td>
                         <td></td>
                     </tr>
                 </tbody>
             </table>
-
                     <p style="text-align:center; color:black; font-style:italics; font-size:11px;">This Report is invalid without a stamp</p>
                 ';
 
@@ -1923,5 +1946,29 @@ class ResultsController extends Controller
             $grade = "F9";
         }
         return $grade;
+    }
+
+    function dos_comment($descriptor){
+        if($descriptor >= 0.1 and $descriptor <= 1.9){
+            $comment = "More effort and extensive revision needed.";
+        }elseif($descriptor >= 2.0 and $descriptor <= 2.4){
+            $comment = "Promising results, don't relax.";
+        }elseif($descriptor >= 2.5 and $descriptor <= 3.0){
+            $comment = "Good performance, keep it up.";
+        }
+
+        return $comment;
+    }
+
+    function hm_comment($descriptor){
+        if($descriptor >= 0.1 and $descriptor <= 1.9){
+            $comment = "There is room for improvement, keep trying.";
+        }elseif($descriptor >= 2.0 and $descriptor <= 2.4){
+            $comment = "A Good performance.";
+        }elseif($descriptor >= 2.5 and $descriptor <= 3.0){
+            $comment = "Thank you, don't relax.";
+        }
+
+        return $comment;
     }
 }

@@ -58,6 +58,7 @@ class DatabaseSeeder extends Seeder {
         ];
         */
 
+        /*
         $data = [
             'Patrick' => 'male'
         ];
@@ -79,6 +80,16 @@ class DatabaseSeeder extends Seeder {
 
         foreach($data as $key => $value){
             create_user($key, $value);
+        }
+        */
+
+        $dept = array('admin', 'bursar', 'librarian', 'teacher', 'other');
+
+        foreach($dept as $d){
+            DB::table('department')->insert([
+                'dept' => $d,
+                'created_at' => now()
+            ]);
         }
         
     }

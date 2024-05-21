@@ -27,7 +27,12 @@
         <div class="dashboard-nav" id="dash_nav">
             <div class="mt-3 text-center user_section">
                 <p class="mb-0 text-white text-center h5">User: <span
-                        class="text-warning fw-bold">{{ Auth::user()->username }}</span></p>
+                        class="text-warning fw-bold">
+                        @php
+                            $user_name = explode(' ',Auth::user()->username);
+                            echo $user_name[0];
+                        @endphp
+                    </span></p>
                 {{-- If The image is empty --}}
                 @if (Auth::user()->image == null || Auth::user()->image == '')
                     @if (Auth::user()->gender == 'male')
@@ -58,13 +63,13 @@
                         </li>
 
                         <li class="nav-item" title="View Student">
-                            <a href="{{ route('student.view') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i>
+                            <a href="{{ route('student.view') }}" class="nav-link"><i class="bi bi-binoculars"></i>
                                 View Student</a>
                         </li>
 
                         <li class="nav-item" title="Student Status">
                             <a href="{{ route('student.status.index') }}" class="nav-link"><i
-                                    class="bi bi-clipboard-plus"></i>
+                                    class="bi bi-broadcast-pin"></i>
                                 Student Status</a>
                         </li>
                     </div>
@@ -81,7 +86,7 @@
                         </li>
                         <li class="nav-item" title="View Staff">
                             <a href="{{ route('staff.display') }}" class="nav-link"><i
-                                    class="bi bi-clipboard-plus"></i> View Staff</a>
+                                    class="bi bi-binoculars"></i> View Staff</a>
                         </li>
                     </div>
                 </div>{{-- Staff --}}
@@ -165,7 +170,7 @@
 
                         <li class="nav-item" title="Classes">
                             <a href="{{ route('setting.subjects.index') }}" class="nav-link"><i
-                                    class="bi bi-clipboard-plus"></i> Subjects</a>
+                                    class="bi bi-book"></i> Subjects</a>
                         </li>
 
                         <li class="nav-item" title="Classes">
@@ -175,11 +180,11 @@
 
                         <li class="nav-item" title="Classes">
                             <a href="{{ route('class.index') }}" class="nav-link"><i
-                                    class="bi bi-clipboard-plus"></i> Classes</a>
+                                    class="bi bi-door-open-fill"></i> Classes</a>
                         </li>
 
                         <li class="nav-item" title="Streams">
-                            <a href="{{ route('stream.index') }}" class="nav-link"><i class="bi bi-clipboard-plus"></i> Streams</a>
+                            <a href="{{ route('stream.index') }}" class="nav-link"><i class="bi bi-bar-chart-line"></i> Streams</a>
                         </li>
 
                         <li class="nav-item" title="School Details">
@@ -189,17 +194,17 @@
 
                         <li class="nav-item" title="Initials">
                             <a href="{{ route('setting.initials') }}" class="nav-link"><i
-                                    class="bi bi-clipboard-plus"></i> Teacher Initials</a>
+                                    class="bi bi-bookmark-plus"></i> Teacher Initials</a>
                         </li>
 
                         <li class="nav-item" title="Signatures">
                             <a href="{{ route('setting.signatures') }}" class="nav-link"><i
-                                    class="bi bi-clipboard-plus"></i> Positions</a>
+                                    class="bi bi-1-circle"></i> Positions</a>
                         </li>
 
                         <li class="nav-item" title="Signatures">
                             <a href="{{ route('setting.signatures') }}" class="nav-link"><i
-                                    class="bi bi-clipboard-plus"></i> Signatures</a>
+                                    class="bi bi-at h4"></i> Signatures</a>
                         </li>
 
                         <li class="nav-item" title="Signatures">
@@ -207,7 +212,7 @@
                         </li>
 
                         <li class="nav-item" title="Student Cards">
-                            <a href="" class="nav-link"><i class="bi bi-clipboard-plus"></i> Student Cards</a>
+                            <a href="" class="nav-link"><i class="bi bi-credit-card"></i> Student Cards</a>
                         </li>
                     </div>
                 </div>{{-- Settings --}}
