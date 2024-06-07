@@ -90,10 +90,13 @@ class ResultsController extends Controller
     }
 
     //Select students to award marks
-    public function select_students(Request $req){
+    public function select_students(Request $req)
+    {
         $classname = $req->classname;
         $table = $req->result_set;
         $subject = $req->subject;
+        $topic = $req->topic;
+        $level = $req->level;
         $paper = $req->paper;
 
         //Select Term
@@ -101,16 +104,64 @@ class ResultsController extends Controller
         $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
 
         $results_table = $table . "_" . $term . "_" . $year;
-        $subject_paper = $subject . "_" . $paper;
 
-        //Fetch Data
-        $data = DB::select("
+        if ($level == 'O Level') {
+            //Fetch Data
+            $data = DB::select("
+                SELECT
+                    student.std_id,
+                    student.fname,
+                    student.mname,
+                    student.lname,
+                    " . $results_table . ".score as mark,
+                    " . $results_table . ".competence as competence,
+                    " . $results_table . ".remark as remark
+                FROM
+                    student
+                LEFT OUTER JOIN
+                    " . $results_table . "
+                ON
+                    student.std_id = " . $results_table . ".std_id
+                WHERE
+                    student.class = '" . $classname . "'
+                AND
+                    student.status = 'continuing'      
+                AND
+                    " . $results_table . ".topic = '" . $topic . "'   
+                AND
+                    " . $results_table . ".subject = '" . $subject . "'               
+                ORDER BY lname ASC
+            ");
+        } elseif ($level == 'A Level') {
+            //Fetch Data
+            $data = DB::select("
+                SELECT
+                    student.std_id,
+                    student.fname,
+                    student.mname,
+                    student.lname,
+                    " . $results_table . "." . $subject . "_" . $paper . " as mark
+                FROM
+                    student
+                LEFT OUTER JOIN
+                    " . $results_table . "
+                ON
+                    student.std_id = " . $results_table . ".std_id
+                WHERE
+                    student.class = '" . $classname . "'
+                AND
+                    student.status = 'continuing'              
+                ORDER BY lname ASC
+            ");
+        }
+
+        if (count($data) == 0) {
+            $data = DB::select("
                     SELECT
                         student.std_id,
                         student.fname,
                         student.mname,
-                        student.lname,
-                        " . $results_table . "." . $subject_paper . " as mark
+                        student.lname
                     FROM
                         student
                     LEFT OUTER JOIN
@@ -120,38 +171,45 @@ class ResultsController extends Controller
                     WHERE
                         student.class = '" . $classname . "'
                     AND
-                        student.status = 'continuing'
+                        student.status = 'continuing'                      
                     ORDER BY lname ASC
                 ");
+        }
 
-        return response($data);
+        //$topics = DB::table('topics')->where(['class' => $classname, 'subject' => $subject])->get();
+
+        return response()->json([
+            'data' => $data
+        ]);
     }
 
     //Enter student results 
-    public function enter_results_alevel(Request $req){
+    public function enter_results_alevel(Request $req) {
         $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
         $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
-        $class = $req->classname;
-        $results_table = ($req->result_set) . "_" . $term . "_" . $year;
-        $results = $req->marks;
-        $paper = $req->paper;
-        $subject = (($req->subject) . "_" . $paper);
-        $level = $req->level;
+        $class = $req->classname_buffer;
+        $results_table = ($req->result_set_buffer) . "_" . $term . "_" . $year;
+        $marks = $req->std_mark;
+        $results = array();
+        $std_id = $req->std_id;
+        $paper = $req->paper_num_buffer;
+        $subject = (($req->subject_buffer) . "_" . $paper);
+
+        for($i=0; $i<count($std_id); $i++){
+            array_push($results, ['std_id' => $std_id[$i], 'mark' => $marks[$i]]);
+        }
 
         foreach ($results as $result) {
-            $std_id = $result[0];
-            $mark = $result[1];
-
             //Check if the record exists
-            $exists = (DB::table('' . $results_table . '')->select('std_id', '' . $subject . '')->where('std_id', $std_id))->first();
+            $exists = (DB::table('' . $results_table . '')->select('std_id', '' . $subject . '')->where('std_id', $result['std_id']))->first();
 
             if ($exists == '' || $exists == null || $exists == 'NULL') {
                 //New Record for new student
                 try {
                     DB::table('' . $results_table . '')->insert([
-                        'std_id' => $std_id,
+                        'std_id' => $result['std_id'],
                         'class' => $class,
-                        '' . $subject . '' => $mark
+                        '' . $subject . '' => $result['mark']
                     ]);
                 } catch (Exception $e) {
                     info($e);
@@ -160,9 +218,9 @@ class ResultsController extends Controller
             } else {
                 //Update for Existing
                 try {
-                    DB::table('' . $results_table . '')->where('std_id', $std_id)->update([
+                    DB::table('' . $results_table . '')->where('std_id', $result['std_id'])->update([
                         'class' => $class,
-                        '' . $subject . '' => $mark
+                        '' . $subject . '' => $result['mark']
                     ]);
                 } catch (Exception $e) {
                     info($e);
@@ -173,7 +231,7 @@ class ResultsController extends Controller
         return response($response);
     }
 
-    public function print_marklist($class, $paper, $subject)
+    public function print_marklist($class, $paper, $subject, $level)
     {
         $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
         $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
@@ -193,66 +251,140 @@ class ResultsController extends Controller
                 ORDER BY lname ASC
             ");
 
-        $html = '
-        <style>
-            .container{
-                margin-top:-1.2cm;
-            }
+        if ($level == 'O Level') {
+            $html = '
+                <style>
+                    .container{
+                        margin-top:-1.2cm;
+                        margin-left:-0.7cm;
+                        margin-right:-0.7cm;
+                    }
 
-            .title{
-                text-align:center;
-                font-weight:bold;
-                font-size:20px;
-                text-transform:uppercase;
-                text-decoration:underline;
-            }
+                    .title{
+                        text-align:center;
+                        font-weight:bold;
+                        font-size:20px;
+                        text-transform:uppercase;
+                        text-decoration:underline;
+                    }
 
-            table{
-                width:100%;
-            }
+                    table{
+                        width:100%;
+                    }
 
-            table, th, td {
-                border: 1px solid black;
-                border-collapse: collapse;
-            }
+                    table, th, td {
+                        border: 1px solid black;
+                        border-collapse: collapse;
+                    }
 
-            thead tr{
-                background:black;
-                color:white;
-            }
-            th,td{
-                padding:5px;
-            }
-        </style>
-            <div class="container">
-                <p class="title">' . $class . ' ' . $subject . ' ' . (($class == 'Senior 6' || $class == 'Senior 5') ? $paper : '') . ' List Term ' . $term . ' ' . $year . '</p>
+                    thead tr{
+                        background:black;
+                        color:white;
+                    }
+                    th,td{
+                        padding:5px;
+                    }
+                    td{
+                        height:100px;
+                    }
+                </style>
+                    <div class="container">
+                        <p class="title">' . $class . ' ' . $subject . ' ' . (($class == 'Senior 6' || $class == 'Senior 5') ? $paper : '') . ' List Term ' . $term . ' ' . $year . '</p>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Student Name</th>
-                            <th>Mark</th>
-                        </tr>
-                    </thead>
-                    <tbody>';
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Student Name</th>
+                                    <th>Score</th>
+                                    <th>Competence</th>
+                                    <th>Remark</th>
+                                </tr>
+                            </thead>
+                            <tbody>';
 
-        $counter = 0;
-        foreach ($data as $d) {
-            $counter += 1;
-            $html .= '
-            <tr>
-                <td style="text-align:center;">' . $counter . '</td>
-                <td>' . $d->lname . ' ' . (($d->lname == null || $d->mname == 'NULL' || $d->mname == '') ? '' : $d->mname) . ' ' . $d->fname . '</td>
-                <td></td>
-            </tr>
-        ';
+                    $counter = 0;
+                    foreach ($data as $d) {
+                        $counter += 1;
+                        $html .= '
+                    <tr>
+                        <td style="text-align:center;">' . $counter . '</td>
+                        <td>' . $d->lname . ' ' . (($d->lname == null || $d->mname == 'NULL' || $d->mname == '') ? '' : $d->mname) . ' ' . $d->fname . '</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                ';
+                    }
+
+                    $html .= '   </tbody>
+                        </table>
+                    </div>
+                ';
+        }elseif($level == 'A Level'){
+            $html = '
+            <style>
+                .container{
+                    margin-top:-1.2cm;
+                    margin-left:-0.7cm;
+                    margin-right:-0.7cm;
+                }
+
+                .title{
+                    text-align:center;
+                    font-weight:bold;
+                    font-size:20px;
+                    text-transform:uppercase;
+                    text-decoration:underline;
+                }
+
+                table{
+                    width:100%;
+                }
+
+                table, th, td {
+                    border: 1px solid black;
+                    border-collapse: collapse;
+                }
+
+                thead tr{
+                    background:black;
+                    color:white;
+                }
+                th,td{
+                    padding:5px;
+                }
+            </style>
+                <div class="container">
+                    <p class="title">' . $class . ' ' . $subject . ' ' . (($class == 'Senior 6' || $class == 'Senior 5') ? $paper : '') . ' List Term ' . $term . ' ' . $year . '</p>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Student Name</th>
+                                <th>Mark</th>
+                            </tr>
+                        </thead>
+                        <tbody>';
+
+                $counter = 0;
+                foreach ($data as $d) {
+                    $counter += 1;
+                    $html .= '
+                <tr>
+                    <td style="text-align:center;">' . $counter . '</td>
+                    <td>' . $d->lname . ' ' . (($d->lname == null || $d->mname == 'NULL' || $d->mname == '') ? '' : $d->mname) . ' ' . $d->fname . '</td>
+                    <td></td>
+                </tr>
+            ';
+                }
+
+                $html .= '   </tbody>
+                    </table>
+                </div>
+            ';
         }
-
-        $html .= '   </tbody>
-                </table>
-            </div>
-        ';
 
         $pdf = Pdf::loadHTML($html)->setOption('a4', 'portrait');
         return $pdf->stream('' . $class . '_ClassList');
@@ -260,46 +392,59 @@ class ResultsController extends Controller
 
     public function enter_results_olevel(Request $req)
     {
-        $results = $req->marks;
-        $table = $req->result_set;
-        $class = $req->classname;
-        $subject = ($req->subject) . "_1";
+        $ids = $req->std_ids;
+        $marks = $req->std_marks;
+        $topic = $req->topic_buffer;
+        $competence = $req->competence;
+        $remark = $req->remark;
+        $subject = $req->subject_buffer;
+        $class = $req->classname_buffer;
+        $table = $req->result_set_buffer;
         $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
         $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
         $results_table = $table . "_" . $term . "_" . $year;
+        $results = array();
 
-        foreach ($results as $result) {
-            $std_id = $result[0];
-            $mark = $result[1];
+        for ($i = 0; $i < count($ids); $i++) {
+            array_push($results, ['std_id' => $ids[$i], 'mark' => $marks[$i], 'topic' => $topic, 'competence' => $competence[$i], 'remark' => $remark[$i]]);
+        }
 
-            //Check if the record exists
-            $exists = (DB::table('' . $results_table . '')->select('std_id', '' . $subject . '')->where('std_id', $std_id))->first();
-
-            if ($exists == '' || $exists == null || $exists == 'NULL') {
-                //New Record for new student
+        foreach ($results as $r) {
+            $exists = DB::table('' . $results_table . '')->where(['std_id' => $r['std_id'], 'class' => $class, 'topic' => $topic, 'subject' => $subject])->exists();
+            if ($exists != 1) {
+                //Insert into the DB
                 try {
                     DB::table('' . $results_table . '')->insert([
-                        'std_id' => $std_id,
+                        'std_id' => $r['std_id'],
                         'class' => $class,
-                        '' . $subject . '' => $mark
+                        'subject' => $subject,
+                        'topic' => $topic,
+                        'remark' => $r['remark'],
+                        'competence' => $r['competence'],
+                        'score' => $r['mark']
                     ]);
+                    $response = "Successfully Inserted Marks";
                 } catch (Exception $e) {
                     info($e);
+                    $response = "Failed to Insert marks";
                 }
-                $response = 'New Record Inserted';
             } else {
-                //Update for Existing
+                //Update the current record
                 try {
-                    DB::table('' . $results_table . '')->where('std_id', $std_id)->update([
-                        'class' => $class,
-                        '' . $subject . '' => $mark
+                    DB::table('' . $results_table . '')->where(['std_id' => $r['std_id'], 'class' => $class, 'topic' => $r['topic'], 'subject' => $subject])->update([
+                        'topic' => $r['topic'],
+                        'remark' => $r['remark'],
+                        'competence' => $r['competence'],
+                        'score' => $r['mark']
                     ]);
+                    $response = "Successfully Updated Marks";
                 } catch (Exception $e) {
                     info($e);
+                    $response = "Failed to update records!";
                 }
-                $response = 'Record Updated';
             }
         }
+
         return response($response);
     }
 
@@ -602,7 +747,7 @@ class ResultsController extends Controller
                         <div>
                             <img class="student_pic" src="' . public_path('/') . 'images/static/male.jpg">
                         </div>';
-                }  
+                }
             }
 
             //Student Details Area
@@ -912,8 +1057,8 @@ class ResultsController extends Controller
                         <td style="width:30%; text-align:center;"></td>
                     </tr>
                     <tr>
-                        <td style="font-weight:bold;">'.$this->hm_comment(round($avg, 1)).'</td>
-                        <td style="font-weight:bold;">'.$this->dos_comment(round($avg, 1)).'</td>
+                        <td style="font-weight:bold;">' . $this->hm_comment(round($avg, 1)) . '</td>
+                        <td style="font-weight:bold;">' . $this->dos_comment(round($avg, 1)) . '</td>
                         <td></td>
                     </tr>
                 </tbody>
@@ -967,7 +1112,8 @@ class ResultsController extends Controller
                 (" . $std_ids . ")
         ");
 
-        function std_marks($table, $std_id, $subject){
+        function std_marks($table, $std_id, $subject)
+        {
             return DB::table('' . $table . '')->select('' . $subject . '')->where('std_id', $std_id)->value('' . $subject . '');
         }
 
@@ -1160,8 +1306,7 @@ class ResultsController extends Controller
                         <div>
                             <img class="student_pic" src="' . public_path('/') . 'images/static/male.jpg">
                         </div>';
-                }                
-                    
+                }
             }
 
             //Student Details Area
@@ -1300,11 +1445,10 @@ class ResultsController extends Controller
                                     $points = explode('-', $this->two_papers($subject_avg))[1];
 
                                     //Get total Points
-                                    array_push($total, $points); 
+                                    array_push($total, $points);
 
                                     $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade . '</td>';
                                     $html .= '<td style="text-align:center; font-weight:bolder;">' . $points . '</td>';
-                                    
                                 } else {
                                     $html .= '<td style="text-align:center;">-</td>';
                                     $html .= '<td style="text-align:center;">-</td>';
@@ -1319,7 +1463,7 @@ class ResultsController extends Controller
                         }
                     }
                 }
-                
+
                 //Three Papers
                 if ($paper_counter == 3) {
                     $subject_avg = array();
@@ -1361,11 +1505,10 @@ class ResultsController extends Controller
                                     $points = explode('-', $this->three_papers($subject_avg))[1];
 
                                     //Get total Points
-                                    array_push($total, $points); 
+                                    array_push($total, $points);
 
-                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade. '</td>';
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade . '</td>';
                                     $html .= '<td style="text-align:center; font-weight:bolder;">' . $points . '</td>';
-                                    
                                 } else {
                                     $html .= '<td style="text-align:center;">-</td>';
                                     $html .= '<td style="text-align:center;">-</td>';
@@ -1422,11 +1565,10 @@ class ResultsController extends Controller
                                     $points = explode('-', $this->four_papers($subject_avg))[1];
 
                                     //Get total Points
-                                    array_push($total, $points); 
+                                    array_push($total, $points);
 
-                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade. '</td>';
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade . '</td>';
                                     $html .= '<td style="text-align:center; font-weight:bolder;">' . $points . '</td>';
-                                    
                                 } else {
                                     $html .= '<td style="text-align:center;">-</td>';
                                     $html .= '<td style="text-align:center;">-</td>';
@@ -1483,11 +1625,10 @@ class ResultsController extends Controller
                                     $points = explode('-', $this->one_paper($subject_avg))[1];
 
                                     //Get total Points
-                                    array_push($total, $points); 
+                                    array_push($total, $points);
 
-                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade. '</td>';
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade . '</td>';
                                     $html .= '<td style="text-align:center; font-weight:bolder;">' . $points . '</td>';
-                                    
                                 } else {
                                     $html .= '<td style="text-align:center;">-</td>';
                                     $html .= '<td style="text-align:center;">-</td>';
@@ -1517,7 +1658,7 @@ class ResultsController extends Controller
                                 //START ROW HERE
                                 $html .= '<tr class="results_table">';
                                 //Subject Name
-                                $html .= '<td>' . $subject->name .' ' . $paper_num[$i] . '</td>';
+                                $html .= '<td>' . $subject->name . ' ' . $paper_num[$i] . '</td>';
 
                                 $avg = array();
                                 //Subject Mark
@@ -1544,11 +1685,10 @@ class ResultsController extends Controller
                                     $points = explode('-', $this->sub_ict($subject_avg))[1];
 
                                     //Get total Points
-                                    array_push($total, $points); 
+                                    array_push($total, $points);
 
-                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade. '</td>';
+                                    $html .= '<td style="text-align:center; font-weight:bolder;">' . $grade . '</td>';
                                     $html .= '<td style="text-align:center; font-weight:bolder;">' . $points . '</td>';
-                                    
                                 } else {
                                     $html .= '<td style="text-align:center;">-</td>';
                                     $html .= '<td style="text-align:center;">-</td>';
@@ -1563,7 +1703,6 @@ class ResultsController extends Controller
                         }
                     }
                 }
-                
             }
 
             //Close the Results Table here
@@ -1705,35 +1844,60 @@ class ResultsController extends Controller
         $p1 = $two_paper[0];
         $p2 = $two_paper[1];
 
-        if (($p1 >= 75 and $p2 >= 75) and ($p1 <= 100 and $p2 <= 100)) {
+        if (
+            ($p1 >= 80 and $p2 >= 80) and
+            ($p1 <= 100 and $p2 <= 100)
+        ) {
             $grade = 'A';
             $points = 6;
-        } elseif (($p1 >= 65 and $p2 >= 75) || ($p1 >= 75 and $p2 >= 65)
-            || ($p1 >= 65 and $p2 >= 65)  and ($p1 <= 100 and $p2 <= 100)
+        } elseif (
+            ($p1 >= 80 and $p2 >= 75) ||
+            ($p1 >= 75 and $p2 >= 80)  and
+            ($p1 <= 100 and $p2 <= 100)
         ) {
             $grade = 'B';
             $points = 5;
-        } elseif (($p1 >= 60 and $p2 >= 65) || ($p1 >= 65 and $p2 >= 60)
-            || ($p1 >= 60 and $p2 >= 60)  and ($p1 <= 100 and $p2 <= 100)
+        } elseif (
+            ($p1 >= 70 and $p2 >= 75) ||
+            ($p1 >= 75 and $p2 >= 70)  and
+            ($p1 <= 100 and $p2 <= 100)
         ) {
             $grade = 'C';
             $points = 4;
-        } elseif (($p1 >= 55 and $p2 >= 60) || ($p1 >= 60 and $p2 >= 55)
-            || ($p1 >= 55 and $p2 >= 55)  and ($p1 <= 100 and $p2 <= 100)
+        } elseif (
+            ($p1 >= 65 and $p2 >= 70) ||
+            ($p1 >= 70 and $p2 >= 65) ||
+            ($p1 >= 65 and $p2 >= 65)  and
+            ($p1 <= 100 and $p2 <= 100)
         ) {
             $grade = 'D';
             $points = 3;
-        } elseif (($p1 >= 50 and $p2 >= 55) || ($p1 >= 55 and $p2 >= 50)
-            || ($p1 >= 50 and $p2 >= 50) || ($p1 >= 50 and $p2 >= 55) || ($p1 >= 55 and $p2 >= 50)
-            || ($p1 >= 45 and $p2 >= 55) || ($p1 >= 55 and $p2 >= 45)  and ($p1 <= 100 and $p2 <= 100)
+        } elseif (
+            ($p1 >= 60 and $p2 >= 65) ||
+            ($p1 >= 65 and $p2 >= 60) ||
+            ($p1 >= 60 and $p2 >= 60) ||
+            ($p1 >= 50 and $p2 >= 55) ||
+            ($p1 >= 55 and $p2 >= 50) ||
+            ($p1 >= 45 and $p2 >= 55) ||
+            ($p1 >= 55 and $p2 >= 45)  and
+            ($p1 <= 100 and $p2 <= 100)
         ) {
             $grade = 'E';
             $points = 2;
-        } elseif (($p1 >= 50 and $p2 >= 40) || ($p1 >= 40 and $p2 >= 50)
-            || ($p1 >= 50 and $p2 >= 60) || ($p1 >= 60 and $p2 >= 50) || ($p1 >= 65 and $p2 >= 0)
-            || ($p1 >= 0 and $p2 >= 65) || ($p1 >= 60 and $p2 >= 0) || ($p1 >= 0 and $p2 >= 60)
-            || ($p1 >= 50 and $p2 >= 50) || ($p1 >= 50 and $p2 >= 0) || ($p1 >= 0 and $p2 >= 50)
-            || ($p1 >= 40 and $p2 >= 40)  and ($p1 <= 100 and $p2 <= 100)
+        } elseif (
+            ($p1 >= 50 and $p2 >= 40) ||
+            ($p1 >= 40 and $p2 >= 50) ||
+            ($p1 >= 50 and $p2 >= 60) ||
+            ($p1 >= 60 and $p2 >= 50) ||
+            ($p1 >= 65 and $p2 >= 0) ||
+            ($p1 >= 0 and $p2 >= 65) ||
+            ($p1 >= 60 and $p2 >= 0) ||
+            ($p1 >= 0 and $p2 >= 60) ||
+            ($p1 >= 50 and $p2 >= 50) ||
+            ($p1 >= 50 and $p2 >= 0) ||
+            ($p1 >= 0 and $p2 >= 50) ||
+            ($p1 >= 40 and $p2 >= 40) and
+            ($p1 <= 100 and $p2 <= 100)
         ) {
             $grade = 'O';
             $points = 1;
@@ -1757,37 +1921,67 @@ class ResultsController extends Controller
         $p2 = $three_paper[1];
         $p3 = $three_paper[2];
 
-        if ((($p1 >= 75 and $p2 >= 75 and $p3 >= 64) || ($p1 >= 64 and $p2 >= 75 and $p3 >= 75)
-            || ($p1 >= 75 and $p2 >= 64 and $p3 >= 75) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
+        if (($p1 >= 80 and $p2 >= 80 and $p3 >= 75) ||
+            ($p1 >= 75 and $p2 >= 80 and $p3 >= 80) ||
+            ($p1 >= 80 and $p2 >= 75 and $p3 >= 80) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+        ) {
             $grade = 'A';
             $points = 6;
-        } elseif ((($p1 >= 65 and $p2 >= 65 and $p3 >= 60) || ($p1 >= 60 and $p2 >= 65 and $p3 >= 65)
-            || ($p1 >= 65 and $p2 >= 60 and $p3 >= 65) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
+        } elseif (
+            ($p1 >= 75 and $p2 >= 75 and $p3 >= 70) ||
+            ($p1 >= 70 and $p2 >= 75 and $p3 >= 75) ||
+            ($p1 >= 75 and $p2 >= 70 and $p3 >= 75) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+        ) {
             $grade = 'B';
             $points = 5;
-        } elseif ((($p1 >= 60 and $p2 >= 60 and $p3 >= 55) || ($p1 >= 55 and $p2 >= 60 and $p3 >= 60)
-            || ($p1 >= 60 and $p2 >= 55 and $p3 >= 60) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
+        } elseif (
+            ($p1 >= 70 and $p2 >= 70 and $p3 >= 65) ||
+            ($p1 >= 65 and $p2 >= 70 and $p3 >= 70) ||
+            ($p1 >= 70 and $p2 >= 65 and $p3 >= 70) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+        ) {
             $grade = 'C';
             $points = 4;
-        } elseif ((($p1 >= 55 and $p2 >= 55 and $p3 >= 50) || ($p1 >= 50 and $p2 >= 55 and $p3 >= 55)
-            || ($p1 >= 55 and $p2 >= 50 and $p3 >= 55) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
+        } elseif (
+            ($p1 >= 65 and $p2 >= 65 and $p3 >= 60) ||
+            ($p1 >= 60 and $p2 >= 65 and $p3 >= 65) ||
+            ($p1 >= 65 and $p2 >= 60 and $p3 >= 65) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+        ) {
             $grade = 'D';
             $points = 3;
-        } elseif ((($p1 >= 50 and $p2 >= 50 and $p3 >= 45)
-            || ($p1 >= 45 and $p2 >= 50 and $p3 >= 50) || ($p1 >= 50 and $p2 >= 45 and $p3 >= 50)
-            || ($p1 >= 40 and $p2 >= 50 and $p3 >= 65) || ($p1 >= 65 and $p2 >= 40 and $p3 >= 50)
-            || ($p1 >= 50 and $p2 >= 65 and $p3 >= 40) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
+        } elseif (
+            ($p1 >= 50 and $p2 >= 60 and $p3 >= 60) ||
+            ($p1 >= 60 and $p2 >= 50 and $p3 >= 60) ||
+            ($p1 >= 60 and $p2 >= 60 and $p3 >= 50) ||
+            ($p1 >= 40 and $p2 >= 60 and $p3 >= 65) ||
+            ($p1 >= 65 and $p2 >= 40 and $p3 >= 60) ||
+            ($p1 >= 60 and $p2 >= 65 and $p3 >= 40) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+        ) {
             $grade = 'E';
             $points = 2;
-        } elseif (($p1 >= 50 and $p2 >= 50 and $p3 >= 50) || ($p1 >= 40 and $p2 >= 40 and $p3 >= 40)
-            || ($p1 >= 0 and $p2 >= 40 and $p3 >= 40) || ($p1 >= 40 and $p2 >= 0 and $p3 >= 40)
-            || ($p1 >= 40 and $p2 >= 40 and $p3 >= 0) || ($p1 >= 50 and $p2 >= 0 and $p3 >= 50)
-            || ($p1 >= 50 and $p2 >= 50 and $p3 >= 0) || ($p1 >= 0 and $p2 >= 50 and $p3 >= 50 and $p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+        } elseif (
+            ($p1 >= 50 and $p2 >= 50 and $p3 >= 50) ||
+            ($p1 >= 40 and $p2 >= 40 and $p3 >= 40) ||
+            ($p1 >= 0 and $p2 >= 40 and $p3 >= 40) ||
+            ($p1 >= 40 and $p2 >= 0 and $p3 >= 40) ||
+            ($p1 >= 40 and $p2 >= 40 and $p3 >= 0) ||
+            ($p1 >= 50 and $p2 >= 0 and $p3 >= 0) ||
+            ($p1 >= 0 and $p2 >= 50 and $p3 >= 0) ||
+            ($p1 >= 0 and $p2 >= 0 and $p3 >= 50) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
         ) {
             $grade = 'O';
             $points = 1;
-        } elseif (($p1 >= 0 and $p2 >= 40 and $p3 >= 40) || ($p1 >= 40 and $p2 >= 0 and $p3 >= 40)
-            || ($p1 >= 40 and $p2 >= 40 and $p3 >= 0) || ($p1 >= 0 and $p2 >= 0 and $p3 >= 0 and $p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+        } elseif (
+            ($p1 >= 0 and $p2 >= 0 and $p3 >= 40) ||
+            ($p1 >= 40 and $p2 >= 0 and $p3 >= 0) ||
+            ($p1 >= 0 and $p2 >= 40 and $p3 >= 0) ||
+            ($p1 >= 0 and $p2 >= 0 and $p3 >= 0) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
         ) {
             $grade = 'F';
             $points = 0;
@@ -1800,85 +1994,91 @@ class ResultsController extends Controller
         return $std_grade;
     }
 
-    function four_papers($four_papers){
+    function four_papers($four_papers)
+    {
         $p1 = $four_papers[0];
         $p2 = $four_papers[1];
         $p3 = $four_papers[2];
         $p4 = $four_papers[3];
 
         if (
-            $p1 >= 75 and $p2 >= 80 and $p3 >= 80 and $p4 >= 80 ||
-            $p1 >= 80 and $p2 >= 75 and $p3 >= 80 and $p4 >= 80 ||
-            $p1 >= 80 and $p2 >= 80 and $p3 >= 75 and $p4 >= 80 ||
-            $p1 >= 80 and $p2 >= 80 and $p3 >= 80 and $p4 >= 75
+            ($p1 >= 75 and $p2 >= 80 and $p3 >= 80 and $p4 >= 80) ||
+            ($p1 >= 80 and $p2 >= 75 and $p3 >= 80 and $p4 >= 80) ||
+            ($p1 >= 80 and $p2 >= 80 and $p3 >= 75 and $p4 >= 80) ||
+            ($p1 >= 80 and $p2 >= 80 and $p3 >= 80 and $p4 >= 75) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
 
         ) {
             $grade = 'A';
             $points = 6;
         } elseif (
-            $p1 >= 70 and $p2 >= 75 and $p3 >= 75 and $p4 >= 75 ||
-            $p1 >= 75 and $p2 >= 70 and $p3 >= 75 and $p4 >= 75 ||
-            $p1 >= 75 and $p2 >= 75 and $p3 >= 70 and $p4 >= 75 ||
-            $p1 >= 75 and $p2 >= 75 and $p3 >= 75 and $p4 >= 70
+            ($p1 >= 70 and $p2 >= 75 and $p3 >= 75 and $p4 >= 75) ||
+            ($p1 >= 75 and $p2 >= 70 and $p3 >= 75 and $p4 >= 75) ||
+            ($p1 >= 75 and $p2 >= 75 and $p3 >= 70 and $p4 >= 75) ||
+            ($p1 >= 75 and $p2 >= 75 and $p3 >= 75 and $p4 >= 70) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
 
         ) {
             $grade = 'B';
             $points = 5;
         } elseif (
-            $p1 >= 65 and $p2 >= 70 and $p3 >= 70 and $p4 >= 70 ||
-            $p1 >= 70 and $p2 >= 65 and $p3 >= 70 and $p4 >= 70 ||
-            $p1 >= 70 and $p2 >= 70 and $p3 >= 65 and $p4 >= 70 ||
-            $p1 >= 70 and $p2 >= 70 and $p3 >= 70 and $p4 >= 65
+            ($p1 >= 65 and $p2 >= 70 and $p3 >= 70 and $p4 >= 70) ||
+            ($p1 >= 70 and $p2 >= 65 and $p3 >= 70 and $p4 >= 70) ||
+            ($p1 >= 70 and $p2 >= 70 and $p3 >= 65 and $p4 >= 70) ||
+            ($p1 >= 70 and $p2 >= 70 and $p3 >= 70 and $p4 >= 65) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
 
         ) {
             $grade = 'C';
             $points = 4;
         } elseif (
-            $p1 >= 60 and $p2 >= 65 and $p3 >= 65 and $p4 >= 65 ||
-            $p1 >= 65 and $p2 >= 60 and $p3 >= 65 and $p4 >= 65 ||
-            $p1 >= 65 and $p2 >= 65 and $p3 >= 60 and $p4 >= 65 ||
-            $p1 >= 65 and $p2 >= 65 and $p3 >= 65 and $p4 >= 60
+            ($p1 >= 60 and $p2 >= 65 and $p3 >= 65 and $p4 >= 65) ||
+            ($p1 >= 65 and $p2 >= 60 and $p3 >= 65 and $p4 >= 65) ||
+            ($p1 >= 65 and $p2 >= 65 and $p3 >= 60 and $p4 >= 65) ||
+            ($p1 >= 65 and $p2 >= 65 and $p3 >= 65 and $p4 >= 60) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
 
         ) {
             $grade = 'D';
             $points = 3;
         } elseif (
-            $p1 >= 50 and $p2 >= 60 and $p3 >= 60 and $p4 >= 60 ||
-            $p1 >= 60 and $p2 >= 50 and $p3 >= 60 and $p4 >= 60 ||
-            $p1 >= 60 and $p2 >= 60 and $p3 >= 50 and $p4 >= 60 ||
-            $p1 >= 60 and $p2 >= 60 and $p3 >= 60 and $p4 >= 50 ||
-            $p1 >= 40 and $p2 >= 60 and $p3 >= 60 and $p4 >= 65 ||
-            $p1 >= 65 and $p2 >= 60 and $p3 >= 60 and $p4 >= 40 ||
-            $p1 >= 60 and $p2 >= 65 and $p3 >= 40 and $p4 >= 60 ||
-            $p1 >= 60 and $p2 >= 40 and $p3 >= 65 and $p4 >= 60 ||
-            $p1 >= 60 and $p2 >= 60 and $p3 >= 40 and $p4 >= 65
-
+            ($p1 >= 50 and $p2 >= 60 and $p3 >= 60 and $p4 >= 60) ||
+            ($p1 >= 60 and $p2 >= 50 and $p3 >= 60 and $p4 >= 60) ||
+            ($p1 >= 60 and $p2 >= 60 and $p3 >= 50 and $p4 >= 60) ||
+            ($p1 >= 60 and $p2 >= 60 and $p3 >= 60 and $p4 >= 50) ||
+            ($p1 >= 40 and $p2 >= 60 and $p3 >= 60 and $p4 >= 65) ||
+            ($p1 >= 65 and $p2 >= 60 and $p3 >= 60 and $p4 >= 40) ||
+            ($p1 >= 60 and $p2 >= 65 and $p3 >= 40 and $p4 >= 60) ||
+            ($p1 >= 60 and $p2 >= 40 and $p3 >= 65 and $p4 >= 60) ||
+            ($p1 >= 60 and $p2 >= 60 and $p3 >= 40 and $p4 >= 65) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
         ) {
             $grade = 'E';
             $points = 2;
         } elseif (
-            $p1 >= 50 and $p2 >= 50 and $p3 >= 50 and $p4 >= 50 ||
-            $p1 >= 40 and $p2 >= 40 and $p3 >= 40 and $p4 >= 40 ||
-            $p1 >= 0 and $p2 >= 40 and $p3 >= 40 and $p4 >= 40 ||
-            $p1 >= 40 and $p2 >= 0 and $p3 >= 40 and $p4 >= 40 ||
-            $p1 >= 40 and $p2 >= 40 and $p3 >= 0 and $p4 >= 40 ||
-            $p1 >= 40 and $p2 >= 40 and $p3 >= 40 and $p4 >= 0 ||
-            $p1 >= 0 and $p2 >= 0 and $p3 >= 50 and $p4 >= 50 ||
-            $p1 >= 50 and $p2 >= 50 and $p3 >= 0 and $p4 >= 0 ||
-            $p1 >= 50 and $p2 >= 0 and $p3 >= 0 and $p4 >= 50 ||
-            $p1 >= 0 and $p2 >= 50 and $p3 >= 0 and $p4 >= 50 ||
-            $p1 >= 0 and $p2 >= 50 and $p3 >= 50 and $p4 >= 0
-
+            ($p1 >= 50 and $p2 >= 50 and $p3 >= 50 and $p4 >= 50) ||
+            ($p1 >= 40 and $p2 >= 40 and $p3 >= 40 and $p4 >= 40) ||
+            ($p1 >= 0 and $p2 >= 40 and $p3 >= 40 and $p4 >= 40) ||
+            ($p1 >= 40 and $p2 >= 0 and $p3 >= 40 and $p4 >= 40) ||
+            ($p1 >= 40 and $p2 >= 40 and $p3 >= 0 and $p4 >= 40) ||
+            ($p1 >= 40 and $p2 >= 40 and $p3 >= 40 and $p4 >= 0) ||
+            ($p1 >= 0 and $p2 >= 0 and $p3 >= 50 and $p4 >= 50) ||
+            ($p1 >= 50 and $p2 >= 50 and $p3 >= 0 and $p4 >= 0) ||
+            ($p1 >= 50 and $p2 >= 0 and $p3 >= 0 and $p4 >= 50) ||
+            ($p1 >= 0 and $p2 >= 50 and $p3 >= 0 and $p4 >= 50) ||
+            ($p1 >= 0 and $p2 >= 50 and $p3 >= 50 and $p4 >= 0) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
         ) {
             $grade = 'O';
             $points = 1;
         } elseif (
-            $p1 >= 0 and $p2 >= 0 and $p3 >= 40 and $p4 >= 40 ||
-            $p1 >= 40 and $p2 >= 40 and $p3 >= 0 and $p4 >= 0 ||
-            $p1 >= 40 and $p2 >= 0 and $p3 >= 0 and $p4 >= 40 ||
-            $p1 >= 0 and $p2 >= 40 and $p3 >= 0 and $p4 >= 40 ||
-            $p1 >= 0 and $p2 >= 40 and $p3 >= 40 and $p4 >= 0 ||
-            $p1 >= 0 and $p2 >= 0 and $p3 >= 0 and $p4 >= 0
+            ($p1 >= 0 and $p2 >= 0 and $p3 >= 40 and $p4 >= 40) ||
+            ($p1 >= 40 and $p2 >= 40 and $p3 >= 0 and $p4 >= 0) ||
+            ($p1 >= 40 and $p2 >= 0 and $p3 >= 0 and $p4 >= 40) ||
+            ($p1 >= 0 and $p2 >= 40 and $p3 >= 0 and $p4 >= 40) ||
+            ($p1 >= 0 and $p2 >= 40 and $p3 >= 40 and $p4 >= 0) ||
+            ($p1 >= 0 and $p2 >= 0 and $p3 >= 0 and $p4 >= 0) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
 
         ) {
             $grade = 'F';
@@ -1892,7 +2092,8 @@ class ResultsController extends Controller
         return $std_grade;
     }
 
-    function sub_ict($sub_ict){
+    function sub_ict($sub_ict)
+    {
         $p1 = $sub_ict[0];
         $p2 = $sub_ict[1];
 
@@ -1909,7 +2110,8 @@ class ResultsController extends Controller
         return $std_grade;
     }
 
-    function one_paper($one_paper){
+    function one_paper($one_paper)
+    {
         $p1 = $one_paper[0];
 
         if ($p1 >= 50) {
@@ -1923,49 +2125,52 @@ class ResultsController extends Controller
         return $std_grade;
     }
 
-    function get_grade($value){
-        if($value >= 85 and $value <=100){
+    function get_grade($value)
+    {
+        if ($value >= 85 and $value <= 100) {
             $grade = "D1";
-        }elseif($value >= 80 and $value <=84){
+        } elseif ($value >= 80 and $value <= 84) {
             $grade = "D2";
-        }elseif($value >= 75 and $value <=79){
+        } elseif ($value >= 75 and $value <= 79) {
             $grade = "C3";
-        }elseif($value >= 70 and $value <=74){
+        } elseif ($value >= 70 and $value <= 74) {
             $grade = "C4";
-        }elseif($value >= 65 and $value <=69){
+        } elseif ($value >= 65 and $value <= 69) {
             $grade = "C5";
-        }elseif($value >= 60 and $value <= 64){
+        } elseif ($value >= 60 and $value <= 64) {
             $grade = "C6";
-        }elseif($value >= 50 and $value <=59){
+        } elseif ($value >= 50 and $value <= 59) {
             $grade = "P7";
-        }elseif($value >= 40 and $value <=49){
+        } elseif ($value >= 40 and $value <= 49) {
             $grade = "P8";
-        }elseif($value >= 0 and $value <=39){
+        } elseif ($value >= 0 and $value <= 39) {
             $grade = "F9";
-        }else{
+        } else {
             $grade = "F9";
         }
         return $grade;
     }
 
-    function dos_comment($descriptor){
-        if($descriptor >= 0.1 and $descriptor <= 1.9){
+    function dos_comment($descriptor)
+    {
+        if ($descriptor >= 0.1 and $descriptor <= 1.9) {
             $comment = "More effort and extensive revision needed.";
-        }elseif($descriptor >= 2.0 and $descriptor <= 2.4){
+        } elseif ($descriptor >= 2.0 and $descriptor <= 2.4) {
             $comment = "Promising results, don't relax.";
-        }elseif($descriptor >= 2.5 and $descriptor <= 3.0){
+        } elseif ($descriptor >= 2.5 and $descriptor <= 3.0) {
             $comment = "Good performance, keep it up.";
         }
 
         return $comment;
     }
 
-    function hm_comment($descriptor){
-        if($descriptor >= 0.1 and $descriptor <= 1.9){
+    function hm_comment($descriptor)
+    {
+        if ($descriptor >= 0.1 and $descriptor <= 1.9) {
             $comment = "There is room for improvement, keep trying.";
-        }elseif($descriptor >= 2.0 and $descriptor <= 2.4){
+        } elseif ($descriptor >= 2.0 and $descriptor <= 2.4) {
             $comment = "A Good performance.";
-        }elseif($descriptor >= 2.5 and $descriptor <= 3.0){
+        } elseif ($descriptor >= 2.5 and $descriptor <= 3.0) {
             $comment = "Thank you, don't relax.";
         }
 

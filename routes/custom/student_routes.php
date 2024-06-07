@@ -2,7 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentController;
 
-Route::middleware('auth')->prefix('Student')->group(function(){
+Route::middleware(['auth','allowed-users'])->prefix('Student')->group(function(){
     Route::get('/add-student',[StudentController::class,'addStudentIndex'])->name('student.add');
     Route::post('/add-student-data',[StudentController::class,'addStudentToDB'])->name('student.add.db');
     Route::get('/students-view',[StudentController::class,'viewStudentIndex'])->name('student.view');

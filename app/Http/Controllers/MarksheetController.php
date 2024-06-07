@@ -492,158 +492,241 @@ class MarksheetController extends Controller
         return $pdf->stream('' . $class . '_Marksheet');
     }
 
-    function two_papers($p1, $p2)
-    {
-        if (($p1 >= 75 and $p2 >= 75) and ($p1 <= 100 and $p2 <= 100)) {
-            $grade = 6;
-        } elseif (($p1 >= 65 and $p2 >= 75) || ($p1 >= 75 and $p2 >= 65)
-            || ($p1 >= 65 and $p2 >= 65)  and ($p1 <= 100 and $p2 <= 100)
+    function two_papers($p1, $p2) {
+        if (
+            ($p1 >= 80 and $p2 >= 80) and 
+            ($p1 <= 100 and $p2 <= 100)
+            ) {
+            $grade = 'A';
+            $points = 6;
+        } elseif (
+            ($p1 >= 80 and $p2 >= 75) || 
+            ($p1 >= 75 and $p2 >= 80)  and 
+            ($p1 <= 100 and $p2 <= 100)
         ) {
-            $grade = 5;
-        } elseif (($p1 >= 60 and $p2 >= 65) || ($p1 >= 65 and $p2 >= 60)
-            || ($p1 >= 60 and $p2 >= 60)  and ($p1 <= 100 and $p2 <= 100)
+            $grade = 'B';
+            $points = 5;
+        } elseif (
+            ($p1 >= 70 and $p2 >= 75) || 
+            ($p1 >= 75 and $p2 >= 70)  and 
+            ($p1 <= 100 and $p2 <= 100)
         ) {
-            $grade = 4;
-        } elseif (($p1 >= 55 and $p2 >= 60) || ($p1 >= 60 and $p2 >= 55)
-            || ($p1 >= 55 and $p2 >= 55)  and ($p1 <= 100 and $p2 <= 100)
+            $grade = 'C';
+            $points = 4;
+        } elseif (
+            ($p1 >= 65 and $p2 >= 70) || 
+            ($p1 >= 70 and $p2 >= 65) ||
+            ($p1 >= 65 and $p2 >= 65)  and 
+            ($p1 <= 100 and $p2 <= 100)
         ) {
-            $grade = 3;
-        } elseif (($p1 >= 50 and $p2 >= 55) || ($p1 >= 55 and $p2 >= 50)
-            || ($p1 >= 50 and $p2 >= 50) || ($p1 >= 50 and $p2 >= 55) || ($p1 >= 55 and $p2 >= 50)
-            || ($p1 >= 45 and $p2 >= 55) || ($p1 >= 55 and $p2 >= 45)  and ($p1 <= 100 and $p2 <= 100)
+            $grade = 'D';
+            $points = 3;
+        } elseif (
+            ($p1 >= 60 and $p2 >= 65) || 
+            ($p1 >= 65 and $p2 >= 60) ||
+            ($p1 >= 60 and $p2 >= 60) || 
+            ($p1 >= 50 and $p2 >= 55) || 
+            ($p1 >= 55 and $p2 >= 50) ||
+            ($p1 >= 45 and $p2 >= 55) || 
+            ($p1 >= 55 and $p2 >= 45)  and 
+            ($p1 <= 100 and $p2 <= 100)
         ) {
-            $grade = 2;
-        } elseif (($p1 >= 50 and $p2 >= 40) || ($p1 >= 40 and $p2 >= 50)
-            || ($p1 >= 50 and $p2 >= 60) || ($p1 >= 60 and $p2 >= 50) || ($p1 >= 65 and $p2 >= 0)
-            || ($p1 >= 0 and $p2 >= 65) || ($p1 >= 60 and $p2 >= 0) || ($p1 >= 0 and $p2 >= 60)
-            || ($p1 >= 50 and $p2 >= 50) || ($p1 >= 50 and $p2 >= 0) || ($p1 >= 0 and $p2 >= 50)
-            || ($p1 >= 40 and $p2 >= 40)  and ($p1 <= 100 and $p2 <= 100)
+            $grade = 'E';
+            $points = 2;
+        } elseif (
+            ($p1 >= 50 and $p2 >= 40) || 
+            ($p1 >= 40 and $p2 >= 50) ||
+            ($p1 >= 50 and $p2 >= 60) || 
+            ($p1 >= 60 and $p2 >= 50) || 
+            ($p1 >= 65 and $p2 >= 0) ||
+            ($p1 >= 0 and $p2 >= 65) || 
+            ($p1 >= 60 and $p2 >= 0) || 
+            ($p1 >= 0 and $p2 >= 60) ||
+            ($p1 >= 50 and $p2 >= 50) || 
+            ($p1 >= 50 and $p2 >= 0) || 
+            ($p1 >= 0 and $p2 >= 50) ||
+            ($p1 >= 40 and $p2 >= 40) and 
+            ($p1 <= 100 and $p2 <= 100)
         ) {
-            $grade = 1;
+            $grade = 'O';
+            $points = 1;
         } elseif (($p1 >= 40 and $p2 >= 0) || ($p1 >= 0 and $p2 >= 40) || ($p1 >= 0 and $p2 >= 0)
             and ($p1 <= 49 and $p2 <= 49)
         ) {
-            $grade = 0;
+            $grade = 'F';
+            $points = 0;
         } else {
-            $grade = 0;
+            $grade = 'F';
+            $points = 0;
         }
 
-        return $grade;
+        return $points;
     }
 
     function three_papers($p1, $p2, $p3)
     {
-        if ((($p1 >= 75 and $p2 >= 75 and $p3 >= 64) || ($p1 >= 64 and $p2 >= 75 and $p3 >= 75)
-            || ($p1 >= 75 and $p2 >= 64 and $p3 >= 75) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
-            $grade = 6;
-        } elseif ((($p1 >= 65 and $p2 >= 65 and $p3 >= 60) || ($p1 >= 60 and $p2 >= 65 and $p3 >= 65)
-            || ($p1 >= 65 and $p2 >= 60 and $p3 >= 65) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
-            $grade = 5;
-        } elseif ((($p1 >= 60 and $p2 >= 60 and $p3 >= 55) || ($p1 >= 55 and $p2 >= 60 and $p3 >= 60)
-            || ($p1 >= 60 and $p2 >= 55 and $p3 >= 60) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
-            $grade = 4;
-        } elseif ((($p1 >= 55 and $p2 >= 55 and $p3 >= 50) || ($p1 >= 50 and $p2 >= 55 and $p3 >= 55)
-            || ($p1 >= 55 and $p2 >= 50 and $p3 >= 55) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
-            $grade = 3;
-        } elseif ((($p1 >= 50 and $p2 >= 50 and $p3 >= 45)
-            || ($p1 >= 45 and $p2 >= 50 and $p3 >= 50) || ($p1 >= 50 and $p2 >= 45 and $p3 >= 50)
-            || ($p1 >= 40 and $p2 >= 50 and $p3 >= 65) || ($p1 >= 65 and $p2 >= 40 and $p3 >= 50)
-            || ($p1 >= 50 and $p2 >= 65 and $p3 >= 40) and ($p1 <= 100 and $p2 <= 100 and $p3 <= 100))) {
-            $grade = 2;
-        } elseif (($p1 >= 50 and $p2 >= 50 and $p3 >= 50) || ($p1 >= 40 and $p2 >= 40 and $p3 >= 40)
-            || ($p1 >= 0 and $p2 >= 40 and $p3 >= 40) || ($p1 >= 40 and $p2 >= 0 and $p3 >= 40)
-            || ($p1 >= 40 and $p2 >= 40 and $p3 >= 0) || ($p1 >= 50 and $p2 >= 0 and $p3 >= 50)
-            || ($p1 >= 50 and $p2 >= 50 and $p3 >= 0) || ($p1 >= 0 and $p2 >= 50 and $p3 >= 50 and $p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+        if (($p1 >= 80 and $p2 >= 80 and $p3 >= 75) || 
+            ($p1 >= 75 and $p2 >= 80 and $p3 >= 80) || 
+            ($p1 >= 80 and $p2 >= 75 and $p3 >= 80) and 
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
         ) {
-            $grade = 1;
-        } elseif (($p1 >= 0 and $p2 >= 40 and $p3 >= 40) || ($p1 >= 40 and $p2 >= 0 and $p3 >= 40)
-            || ($p1 >= 40 and $p2 >= 40 and $p3 >= 0) || ($p1 >= 0 and $p2 >= 0 and $p3 >= 0 and $p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+            $grade = 'A';
+            $points = 6;
+        } elseif (
+            ($p1 >= 75 and $p2 >= 75 and $p3 >= 70) || 
+            ($p1 >= 70 and $p2 >= 75 and $p3 >= 75) ||
+            ($p1 >= 75 and $p2 >= 70 and $p3 >= 75) and 
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+            ) {
+            $grade = 'B';
+            $points = 5;
+        } elseif (
+            ($p1 >= 70 and $p2 >= 70 and $p3 >= 65) || 
+            ($p1 >= 65 and $p2 >= 70 and $p3 >= 70) || 
+            ($p1 >= 70 and $p2 >= 65 and $p3 >= 70) and 
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+            ) {
+            $grade = 'C';
+            $points = 4;
+        }elseif (
+            ($p1 >= 65 and $p2 >= 65 and $p3 >= 60) || 
+            ($p1 >= 60 and $p2 >= 65 and $p3 >= 65) || 
+            ($p1 >= 65 and $p2 >= 60 and $p3 >= 65) and 
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+            ) {
+            $grade = 'D';
+            $points = 3;
+        } elseif (
+            ($p1 >= 50 and $p2 >= 60 and $p3 >= 60) ||
+            ($p1 >= 60 and $p2 >= 50 and $p3 >= 60) || 
+            ($p1 >= 60 and $p2 >= 60 and $p3 >= 50) ||
+            ($p1 >= 40 and $p2 >= 60 and $p3 >= 65) || 
+            ($p1 >= 65 and $p2 >= 40 and $p3 >= 60) ||
+            ($p1 >= 60 and $p2 >= 65 and $p3 >= 40) and 
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+            ) {
+            $grade = 'E';
+            $points = 2;
+        } elseif (
+            ($p1 >= 50 and $p2 >= 50 and $p3 >= 50) || 
+            ($p1 >= 40 and $p2 >= 40 and $p3 >= 40) ||
+            ($p1 >= 0 and $p2 >= 40 and $p3 >= 40) || 
+            ($p1 >= 40 and $p2 >= 0 and $p3 >= 40) ||
+            ($p1 >= 40 and $p2 >= 40 and $p3 >= 0) || 
+            ($p1 >= 50 and $p2 >= 0 and $p3 >= 0) ||
+            ($p1 >= 0 and $p2 >= 50 and $p3 >= 0) || 
+            ($p1 >= 0 and $p2 >= 0 and $p3 >= 50) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
+            ) {
+            $grade = 'O';
+            $points = 1;
+        } elseif (
+            ($p1 >= 0 and $p2 >= 0 and $p3 >= 40) || 
+            ($p1 >= 40 and $p2 >= 0 and $p3 >= 0) ||
+            ($p1 >= 0 and $p2 >= 40 and $p3 >= 0) || 
+            ($p1 >= 0 and $p2 >= 0 and $p3 >= 0) and 
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100)
         ) {
-            $grade = 0;
+            $grade = 'F';
+            $points = 0;
         } else {
-            $grade = 0;
+            $grade = 'F';
+            $points = 0;
         }
 
-        return $grade;
+        return $points;
     }
 
     function four_papers($p1, $p2, $p3, $p4)
     {
         if (
-            $p1 >= 75 and $p2 >= 80 and $p3 >= 80 and $p4 >= 80 ||
-            $p1 >= 80 and $p2 >= 75 and $p3 >= 80 and $p4 >= 80 ||
-            $p1 >= 80 and $p2 >= 80 and $p3 >= 75 and $p4 >= 80 ||
-            $p1 >= 80 and $p2 >= 80 and $p3 >= 80 and $p4 >= 75
-
+            ($p1 >= 75 and $p2 >= 80 and $p3 >= 80 and $p4 >= 80) ||
+            ($p1 >= 80 and $p2 >= 75 and $p3 >= 80 and $p4 >= 80) ||
+            ($p1 >= 80 and $p2 >= 80 and $p3 >= 75 and $p4 >= 80) ||
+            ($p1 >= 80 and $p2 >= 80 and $p3 >= 80 and $p4 >= 75) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
+        
         ) {
-            $grade = 6;
+            $grade = 'A';
+            $points = 6;
         } elseif (
-            $p1 >= 70 and $p2 >= 75 and $p3 >= 75 and $p4 >= 75 ||
-            $p1 >= 75 and $p2 >= 70 and $p3 >= 75 and $p4 >= 75 ||
-            $p1 >= 75 and $p2 >= 75 and $p3 >= 70 and $p4 >= 75 ||
-            $p1 >= 75 and $p2 >= 75 and $p3 >= 75 and $p4 >= 70
-
+            ($p1 >= 70 and $p2 >= 75 and $p3 >= 75 and $p4 >= 75) ||
+            ($p1 >= 75 and $p2 >= 70 and $p3 >= 75 and $p4 >= 75) ||
+            ($p1 >= 75 and $p2 >= 75 and $p3 >= 70 and $p4 >= 75) ||
+            ($p1 >= 75 and $p2 >= 75 and $p3 >= 75 and $p4 >= 70) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
+        
         ) {
-            $grade = 5;
+            $grade = 'B';
+            $points = 5;
         } elseif (
-            $p1 >= 65 and $p2 >= 70 and $p3 >= 70 and $p4 >= 70 ||
-            $p1 >= 70 and $p2 >= 65 and $p3 >= 70 and $p4 >= 70 ||
-            $p1 >= 70 and $p2 >= 70 and $p3 >= 65 and $p4 >= 70 ||
-            $p1 >= 70 and $p2 >= 70 and $p3 >= 70 and $p4 >= 65
-
+            ($p1 >= 65 and $p2 >= 70 and $p3 >= 70 and $p4 >= 70) ||
+            ($p1 >= 70 and $p2 >= 65 and $p3 >= 70 and $p4 >= 70) ||
+            ($p1 >= 70 and $p2 >= 70 and $p3 >= 65 and $p4 >= 70) ||
+            ($p1 >= 70 and $p2 >= 70 and $p3 >= 70 and $p4 >= 65) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
+        
         ) {
-            $grade = 4;
+            $grade = 'C';
+            $points = 4;
         } elseif (
-            $p1 >= 60 and $p2 >= 65 and $p3 >= 65 and $p4 >= 65 ||
-            $p1 >= 65 and $p2 >= 60 and $p3 >= 65 and $p4 >= 65 ||
-            $p1 >= 65 and $p2 >= 65 and $p3 >= 60 and $p4 >= 65 ||
-            $p1 >= 65 and $p2 >= 65 and $p3 >= 65 and $p4 >= 60
-
+            ($p1 >= 60 and $p2 >= 65 and $p3 >= 65 and $p4 >= 65) ||
+            ($p1 >= 65 and $p2 >= 60 and $p3 >= 65 and $p4 >= 65) ||
+            ($p1 >= 65 and $p2 >= 65 and $p3 >= 60 and $p4 >= 65) ||
+            ($p1 >= 65 and $p2 >= 65 and $p3 >= 65 and $p4 >= 60) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
+        
         ) {
-            $grade = 3;
+            $grade = 'D';
+            $points = 3;
         } elseif (
-            $p1 >= 50 and $p2 >= 60 and $p3 >= 60 and $p4 >= 60 ||
-            $p1 >= 60 and $p2 >= 50 and $p3 >= 60 and $p4 >= 60 ||
-            $p1 >= 60 and $p2 >= 60 and $p3 >= 50 and $p4 >= 60 ||
-            $p1 >= 60 and $p2 >= 60 and $p3 >= 60 and $p4 >= 50 ||
-            $p1 >= 40 and $p2 >= 60 and $p3 >= 60 and $p4 >= 65 ||
-            $p1 >= 65 and $p2 >= 60 and $p3 >= 60 and $p4 >= 40 ||
-            $p1 >= 60 and $p2 >= 65 and $p3 >= 40 and $p4 >= 60 ||
-            $p1 >= 60 and $p2 >= 40 and $p3 >= 65 and $p4 >= 60 ||
-            $p1 >= 60 and $p2 >= 60 and $p3 >= 40 and $p4 >= 65
-
+            ($p1 >= 50 and $p2 >= 60 and $p3 >= 60 and $p4 >= 60) ||
+            ($p1 >= 60 and $p2 >= 50 and $p3 >= 60 and $p4 >= 60) ||
+            ($p1 >= 60 and $p2 >= 60 and $p3 >= 50 and $p4 >= 60) ||
+            ($p1 >= 60 and $p2 >= 60 and $p3 >= 60 and $p4 >= 50) ||
+            ($p1 >= 40 and $p2 >= 60 and $p3 >= 60 and $p4 >= 65) ||
+            ($p1 >= 65 and $p2 >= 60 and $p3 >= 60 and $p4 >= 40) ||
+            ($p1 >= 60 and $p2 >= 65 and $p3 >= 40 and $p4 >= 60) ||
+            ($p1 >= 60 and $p2 >= 40 and $p3 >= 65 and $p4 >= 60) ||
+            ($p1 >= 60 and $p2 >= 60 and $p3 >= 40 and $p4 >= 65) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
         ) {
-            $grade = 2;
+            $grade = 'E';
+            $points = 2;
         } elseif (
-            $p1 >= 50 and $p2 >= 50 and $p3 >= 50 and $p4 >= 50 ||
-            $p1 >= 40 and $p2 >= 40 and $p3 >= 40 and $p4 >= 40 ||
-            $p1 >= 0 and $p2 >= 40 and $p3 >= 40 and $p4 >= 40 ||
-            $p1 >= 40 and $p2 >= 0 and $p3 >= 40 and $p4 >= 40 ||
-            $p1 >= 40 and $p2 >= 40 and $p3 >= 0 and $p4 >= 40 ||
-            $p1 >= 40 and $p2 >= 40 and $p3 >= 40 and $p4 >= 0 ||
-            $p1 >= 0 and $p2 >= 0 and $p3 >= 50 and $p4 >= 50 ||
-            $p1 >= 50 and $p2 >= 50 and $p3 >= 0 and $p4 >= 0 ||
-            $p1 >= 50 and $p2 >= 0 and $p3 >= 0 and $p4 >= 50 ||
-            $p1 >= 0 and $p2 >= 50 and $p3 >= 0 and $p4 >= 50 ||
-            $p1 >= 0 and $p2 >= 50 and $p3 >= 50 and $p4 >= 0
-
+            ($p1 >= 50 and $p2 >= 50 and $p3 >= 50 and $p4 >= 50) ||
+            ($p1 >= 40 and $p2 >= 40 and $p3 >= 40 and $p4 >= 40) ||
+            ($p1 >= 0 and $p2 >= 40 and $p3 >= 40 and $p4 >= 40) ||
+            ($p1 >= 40 and $p2 >= 0 and $p3 >= 40 and $p4 >= 40) ||
+            ($p1 >= 40 and $p2 >= 40 and $p3 >= 0 and $p4 >= 40) ||
+            ($p1 >= 40 and $p2 >= 40 and $p3 >= 40 and $p4 >= 0) ||
+            ($p1 >= 0 and $p2 >= 0 and $p3 >= 50 and $p4 >= 50) ||
+            ($p1 >= 50 and $p2 >= 50 and $p3 >= 0 and $p4 >= 0) ||
+            ($p1 >= 50 and $p2 >= 0 and $p3 >= 0 and $p4 >= 50) ||
+            ($p1 >= 0 and $p2 >= 50 and $p3 >= 0 and $p4 >= 50) ||
+            ($p1 >= 0 and $p2 >= 50 and $p3 >= 50 and $p4 >= 0) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
         ) {
-            $grade = 1;
+            $grade = 'O';
+            $points = 1;
         } elseif (
-            $p1 >= 0 and $p2 >= 0 and $p3 >= 40 and $p4 >= 40 ||
-            $p1 >= 40 and $p2 >= 40 and $p3 >= 0 and $p4 >= 0 ||
-            $p1 >= 40 and $p2 >= 0 and $p3 >= 0 and $p4 >= 40 ||
-            $p1 >= 0 and $p2 >= 40 and $p3 >= 0 and $p4 >= 40 ||
-            $p1 >= 0 and $p2 >= 40 and $p3 >= 40 and $p4 >= 0 ||
-            $p1 >= 0 and $p2 >= 0 and $p3 >= 0 and $p4 >= 0
-
+            ($p1 >= 0 and $p2 >= 0 and $p3 >= 40 and $p4 >= 40) ||
+            ($p1 >= 40 and $p2 >= 40 and $p3 >= 0 and $p4 >= 0) ||
+            ($p1 >= 40 and $p2 >= 0 and $p3 >= 0 and $p4 >= 40) ||
+            ($p1 >= 0 and $p2 >= 40 and $p3 >= 0 and $p4 >= 40) ||
+            ($p1 >= 0 and $p2 >= 40 and $p3 >= 40 and $p4 >= 0) ||
+            ($p1 >= 0 and $p2 >= 0 and $p3 >= 0 and $p4 >= 0) and
+            ($p1 <= 100 and $p2 <= 100 and $p3 <= 100 and $p4 <= 100)
+        
         ) {
-            $grade = 0;
-        }else{
-            $grade = 0;
+            $grade = 'F';
+            $points = 0;
+        } else {
+            $grade = 'F';
+            $points = 0;
         }
 
-        return $grade;
+        return $points;
     }
 
     function sub_ict($p1, $p2)

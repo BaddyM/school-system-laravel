@@ -57,7 +57,7 @@
                         </select>
                     @else
                         <p class="mb-0 h5 fw-bold text-danger">
-                            O Level table empty
+                            A Level table empty
                         </p>
                     @endif
                 </div>
@@ -70,29 +70,32 @@
 
         </form>
 
-        <div class="mt-3 d-none" id="table_container">
+        <div class="mt-3 d-none w-100" id="table_container">
             <p class="fw-bold h5 text-center mb-3 subject_header">Mathematics</p>
 
-            <form action="" method="post" id="std_marks_form">
-                <input type="hidden" id="subject_buffer">
-                <input type="hidden" id="result_set_buffer">
-                <input type="hidden" id="classname_buffer">
-                <input type="hidden" id="paper_num_buffer">
+            <form method="post" id="std_marks_form">
+                @csrf
+                <input type="hidden" name="subject_buffer">
+                <input type="hidden" name="result_set_buffer">
+                <input type="hidden" name="classname_buffer">
+                <input type="hidden" name="paper_num_buffer">
 
-                <table class="table" id="marks_table">
-                    <thead>
-                        <tr class="table-dark">
-                            <th scope="col">#</th>
-                            <th scope="col">Student Name</th>
-                            <th scope="col">Class</th>
-                            <th scope="col" >Paper</th>
-                            <th scope="col" class="subject_header"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                    </tbody>
-                </table>
+                <div class="overflow-scroll">
+                    <table class="table" id="marks_table">
+                        <thead>
+                            <tr class="table-dark">
+                                <th scope="col">#</th>
+                                <th scope="col">Student Name</th>
+                                <th style="width:120px;" scope="col">Class</th>
+                                <th scope="col" >Paper</th>
+                                <th style="width:250px;" scope="col">Mark</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+    
+                        </tbody>
+                    </table>
+                </div>
 
                 <button class="submit-btn mt-2" id="save_student" type="submit">Save</button>
             </form>
@@ -113,22 +116,21 @@
 
             $('#show_table').on('click', function(e) {
                 e.preventDefault();
-                //Show the table container
-                $("#table_container").removeClass('d-none');
 
-                //Show the print button
-                $("#print_marklist").removeClass('d-none');
+                //Disable this button
+                $(this).addClass('submit-btn-disabled').removeClass('submit-btn').prop('disabled',true);
 
                 var classname = $("#classname").val();
                 var subject = $("#subject").val();
                 var result_set = $("#result_set").val();
                 var paper = $("#paper_num").val();
+                var level = 'A Level';
 
                 $(".subject_header").text(subject);
-                $("#result_set_buffer").val(result_set);   
-                $("#classname_buffer").val(classname);  
-                $("#subject_buffer").val(subject); 
-                $("#paper_num_buffer").val(paper);          
+                $("input[name='result_set_buffer']").val(result_set);   
+                $("input[name='classname_buffer']").val(classname);  
+                $("input[name='subject_buffer']").val(subject); 
+                $("input[name='paper_num_buffer']").val(paper);          
 
                 //Empty the table body before append
                 $("tbody").empty();
@@ -142,40 +144,48 @@
                         classname: classname,
                         result_set:result_set,
                         subject:subject,
-                        paper:paper
+                        paper:paper,
+                        level:level
                     },
                     url: "{{ route('olevel.show') }}",
                     success: function(data) {
-                        var row_data;
-                        var std_name;
-                        var row_count = 0;
-                        $.each(data, function(key, value) {
-                            std_ids.push(value.std_id);
-                            if (value.mname == '' || value.mname == null || value
-                                .mname == 'NULL') {
-                                std_name = value.lname + " " + value.fname;
-                            } else {
-                                std_name = value.lname + " " + value.mname + " " + value
-                                    .fname;
+                        var counter = 0;     
+                        //Show the table container
+                        $("#table_container").removeClass('d-none');
+
+                        //Show the print button
+                        $("#print_marklist").removeClass('d-none');
+
+                        //Enable the button again
+                        $('#show_table').removeClass('submit-btn-disabled').addClass('submit-btn').prop('disabled',false);
+
+                        $.each(data.data,function(k,v){
+                            if(v.mname == null || v.mname == '' || v.mname == 'NULL'){
+                                var std_name = v.lname+" "+v.fname;
+                            }else{
+                                var std_name = v.lname+" "+ v.mname +" "+v.fname;
                             }
-                            row_count += 1;
-                            var subject_paper = (subject+' '+paper);
-                            row_data = "<tr>\
-                                            <td>" + row_count + "</td>\
-                                            <td>" + std_name + "</td>\
-                                            <td class='classname'></td>\
-                                            <td class='table_paper_num'></td>\
-                                            <td><input type='number' min=0 max=3 class='form-control rounded-0 std_marks'\
-                                                value='"+((value.mark == null || value.mark == 'NULL' || value.mark == '')?'':parseInt(value.mark))+"' name='std_marks[]' placeholder='Enter "+subject_paper+" Mark' data-std_id = '"+value.std_id+"'></td>\
-                                        </tr>";
-                            $('tbody').append(row_data);
-                            $(".classname").text(classname);  
-                            $(".table_paper_num").text(paper); 
+                            
+
+                            var row_data = "<tr>\
+                                            <td>"+(counter += 1)+"</td>\
+                                            <td>"+(std_name)+"</td>\
+                                            <td>"+(classname)+"</td>\
+                                            <td>"+(paper)+"</td>\
+                                            <td>\
+                                                <input type='hidden' name='std_id[]' value='"+v.std_id+"'>\
+                                                <input type='number' name='std_mark[]' value='"+v.mark+"' class='std_marks form-control rounded-0' placeholder='"+subject+"'>\
+                                            </td>\
+                                        </tr>"
+                            $("#marks_table tbody").append(row_data);
                         });
+                        
                     },
                     error: function(error) {
                         $("#table_container").addClass('d-none');
-                        alert('Failed');                        
+                        //Enable the button again
+                        $('#show_table').removeClass('submit-btn-disabled').addClass('submit-btn').prop('disabled',false);
+                        alert('Error!');                        
                     }
                 });
             })
@@ -189,46 +199,25 @@
             })
 
             //Save student marks
-            $("#save_student").on('click', function(e) {
+            $("#std_marks_form").on('submit', function(e) {
                 e.preventDefault();
-                var marks = [];
-                var subject = $("#subject_buffer").val();
-                var classname = $("#classname_buffer").val();
-                var result_set = $("#result_set_buffer").val();
-                var level = 'A Level';
-                var paper = $("#paper_num_buffer").val();
-
-                $("input[name='std_marks[]']").each(function() {
-                    var std_id = $(this).data('std_id');
-                    var std_mark = $(this).val();
-                    marks.push([std_id, std_mark]);
-                });
-
-                for (var i = 0; i < std_ids.length; i++) {
-                    var marks_std_combo = [];
-                    marks_std_combo.push(std_ids[i], marks[i]);
-
-                    //Student ID with Marks
-                    std_marks_ids.push(marks_std_combo);
-                }
-
                 $.ajax({
                     type: "POST",
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     url: "{{ route('add.results.alevel') }}",
-                    data: {
-                        marks: marks,
-                        classname: classname,
-                        result_set: result_set,
-                        subject: subject,
-                        level: level,
-                        paper:paper
-                    },
+                    data:new FormData(this),
+                    processData:false,
+                    contentType:false,
+                    cache:false,
                     success: function(data) {
                         alert(data);
-                        location.reload();
+                        //Show the table container
+                        $("#table_container").addClass('d-none');
+                        $("#print_marklist").addClass('d-none');
+                        $('tbody').empty();
+                        $("form")[0].reset();
                     },
                     error: function(error) {
                         alert('Failed to Save Subject details');
@@ -242,13 +231,14 @@
                 var subject = $("#subject_buffer").val();
                 var classname = $("#classname_buffer").val();
                 var paper = $("#paper_num_buffer").val();
+                var level = 'A Level';
                 $.ajax({
                     type: "GET",
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(data) {
-                        window.open('/Results/marklist_print/'+classname+'/'+paper+'/'+subject+'','_blank');
+                        window.open('/Results/marklist_print/'+classname+'/'+paper+'/'+subject+'/'+level+'','_blank');
                     },
                     error: function(error) {
                         alert('Failed to Print Marklist');

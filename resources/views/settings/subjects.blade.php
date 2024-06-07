@@ -82,7 +82,7 @@
                             @foreach ($alevel as $a)
                                 <tr>
                                     <td>{{ $row_num_a++ }}</td>
-                                    <td>{{ $a->name }}</td>
+                                    <td>{{ strtoupper($a->name) }}</td>
                                     <td>{{ $a->paper }}</td>
                                     <td class="text-center">
                                         <form action="" method="post" class="m-0">
@@ -117,7 +117,7 @@
                             @foreach ($olevel as $o)
                                 <tr>
                                     <td>{{ $row_num++ }}</td>
-                                    <td>{{ $o->name }}</td>
+                                    <td>{{ strtoupper($o->name) }}</td>
                                     <td>{{ $o->paper }}</td>
                                     <td class="text-center">
                                         <form action="" method="post" class="m-0">

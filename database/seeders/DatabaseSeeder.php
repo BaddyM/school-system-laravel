@@ -83,13 +83,34 @@ class DatabaseSeeder extends Seeder {
         }
         */
 
-        $dept = array('admin', 'bursar', 'librarian', 'teacher', 'other');
+        $class = array('Senior 1', 'Senior 2', 'Senior 3', 'Senior 4');
+        $topics = array('Topic 1', 'Topic 2', 'Topic 3');
+        $subjects = array('Mathematics','History','Luganda','Literature','ICT','Physics','Chemistry');
+        $stdid = array('20241001','20241002','20241003','20241004','20241005');
+        $competence = array('can do better', 'relaxed a lot', 'misunderstood the statements','No introductions');
 
-        foreach($dept as $d){
-            DB::table('department')->insert([
-                'dept' => $d,
-                'created_at' => now()
-            ]);
+        for($i=0; $i<=10; $i++){
+            foreach($stdid as $std_id){
+                $subject = $subjects[array_rand($subjects)];
+                $topic = $topics[array_rand($topics)];
+                $c = $class[array_rand($class)];
+                $comptence = $competence[array_rand($competence)];
+                $score = rand(1,3);
+    
+                $exists = DB::table('olevel_2_2024')->where(['std_id'=>$std_id, 'subject'=>$subject, 'topic'=>$topic])->exists();
+    
+                if($exists != 1){
+                    DB::table('olevel_2_2024')->insert([
+                        'std_id' => $std_id,
+                        'class' => $c,
+                        'subject'=>$subject,
+                        'competence' => $comptence,
+                        'topic'=>$topic,
+                        'score' => $score,
+                        'created_at' => now()
+                    ]);
+                }
+            }
         }
         
     }

@@ -5,14 +5,6 @@
 @endsection
 
 @section('body')
-    <style>
-        #update_user_form input,
-        #update_user_form select {
-            color: purple;
-            font-weight: bold;
-        }
-    </style>
-
     <div class="container-fluid">
         <h5 class="mb-0 text-uppercase fw-bold text-center mb-3" style="color: purple;">Users</h5>
 
@@ -117,7 +109,7 @@
                         </div>
                     </div>
                     <div class="modal-body">
-                        <form method="post" id="update_user_form">
+                        <form method="post" id="update_user_form" class="d-none">
                             @csrf
                             <input type="hidden" name="user_update_id">
                             <div class="mb-3">
@@ -170,7 +162,7 @@
                                     <label class="form-label h6 fw-bold">Password</label>
                                     <div class="d-flex align-items-center justify-content-between">
                                         <input type="password" class="form-control rounded-0" placeholder="Password"
-                                            name="password">
+                                            name="password" id="update_password">
                                         <div class="bg-secondary form-control rounded-0 display_password"
                                             style="width:50px; cursor:pointer;">
                                             <i class="fa fa-eye"></i>
@@ -182,7 +174,7 @@
                                     <label class="form-label h6 fw-bold">Confirm Password</label>
                                     <div class="d-flex align-items-center justify-content-between">
                                         <input type="password" class="form-control rounded-0" placeholder="Confirm Password"
-                                            name="confirm_password">
+                                            name="confirm_password" id="update_confirm_password">
                                         <div class="bg-secondary form-control rounded-0 display_confirm_password"
                                             style="width:50px; cursor:pointer;">
                                             <i class="fa fa-eye"></i>
@@ -228,6 +220,14 @@
                                 @endif
                             </div>
                         </form>
+
+                        <div class="modal-loader">
+                            <div class="d-flex justify-content-center align-items-center">
+                                <div class="spinner-border text-primary spinner-border-lg" role="status">
+                                </div>
+                            </div>                            
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -335,14 +335,17 @@
     <script>
         $(document).ready(function() {
             //Datatable
-            $("#users-table").DataTable();
+            //$("#users-table").DataTable();
 
             //Show User info
             $(".view_user_form").on('submit', function(e) {
                 e.preventDefault();
+
+                //Show the modal
+                $("#userModal").modal('show');
+
                 //Clear the form
                 $("#update_user_form")[0].reset();
-
                 $.ajax({
                     type: "POST",
                     url: "{{ route('users.fetch') }}",
@@ -407,8 +410,9 @@
                             $("input[name='verify_email']").prop('checked', false);
                         }
 
-                        //Show the modal
-                        $("#userModal").modal('show');
+                        $(".modal-loader").addClass('d-none');
+                        $("#update_user_form").removeClass('d-none');
+                        
                     },
                     error: function() {
                         alert("Failed to Fetch User!");
@@ -416,12 +420,17 @@
                 });
             });
 
+            $("#userModal").on('hidden.bs.modal',function(){
+                $(".modal-loader").removeClass('d-none');
+                $("#update_user_form").addClass('d-none');
+            })
+
             //Update User
             $("#update_user_form").on('submit', function(e) {
                 e.preventDefault();
                 //Check password match
-                var pass1 = $("input[name='password']").val();
-                var pass2 = $("input[name='confirm_password']").val();
+                var pass1 = $('#update_password').val();
+                var pass2 = $('#update_confirm_password').val();
 
                 if(pass1 == pass2){
                     //Hide the modal
@@ -443,8 +452,7 @@
                     });
                 }else{
                     alert("Error:Password Mismatch!");
-                }
-                
+                }                
             });
 
             //Display password
@@ -492,8 +500,9 @@
                     processData:false,
                     cache:false,
                     success:function(response){
-                        //console.log(response);
+                        alert(response);
                         $("#updateImageModal").modal('hide');
+                        location.reload();
                     },error:function(){
                         alert("Failed to Save Image");
                     }
@@ -501,18 +510,24 @@
             });
 
             //Delete User
-            $(".delete_user_form").on('submit', function(e) {
+            $("#delete-user-btn").on('click', function(e) {
                 e.preventDefault();
+                var user_id = $("input[name='user_update_id']").val();
+                console.log("User_id = "+user_id);
                 const confirm_delete = confirm("Are you sure?");
                 if (confirm_delete == true) {
                     $.ajax({
+                        headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
                         type: "POST",
-                        url: "{{ route('stream.delete') }}",
-                        data: new FormData(this),
-                        processData: false,
-                        contentType: false,
-                        cache: false,
+                        url: "{{ route('users.delete') }}",
+                        data: {
+                            user_id:user_id
+                        },
                         success: function(response) {
+                            //Hide the user modal
+                            $("#userModal").modal('hide');
                             alert(response);
                             location.reload();
                         },
@@ -525,6 +540,8 @@
 
             //Add New User
             $('button[name="add_user_btn"]').on('click',function(){
+                //Clear
+                $('#add_new_user_form')[0].reset();
                 $("#newUserModal").modal('show');
             });
 

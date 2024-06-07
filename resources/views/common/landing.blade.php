@@ -6,6 +6,12 @@
 
 @section('body')
     <div class="container-fluid">
+
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <strong>Scroll Down for more info!</strong>
+        </div>
+
         <div class="card-container">
             <div class="card col-md-3 border-0 card-one">
                 <div class="card-body p-4">
@@ -51,51 +57,147 @@
 
         </div>{{-- cards --}}
 
-        @php
-            $planner = [
-                [   'date' => '04-02-2024',
-                    'activity' => 'Term Re-open'
-                ],
-                [   'date' => '05-02-2024',
-                    'activity' => 'Term Re-open'
-                ],
-                [   'date' => '10-03-2024',
-                    'activity' => 'General Cleaning'
-                ],
-                [   'date' => '11-03-2024',
-                    'activity' => 'Guidance & Counselling'
-                ],
-                [   'date' => '15-03-2024',
-                    'activity' => 'Books checking'
-                ],
-                [   'date' => '07-04-2024',
-                    'activity' => 'Visitation Day'
-                ],
-                [   'date' => '18-04-2024',
-                    'activity' => 'PTA Meeting'
-                ],
-                [   'date' => '27-04-2024',
-                    'activity' => 'Holiday Break off'
-                ]
-            ];
-        @endphp
+        <div class="my-3 row justify-content-between">
+            <div class="col-md-5 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <card class="card-header d-flex justify-content-center">
+                        <p class="mb-0 fw-bold h6">Term Planner</p>
+                    </card>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr class="bg-gradient" style="background: purple; color:white;">
+                                    <th scope="col">#</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Activity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $counter = 1;
+                                @endphp
+                                @foreach ($planner as $p)
+                                    <tr style="cursor: pointer;">
+                                        <td>{{ $counter++ }}</td>
+                                        <td class="align-items-center">
+                                            <span>{{ date('D, d M, Y', strtotime($p->date)) }}</span>
+                                            <span class="badge purple-badge">{{ date('h:i A', strtotime($p->date)) }}</span>
+                                        </td>
+                                        <td>
+                                            {{ $p->activity }}
+                                        </td>
+                                    </tr>
+                                @endforeach
 
-        <div class="mt-4">
-            <p class="mb-2 h5">Term Planner <span class="text-danger fst-italic h6">(Scroll for more)</span></p>
-            <div class="term-planner">
-                @foreach ($planner as $p)
-                <div class="d-flex justify-content-between mb-2">
-                    <div>
-                        <p class="mb-0">{{ date('d M, Y', strtotime($p['date'])) }}</p>
-                    </div>
-                    <span> - </span>
-                    <div>
-                        <p class="mb-0">{{ $p['activity'] }}</p>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                @endforeach
             </div>
-        </div>{{-- term-planner --}}
+
+            <div class="col-md-3 mb-4  text-center">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header d-flex justify-content-center">
+                        <span style="border-color:purple !important;"
+                            class="shadow-sm mb-0 fw-bold h6 border px-3 py-1 border-3 rounded-3">Staff
+                            Population</span>
+                    </div>
+                    <div class="card-body">
+                        <div>
+                            <canvas id="staffSummaryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-4  text-center">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header d-flex justify-content-center">
+                        <span style="border-color:purple !important;"
+                            class="shadow-sm mb-0 fw-bold h6 border px-3 py-1 border-3 rounded-3">Students
+                            Population</span>
+                    </div>
+                    <div class="card-body">
+                        <div>
+                            <canvas id="studentSummaryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-between align-items-center">
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header d-flex justify-content-center">
+                        <p class="mb-0 fw-bold h6">Student Attendance Today</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="student_attendance">
+                            <p class="mb-2 fw-bold h6">Student Attendance Summary</p>
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 25%;"
+                                    aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                    Description
+                                </div>
+                            </div>
+                            <div class="mt-2 d-flex justify-content-between">
+                                <div class="align-items-center">
+                                    <span style="background: purple; color:white;" class="badge">Total</span>
+                                    <span id="std_present">238</span>
+                                </div>
+
+                                <div class="align-items-center">
+                                    <span class="badge bg-success">Present</span>
+                                    <span id="std_present">238</span>
+                                </div>
+
+                                <div class="align-items-center">
+                                    <span class="badge bg-danger">Absent</span>
+                                    <span id="std_present">238</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>{{-- Student --}}
+
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header d-flex justify-content-center">
+                        <p class="mb-0 fw-bold h6">Staff Attendance Today</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="student_attendance">
+                            <p class="mb-2 fw-bold h6">Staff Attendance Summary</p>
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 25%;"
+                                    aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                    Description
+                                </div>
+                            </div>
+                            <div class="mt-2 d-flex justify-content-between">
+                                <div class="align-items-center">
+                                    <span style="background: purple; color:white;" class="badge">Total</span>
+                                    <span id="std_present">238</span>
+                                </div>
+
+                                <div class="align-items-center">
+                                    <span class="badge bg-success">Present</span>
+                                    <span id="std_present">238</span>
+                                </div>
+
+                                <div class="align-items-center">
+                                    <span class="badge bg-danger">Absent</span>
+                                    <span id="std_present">238</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>{{-- Staff --}}
+
+        </div>{{-- Attendance --}}
 
     </div>
 @endsection
@@ -105,6 +207,62 @@
     <script src="{{ asset('/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('/js/datatable.min.js') }}"></script>
     <script src="{{ asset('/js/bootstrap.bundle.js') }}"></script>
-    <script src="{{ asset('js/custom.js') }}"></script>
-    
+    <script src="{{ asset('') }}js/chart.js"></script>
+    <script>
+        //Student Summary chart
+        function student_chart(girls, boys){
+            //Chart
+            const piechart = $("#studentSummaryChart");
+            new Chart(piechart, {
+                        type: 'doughnut',
+                        data: {
+                        labels: ['Girls','Boys'],
+                        datasets: [{
+                            label: 'Total Students',
+                            data: [girls, boys],
+                            borderWidth: 1
+                        }]
+                        },
+                    });
+        }
+
+        //Staff Summary Chart
+        function staff_chart(girls, boys){
+            //Chart
+            const piechart = $("#staffSummaryChart");
+            new Chart(piechart, {
+                        type: 'doughnut',
+                        data: {
+                        labels: ['Female','Male'],
+                        datasets: [{
+                            backgroundColor:[
+                                'rgba(228, 114, 0, 0.82)',
+                                'rgba(83, 0, 255, 0.82)'
+                            ],
+                            label: 'Total Students',
+                            data: [girls, boys],
+                            borderWidth: 1
+                        }]
+                        },
+                    });
+        }
+
+        //Fetch the Term
+        $.ajax({
+            type: 'get',
+            url: '{{ route("home.term") }}',
+            success: function(data) {
+                student_chart((data.girls), (data.boys));
+                staff_chart((data.females), (data.males));
+
+                $(".school_name_header").text(data.school.school_name)
+
+                var term = data.term.term;
+                var year = data.term.year;
+                $("#term").text(term);
+                $("#year").text(year);
+            }
+        });
+        
+    </script>
 @endpush

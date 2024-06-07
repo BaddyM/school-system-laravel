@@ -21,20 +21,20 @@
             @csrf
             <div>
                 {{-- check if there exists any errors --}}
-                @if($errors->any())
+                @if ($errors->any())
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         @foreach ($errors->all() as $err)
-                        <strong><i class="bi bi-exclamation-triangle"></i></strong> {{ $err }}
+                            <strong><i class="bi bi-exclamation-triangle"></i></strong> {{ $err }}
                         @endforeach
-                    </div>                  
-                @endif                
+                    </div>
+                @endif
             </div>
             <div>
                 <label for="" class="form-label fw-bold">Email</label>
                 <input type="text" name="email" class="form-control rounded-0" id="email">
                 <div class="email-errors bg-danger text-white rounded-1 px-2 py-2 bg-gradient my-2 d-none">
-                    
+
                 </div>
             </div>
 
@@ -42,22 +42,28 @@
                 <label for="" class="form-label fw-bold">Password</label>
                 <input type="password" name="password" class="form-control rounded-0" id="password">
                 <div class="password-errors bg-danger text-white rounded-1 px-2 py-2 bg-gradient my-2 d-none">
-                    
                 </div>
             </div>
 
-            <button class="btn mt-2 mb-3 w-100 bg-gradient submit-btn rounded-0" type="submit" id="login-btn" disabled>Login</button>
+            <div class="mt-2 d-flex justify-content-between">
+                <a href="{{ route('forgotpass.index') }}" class="nav-link text-warning">Forgot Password <i class="bi bi-key"></i></a>
+                <a href="{{ route('signup.index') }}" class="nav-link text-warning">Register</a>
+            </div>
+
+            <button class="btn mt-2 mb-3 w-100 bg-gradient submit-btn rounded-0" type="submit" id="login-btn"
+                disabled>Login</button>
         </form>
     </div>
 
     <script src="{{ asset('/') }}js/jquery.min.js"></script>
     <script src="{{ asset('') }}js/bootstrap.bundle.js"></script>
     <script>
-        $(document).ready(function(){
+        $(document).ready(function() {
             $("#login-btn").removeClass('submit-btn').addClass('submit-btn-disabled');
 
-            $("#email, #password").on('change',function(){
-                $("#login-btn").addClass('submit-btn').removeClass('submit-btn-disabled').prop('disabled',false);
+            $("#email, #password").on('change', function() {
+                $("#login-btn").addClass('submit-btn').removeClass('submit-btn-disabled').prop('disabled',
+                    false);
             });
         })
     </script>

@@ -178,7 +178,7 @@ body{
     width: 40%;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 10%;
+    margin-top: 5%;
     padding: 20px 40px;
     border: 2px rgba(255,255,255,0.5) solid;
     border-radius: 10px;
@@ -365,4 +365,29 @@ select:focus{
 .is_inactive:hover{
     background: grey;
     color: white;
+}
+
+.positions-container, .departments-container{
+    display: none;
+}
+
+/*----------------------------- BADGES ----------------------------------*/
+.blue-badge{
+    background: linear-gradient(to right,  #09203f 10%, #537895 50%, #09203f);
+}
+
+.purple-badge{
+    background:linear-gradient(to left, #cc2b5e, #753a88);
+}
+
+#update_user_form input,
+#update_user_form select {
+    color: purple;
+    font-weight: bold;
+}
+
+/*------------------------- Re-captcha ---------------------------*/
+.g-recaptcha{
+    margin-top:15px;
+    margin-bottom:10px;
 }

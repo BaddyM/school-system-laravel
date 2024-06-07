@@ -49,6 +49,10 @@
 
                         <p class="fw-bold h6 text-danger">O-Level Subjects List</p>
                         <div class="my-2">
+                            <p class="text-danger fw-bold fst-italic border border-dark rounded-4 p-3 border-3">For O-level Table, Just Click submit.</p>
+                        </div>
+                        <!---
+                        <div class="my-2">
                             @foreach ($olevel as $o)
                                 <div class="d-flex align-items-center mb-2" style="gap:7px;">
                                     <input type="checkbox" style="height:20px; width:20px;"
@@ -56,7 +60,8 @@
                                     {{ $o->name }} {{ $o->paper }}
                                 </div>
                             @endforeach
-                        </div>{{-- A-Level --}}
+                        </div>{{-- O-Level --}}                       
+                        -->
                     </div>
 
                     <button class="submit-btn mt-3" type="button" id="submit_button">create</button>
@@ -65,7 +70,7 @@
 
             <div class="col-md-6">
                 <p class="text-center fw-bold h5">Tables Available</p>
-                <div>
+                <div class="overflow-scroll">
                     <table class="table table-hover">
                         <thead>
                             <tr class="table-dark bg-gradient">
@@ -74,7 +79,7 @@
                                 <th scope="col">Level</th>
                                 <th scope="col">Term</th>
                                 <th scope="col">Year</th>
-                                @if(Auth::user()->is_super_admin == 1)
+                                @if(Auth::user()->is_super_admin == 1 || Auth::user()->is_admin == 1)
                                 <th scope="col">Action</th>
                                 @endif
                             </tr>
@@ -110,7 +115,7 @@
                                         </td>
 
                                         {{-- Check if user is super admin --}}
-                                        @if(Auth::user()->is_super_admin == 1)
+                                        @if(Auth::user()->is_super_admin == 1 || Auth::user()->is_admin == 1)
                                         <td>
                                             <form action="" class="m-0">
                                                 <button class="btn btn-outline-danger btn-sm delete-table" data-id={{ $r->id }} type="button">Delete</button>
@@ -121,8 +126,8 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="5" class="text-center fw-bold text-danger h6">
-                                        Empty Set
+                                    <td colspan="6" class="text-center fw-bold text-danger h6">
+                                        <img class='img-fluid w-25' src='{{ asset('/images/icon/empty_set.png') }}'>
                                     </td>
                                 </tr>
                             @endif
@@ -143,17 +148,15 @@
                 event.preventDefault();
 
                 var table_name = ($("#table_name").val()).toLowerCase().replaceAll(" ", "").replaceAll("_",
-                    "").replaceAll('.', '').replaceAll('-', '');
+                    "").replaceAll('.', '').replaceAll('-', '').replaceAll("'", '');
 
                 var subject_heads = [];
                 var term = parseInt($("#term").text());
                 var year = parseInt($("#year").text());
                 var std_level = $("#std_level").val();
-                console.log("term = " + term + ", year = " + year + ", Table_name = " + table_name+", Level = "+std_level);
                 //Subjects Selected
                 $('input[name="subject_list"]:checked').each(function() {
                     var checked_val = (this.value).replace(" ", "_");
-                    console.log(checked_val)
                     subject_heads.push(checked_val);
                 });
 
@@ -189,7 +192,6 @@
             //Delete the table
             $('.delete-table').on('click',function(){
                 var table_id = $(this).data('id')
-                console.log("Table_id = "+table_id);
                 $.ajax({
                     type: "POST",
                     headers: {
