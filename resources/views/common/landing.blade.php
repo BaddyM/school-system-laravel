@@ -263,6 +263,21 @@
                 $("#year").text(year);
             }
         });
+
+        //Fetch Student attendance
+        $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+            type:'POST',
+            url:'{{ route("attendance.student.get") }}',
+            success:function(response){
+                console.log(response);
+            },
+            error:function(){
+                alert("Failed to get attendance data!");
+            }
+        })
         
     </script>
 @endpush
