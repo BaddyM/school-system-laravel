@@ -87,18 +87,20 @@
                     <div class="card shadow-sm border-0 d-none attendance_card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <p class="mb-0 h6 fw-bold text-center">Take Student Attandance</p>
+                            @if (Auth::user()->is_super_admin == 1 || Auth::user()->is_admin == 1)
                             <div><button id="std_attend_popup" class="btn rounded-0 btn-warning bg-gradient fw-bold">Print Attendance <i
                                         class="fa fa-calendar"></i></button></div>
+                            @endif
                         </div>
                         <div class="card-body overflow-scroll">
-                            <table class="table" id="attendance_table">
+                            <table class="table table-responsive w-100 table-hover" id="attendance_table">
                                 <thead>
-                                    <tr class="table-dark bg-gradient">
+                                    <tr class="table-dark bg-gradient w-100" >
                                         <th scope="col">#</th>
                                         <th scope="col">Student Name</th>
                                         <th scope="col">Present</th>
                                         <th scope="col">Absent</th>
-                                        <th class="text-center" scope="col">Note</th>
+                                        <th class="text-center" style="width:300px !important;" scope="col">Note</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -180,26 +182,33 @@
 
                     var row_data;
                     var counter = 0;
-                    $.each(data, function(k, v) {
-                        row_data = "<tr>\
-                                                <input type='hidden' name='std_id[]' value='" + v.std_id + "'>\
-                                                <td>" + (counter += 1) + "</td>\
-                                                <td>" + ((v.lname) + " " + ((v.mname != null || v.mname != "" || v.mname !=
-                                'NULL') ? (v.mname) : "") + " " + (v.fname)) +
-                            "</td>\
-                                                <td><div class='d-flex justify-content-center'><input type='radio' value='present' name='" + v.std_id +
-                            "' style='height:20px; width:20px;' " + ((v.status == 'present') ?
-                                'checked' : '') +
-                            "></div></td>\
-                                                <td><div class='d-flex justify-content-center'><input type='radio' value='absent' name='" + v
-                            .std_id + "' style='height:20px; width:20px;' " + ((v.status ==
-                                'absent') ? 'checked' : '') + "></div></td>\
-                                                <td><textarea class='form-control rounded-0' name='note_" + v.std_id +
-                            "' cols=20 rows=2 placeholder='Note'>" + ((v.note != null) ? (v
-                                .note) : "") + "</textarea></td>\
-                                            </tr>";
-                        $("#attendance_table tbody").append(row_data);
-                    });
+                    
+                    if(data.length > 0){
+                        $.each(data, function(k, v) {
+                            row_data = "<tr>\
+                                                    <input type='hidden' name='std_id[]' value='" + v.std_id + "'>\
+                                                    <td>" + (counter += 1) + "</td>\
+                                                    <td style='text-transform:capitalize !important;'>" + ((v.lname) + " " + ((v.mname == null || v.mname == '' || v.mname ==
+                                    'NULL') ? "" : (v.mname)) + " " + (v.fname)) +
+                                "</td>\
+                                                    <td><div class='d-flex justify-content-center'><input type='radio' value='present' name='" + v.std_id +
+                                "' style='height:20px; width:20px;' " + ((v.status == 'present') ?
+                                    'checked' : '') +
+                                "></div></td>\
+                                                    <td><div class='d-flex justify-content-center'><input type='radio' value='absent' name='" + v
+                                .std_id + "' style='height:20px; width:20px;' " + ((v.status ==
+                                    'absent') ? 'checked' : '') + "></div></td>\
+                                                    <td><textarea class='form-control rounded-0 w-100' name='note_" + v.std_id +
+                                "' cols=20 rows=2 placeholder='Note'>" + ((v.note != null) ? (v
+                                    .note) : "") + "</textarea></td>\
+                                                </tr>";
+                            $("#attendance_table tbody").append(row_data);
+                        });
+                    }else{
+                        $("#attendance_table tbody").append("<tr>\
+                                    <td colspan=5 class='text-center'> <img style='width:100px;' class='fluid' src='/images/icon/empty_set.png'></td>\
+                                </tr>");
+                    }
                 },
                 error: function() {
                     alert("Failed!");
@@ -250,5 +259,11 @@
             }
 
         });
+
+        $(document).ready(function(){
+            $('#printStudentAttendanceModal').on('hidden.bs.modal',function(){
+                $(".print_std_attendance_form")[0].reset();
+            })
+        })
     </script>
 @endpush

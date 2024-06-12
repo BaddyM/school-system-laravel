@@ -172,6 +172,9 @@
                     //Disable the submit button
                     $("#view-std-data").removeClass('submit-btn').addClass(
                         'submit-btn-disabled').prop('disabled', true);
+                },
+                error:function(){
+                    alert("Failed!");
                 }
             });
         });

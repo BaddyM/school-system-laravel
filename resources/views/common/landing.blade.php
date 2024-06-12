@@ -7,6 +7,26 @@
 @section('body')
     <div class="container-fluid">
 
+        <div class="modal fade" id="landingNotificationModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false"
+            role="dialog" aria-labelledby="modalTitleId" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm"role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">
+                            Notification
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-success" role="alert">
+                            <strong id="notification-message"></strong>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>{{-- Notification modal --}}
+
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             <strong>Scroll Down for more info!</strong>
@@ -136,25 +156,26 @@
                         <div class="student_attendance">
                             <p class="mb-2 fw-bold h6">Student Attendance Summary</p>
                             <div class="progress">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 25%;"
-                                    aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
-                                    Description
+                                <div id="student_present_progress"
+                                    class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                    role="progressbar" aria-valuemax="100">
+
                                 </div>
                             </div>
                             <div class="mt-2 d-flex justify-content-between">
                                 <div class="align-items-center">
                                     <span style="background: purple; color:white;" class="badge">Total</span>
-                                    <span id="std_present">238</span>
+                                    <span id="std_total">0</span>
                                 </div>
 
                                 <div class="align-items-center">
                                     <span class="badge bg-success">Present</span>
-                                    <span id="std_present">238</span>
+                                    <span id="std_present">0</span>
                                 </div>
 
                                 <div class="align-items-center">
                                     <span class="badge bg-danger">Absent</span>
-                                    <span id="std_present">238</span>
+                                    <span id="std_absent">0</span>
                                 </div>
                             </div>
                         </div>
@@ -171,25 +192,26 @@
                         <div class="student_attendance">
                             <p class="mb-2 fw-bold h6">Staff Attendance Summary</p>
                             <div class="progress">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 25%;"
-                                    aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
-                                    Description
+                                <div id="staff_present_progress"
+                                    class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                    role="progressbar" aria-valuemax="100">
+
                                 </div>
                             </div>
                             <div class="mt-2 d-flex justify-content-between">
                                 <div class="align-items-center">
                                     <span style="background: purple; color:white;" class="badge">Total</span>
-                                    <span id="std_present">238</span>
+                                    <span id="staff_total">0</span>
                                 </div>
 
                                 <div class="align-items-center">
                                     <span class="badge bg-success">Present</span>
-                                    <span id="std_present">238</span>
+                                    <span id="staff_present">0</span>
                                 </div>
 
                                 <div class="align-items-center">
                                     <span class="badge bg-danger">Absent</span>
-                                    <span id="std_present">238</span>
+                                    <span id="staff_absent">0</span>
                                 </div>
                             </div>
                         </div>
@@ -210,47 +232,47 @@
     <script src="{{ asset('') }}js/chart.js"></script>
     <script>
         //Student Summary chart
-        function student_chart(girls, boys){
+        function student_chart(girls, boys) {
             //Chart
             const piechart = $("#studentSummaryChart");
             new Chart(piechart, {
-                        type: 'doughnut',
-                        data: {
-                        labels: ['Girls','Boys'],
-                        datasets: [{
-                            label: 'Total Students',
-                            data: [girls, boys],
-                            borderWidth: 1
-                        }]
-                        },
-                    });
+                type: 'doughnut',
+                data: {
+                    labels: ['Girls', 'Boys'],
+                    datasets: [{
+                        label: 'Total Students',
+                        data: [girls, boys],
+                        borderWidth: 1
+                    }]
+                },
+            });
         }
 
         //Staff Summary Chart
-        function staff_chart(girls, boys){
+        function staff_chart(girls, boys) {
             //Chart
             const piechart = $("#staffSummaryChart");
             new Chart(piechart, {
-                        type: 'doughnut',
-                        data: {
-                        labels: ['Female','Male'],
-                        datasets: [{
-                            backgroundColor:[
-                                'rgba(228, 114, 0, 0.82)',
-                                'rgba(83, 0, 255, 0.82)'
-                            ],
-                            label: 'Total Students',
-                            data: [girls, boys],
-                            borderWidth: 1
-                        }]
-                        },
-                    });
+                type: 'doughnut',
+                data: {
+                    labels: ['Female', 'Male'],
+                    datasets: [{
+                        backgroundColor: [
+                            'rgba(228, 114, 0, 0.82)',
+                            'rgba(83, 0, 255, 0.82)'
+                        ],
+                        label: 'Total Students',
+                        data: [girls, boys],
+                        borderWidth: 1
+                    }]
+                },
+            });
         }
 
         //Fetch the Term
         $.ajax({
             type: 'get',
-            url: '{{ route("home.term") }}',
+            url: '{{ route('home.term') }}',
             success: function(data) {
                 student_chart((data.girls), (data.boys));
                 staff_chart((data.females), (data.males));
@@ -264,20 +286,58 @@
             }
         });
 
-        //Fetch Student attendance
-        $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        $(document).ready(function() {
+            //Fetch Student attendance
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-            type:'POST',
-            url:'{{ route("attendance.student.get") }}',
-            success:function(response){
-                console.log(response);
-            },
-            error:function(){
-                alert("Failed to get attendance data!");
-            }
+                type: 'POST',
+                url: '{{ route('attendance.student.get') }}',
+                success: function(data) {
+                    if (data.total == 0) {
+                        $("#notification-message").text("Create Student Attendance Table!");
+                        $("#landingNotificationModal").modal('show');
+                    } else {
+                        //student attendance
+                        $("#std_total").text(data.total);
+                        $("#std_present").text(data.present);
+                        var present_val = parseInt((parseInt(data.present) / parseInt(data.total)) *
+                            100);
+                        $("#student_present_progress").css('width',  ''+present_val+'%');
+                        $("#std_absent").text(data.absent);
+                    }
+                },
+                error: function() {
+                    alert("Failed to get attendance data!");
+                }
+            });
+
+            //Fetch Staff attendance
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                type: 'POST',
+                url: '{{ route('attendance.staff.get') }}',
+                success: function(data) {
+                    if (data.total == 0) {
+                        $("#notification-message").text("Create Staff Attendance Table!");
+                        $("#landingNotificationModal").modal('show');
+                    } else {
+                        //staff attendance
+                        $("#staff_total").text(data.total);
+                        $("#staff_present").text(data.present);
+                        var present_val = parseInt((parseInt(data.present) / parseInt(data.total)) *
+                            100);
+                        $("#staff_present_progress").css('width', ''+present_val+'%');
+                        $("#staff_absent").text(data.absent);
+                    }
+                },
+                error: function() {
+                    alert("Failed to get attendance data!");
+                }
+            });
         })
-        
     </script>
 @endpush

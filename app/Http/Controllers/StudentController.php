@@ -12,7 +12,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class StudentController extends Controller
 {
-
     public function addStudentIndex() {
         $classes = DB::table('std_class')->select('class')->get();
         $streams = DB::table('class_stream')->select('stream')->get();
@@ -70,7 +69,9 @@ class StudentController extends Controller
 
         //Save into the DB
         //Create a student ID
-        $id_counter = count(Student::all());
+        $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        $id_counter = count(DB::table('student_'.$current_year.'')->get());
         $std_id = $year . "" . (5000 + $id_counter);
 
         //Apply fixed values for combination and registration
@@ -106,11 +107,13 @@ class StudentController extends Controller
 
         try {
             //Check if data exists
-            $exists = Student::where(['fname' => $fname, 'mname' => $mname, 'lname' => $lname])->exists();
+            //$exists = Student::where(['fname' => $fname, 'mname' => $mname, 'lname' => $lname])->exists();
+            $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
+            $exists = DB::table('student_'.$current_year.'')->where(['fname' => $fname, 'mname' => $mname, 'lname' => $lname])->exists();
 
             if($exists == null){
                 //Add to the Student Table 
-                Student::create(
+                DB::table('student_'.$current_year.'')->insert(
                     [
                         'std_id' => $std_id,
                         'fname' => $fname,
@@ -170,7 +173,9 @@ class StudentController extends Controller
     public function fetchStudentData(Request $req) {
         $class_name = $req->classname;
         $category = $req->category;
-        $data = Student::where(['class' => $class_name,'status' => $category])->get();
+        $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
+
+        $data = DB::table('student_'.$current_year.'')->where(['class' => $class_name,'status' => $category])->get();
 
         return DataTables::of($data)
             ->addIndexColumn()
@@ -181,7 +186,8 @@ class StudentController extends Controller
 
     public function getDataForModal(Request $req) {
         $std_id = $req->std_id;
-        $data = Student::where("std_id", $std_id)->first();
+        $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        $data = DB::table('student_'.$current_year.'')->where("std_id", $std_id)->first();
         return response()->json($data);
     }
 
@@ -212,8 +218,10 @@ class StudentController extends Controller
             $password = '-';
         }
 
+        $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
+
         try{
-            Student::where('std_id', $std_id)->update([
+            DB::table('student_'.$current_year.'')->where('std_id', $std_id)->update([
                 'fname' => ucfirst($fname),
                 'lname' => ucfirst($lname),
                 'mname' => ucfirst($mname),
@@ -294,17 +302,19 @@ class StudentController extends Controller
                 $nationality = '';
             }
 
+            $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
+
             try {
                 //Check if data exists
-                $exists = Student::where(['fname' => $fname, 'mname' => $mname, 'lname' => $lname])->exists();
+                $exists = DB::table('student_'.$current_year.'')->where(['fname' => $fname, 'mname' => $mname, 'lname' => $lname])->exists();
 
                 if($exists == null){
                     //Upload to the Student table
                     $year = date('Y', strtotime(now()));
-                    $id_counter = count(Student::all());
+                    $id_counter = count(DB::table('student_'.$current_year.'')->get());
                     $std_id = $year . "" . (5000 + $id_counter);
 
-                    Student::create([
+                    DB::table('student_'.$current_year.'')->insert([
                         'std_id' => $std_id,
                         'fname' => $fname,
                         'lname' => $lname,
@@ -342,7 +352,8 @@ class StudentController extends Controller
     }
 
     public function print_students($class, $status) {
-        $data = Student::where(['class' => $class, 'status' => $status])->get();
+        $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        $data = DB::table('student_'.$current_year.'')->where(['class' => $class, 'status' => $status])->get();
         $row_num = 0;
 
         //Student's list HTML
@@ -442,7 +453,8 @@ class StudentController extends Controller
 
     public function fetch_std_records(Request $req){
         $std_id = $req->std_id;
-        $data = Student::where('std_id',$std_id)->first();
+        $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        $data = DB::table('student_'.$current_year.'')->where('std_id',$std_id)->first();
         return response()->json([
             'data' => $data
         ]);
@@ -450,8 +462,9 @@ class StudentController extends Controller
 
     public function update_std_image(Request $req){
         $std_id = $req->std_img_id;
+        $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
         
-        $original_record = Student::where('std_id',$std_id)->first();
+        $original_record = DB::table('student_'.$current_year.'')->where('std_id',$std_id)->first();
         $std_image = $original_record->image;
 
         //First delete the original file
@@ -467,7 +480,8 @@ class StudentController extends Controller
             $req->std_image->move(public_path('images/student_photos'),$file_name);
 
             //Update the DB
-            Student::where('std_id',$std_id)->update([
+            $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
+            DB::table('student_'.$current_year.'')->where('std_id',$std_id)->update([
                 'image' => $file_name
             ]);
 
@@ -481,9 +495,10 @@ class StudentController extends Controller
     public function disable_student(Request $req){
         $std_id = $req->std_id;
         $status = $req->status;
+        $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
 
         try{
-            Student::where('std_id',$std_id)->update([
+            DB::table('student_'.$current_year.'')->where('std_id',$std_id)->update([
                 'status' => $status
             ]);
         }catch(Exception $e){
@@ -500,7 +515,8 @@ class StudentController extends Controller
 
     public function display_std_status(Request $req){
         $class = $req->classname;
-        $data = Student::where('class',$class)->get();
+        $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        $data = DB::table('student_'.$current_year.'')->where('class',$class)->get();
 
         return DataTables::of($data)
                 ->addIndexColumn()
@@ -511,11 +527,12 @@ class StudentController extends Controller
     public function update_std_status(Request $req){
         $std_list = implode(',',$req->selected);
         $status = $req->std_status;
+        $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
 
         try{
             DB::update('
                 UPDATE
-                    student
+                    student_'.$current_year.'
                 SET
                     status = "'.$status.'"
                 WHERE 
@@ -527,6 +544,125 @@ class StudentController extends Controller
             info($e);
             $response = "There was an Error!";
         }
+
+        return response($response);
+    }
+
+    //Promotion
+    public function promote_index(){
+        $classes = DB::table('std_class')->select('class')->get();
+        $streams = DB::table('class_stream')->select('stream')->get();
+        $academic_year = DB::table('term')->select('year')->distinct()->get();
+
+        return view('student.promote', compact('classes','streams', 'academic_year'));
+    }
+
+    public function fetch_promote_students(Request $req){
+        $class = $req->classname;
+        $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        $table = "student_".$year;
+
+        $data = DB::table(''.$table.'')->where(['class' => $class, 'status' => 'continuing'])->get();
+        return response($data);        
+    }
+
+    public function promote_students(Request $req){
+        $ids = $req->std_id;
+        $class = $req->classname;
+        $next_year = $req->year;
+
+        //Current Term and Year
+        $current_year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+
+        //Create table if it doesn't exist
+        DB::statement("
+            CREATE TABLE IF NOT EXISTS student_".$next_year."
+            (
+                `std_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                `fname` varchar(255) NOT NULL,
+                `mname` varchar(255) DEFAULT NULL,
+                `lname` varchar(255) NOT NULL,
+                `dob` text DEFAULT '0',
+                `class` varchar(255) NOT NULL,
+                `stream` varchar(255) DEFAULT NULL,
+                `house` varchar(255) DEFAULT NULL,
+                `section` varchar(255) DEFAULT NULL,
+                `image` varchar(255) NOT NULL,
+                `gender` varchar(255) NOT NULL,
+                `year_of_entry` int(11) NOT NULL,
+                `status` varchar(255) DEFAULT NULL,
+                `combination` varchar(255) DEFAULT NULL,
+                `password` varchar(255) DEFAULT NULL,
+                `lin` varchar(255) DEFAULT NULL,
+                `residence` varchar(255) DEFAULT NULL,
+                `nationality` varchar(255) DEFAULT NULL,
+                `created_at` timestamp NULL DEFAULT NULL,
+                `updated_at` timestamp NULL DEFAULT NULL,
+                PRIMARY KEY (`std_id`)
+            )
+        ");
+
+        foreach($ids as $id){
+            //Get the Data
+            $new_data = DB::table("student_".$current_year."")->where(['std_id' => $id, 'status' => 'continuing'])->first();
+            $exists = DB::table("student_".$next_year."")->where('std_id', $id)->exists();
+
+            //Add new Data if null
+            if($exists != 1){
+                $std_id = $new_data->std_id;
+                $fname = $new_data->fname;
+                $lname = $new_data->lname;
+                $mname = $new_data->mname;
+                $dob = $new_data->dob;
+                $stream = $new_data->stream;
+                $house = $new_data->house;
+                $section = $new_data->section;
+                $image = $new_data->image;
+                $gender = $new_data->gender;
+                $year_of_entry = $new_data->year_of_entry;
+                $status = $new_data->status;
+                $combination = $new_data->combination;
+                $password = $new_data->password;
+                $lin = $new_data->lin;
+                $residence = $new_data->residence;
+                $nationality = $new_data->nationality;
+                $created_at = $new_data->created_at;
+                $updated_at = $new_data->updated_at;
+
+                DB::table("student_".$next_year."")->insert([
+                    'std_id' => $std_id,
+                    'fname' => $fname,
+                    'mname' => $mname,
+                    'lname' => $lname,
+                    'dob' => $dob,
+                    'class' => $class,
+                    'stream' => $stream,
+                    'house' => $house,
+                    'section' => $section,
+                    'image' => $image,
+                    'gender' => $gender,
+                    'year_of_entry' => $year_of_entry,
+                    'status' => $status,
+                    'combination' => $combination,
+                    'password' => $password,
+                    'lin' => $lin,
+                    'residence' => $residence,
+                    'nationality' => $nationality,
+                    'created_at' => $created_at,
+                    'updated_at' => $updated_at
+                ]);
+
+                $response = "Records Added";
+            }else{
+                //If yes, Update
+                DB::table("student_".$next_year."")->where('std_id',$id)->update([
+                    'class' => $class,
+                    'updated_at' => now()
+                ]);
+
+                $response = "Some Records Exist";
+            }
+        }        
 
         return response($response);
     }

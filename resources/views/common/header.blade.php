@@ -88,6 +88,12 @@
                                         class="bi bi-broadcast-pin"></i>
                                     Student Status</a>
                             </li>
+
+                            <li class="nav-item" title="Student Status">
+                                <a href="{{ route('student.promote.index') }}" class="nav-link"><i
+                                        class="bi bi-door-open"></i>
+                                    Promote</a>
+                            </li>
                         </div>
                     </div>{{-- Students --}}
                 @endif
@@ -115,20 +121,31 @@
                         Attendance
                     </div>
                     <div id="attendance_items_list">
+                        @if (Auth::user()->is_super_admin == 1 || Auth::user()->is_admin == 1)
+                        <li class="nav-item" title="Add Student">
+                            <a href="{{ route('attendance.table.create.index') }}" class="nav-link"><i class="bi bi-table"></i>
+                                Create Table</a>
+                        </li>
+                        @endif
+
                         <li class="nav-item" title="Add Student">
                             <a href="{{ route('attendance.student') }}" class="nav-link"><i class="bi bi-plus-circle"></i>
                                 Student Attendance</a>
                         </li>
 
+                        @if (Auth::user()->is_super_admin == 1 || Auth::user()->is_admin == 1)
                         <li class="nav-item" title="View Student">
                             <a href="{{ route('attendance.staff') }}" class="nav-link"><i class="bi bi-plus-circle"></i>
                                 Staff Attendance</a>
                         </li>
 
-                        <li class="nav-item" title="Student Status">
+                        {{-- 
+                            <li class="nav-item" title="Student Status">
                             <a href="" class="nav-link"><i class="fa fa-calendar"></i>
                                 Attendance Summary</a>
                         </li>
+                            --}}
+                        @endif
                     </div>
                 </div>{{-- Attendance --}}
 
@@ -172,17 +189,21 @@
                             <a href="{{ route('alevel.marksheet') }}" class="nav-link">
                                 <i class="bi bi-file-earmark-check"></i> A'Level Marksheet</a>
                         </li>
+                        {{-- 
                         <li class="nav-item" title="Marksheet">
                             <a href="{{ route('marksheet.olevel') }}" class="nav-link"><i
                                     class="bi bi-file-earmark-check"></i> O'Level Marksheet</a>
-                        </li>
+                        </li>    
 
                         <li class="nav-item" title="Marksheet">
                             <a href="{{ route('marksheet.olevel') }}" class="nav-link"><i
                                     class="bi bi-file-earmark-check"></i> A'Level Marklist</a>
                         </li>
+
+                        --}}
+
                         <li class="nav-item" title="Marksheet">
-                            <a href="{{ route('marksheet.olevel') }}" class="nav-link"><i
+                            <a href="{{ route('olevel.marklist.index') }}" class="nav-link"><i
                                     class="bi bi-file-earmark-check"></i> O'Level Marklist</a>
                         </li>
 
@@ -194,6 +215,7 @@
                             <a href="{{ route('olevel.index') }}" class="nav-link"><i class="bi bi-plus-circle"></i>
                                 Results (O'Level)</a>
                         </li>
+
                         @if (Auth::user()->is_super_admin == 1 || Auth::user()->is_admin == 1)
                             <li class="nav-item" title="Reports">
                                 <a href="{{ route('reports.alevel') }}" class="nav-link"><i
@@ -206,7 +228,6 @@
                         @endif
                     </div>
                 </div>{{-- Student Results --}}
-
 
                 <div>
                     <div class="nav-item nav-title" id="settings_items" title="Settings">

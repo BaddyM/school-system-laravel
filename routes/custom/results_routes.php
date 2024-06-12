@@ -14,4 +14,9 @@ Route::middleware('auth')->prefix('Results')->group(function(){
     Route::get('/report_olevel_print/{table}/{term}/{year}/{ids}',[ResultsController::class,'oreports_print'])->name('reports.olevel.print');
     Route::get('/report_alevel_print/{table}/{term}/{year}/{ids}',[ResultsController::class,'areports_print'])->name('reports.alevel.print');
     Route::get('/marklist_print/{class}/{paper}/{subject}/{level}',[ResultsController::class,'print_marklist'])->name('marklist.print');
+
+    //Marklist
+    Route::get('/olevel_marklist',[ResultsController::class,'olevel_marklist_index'])->name('olevel.marklist.index');
+    Route::post('/olevel_fetch_marklist',[ResultsController::class,'fetch_olevel_marklist_result'])->name('olevel.marklist.fetch');
+    Route::get('/olevel_print_marklist/{table}/{class}/{subject}/{topic}',[ResultsController::class,'print_marklist_olevel'])->name('olevel.marklist.print');
 });

@@ -241,9 +241,6 @@
 
             //Fetch the records for display in the DT
             $("#view-std-data").on('click', () => {
-                //Display the print button
-                $("#print-std-data").removeClass('d-none');
-
                 var classname = $("#classname").val();
                 var category = $("#category").val();
 
@@ -263,9 +260,15 @@
                         $("#update-students-table").css('padding-top', '10px');
                         data_table(classname, category);
 
+                        //Display the print button
+                        $("#print-std-data").removeClass('d-none');
+
                         //Disable the submit button
                         $("#view-std-data").removeClass('submit-btn').addClass(
                             'submit-btn-disabled').prop('disabled', true);
+                    },
+                    error:function(){
+                        alert("No Students Available!");
                     }
                 })
 
@@ -333,11 +336,13 @@
                     //Update the DB
                     updateDBRecords();
                 }
-            })
+            });
 
             //function to collect details
             function getStdDetails(std_id) {
                 $("#viewStudentModal").modal('show');
+                $(".std_header, .std_footer, .std_body_container").addClass('d-none');
+                $(".spinner_body").removeClass('d-none');
                 $.ajax({
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -401,8 +406,14 @@
                         } else {
                             $("#disable-std").remove();
                         }
+
+                        $(".std_header, .std_footer, .std_body_container").removeClass('d-none');
+                        $(".spinner_body").addClass('d-none');
+                    },
+                    error:function(){
+                        alert("Failed to Fetch Students!");
                     }
-                })
+                });
             }
 
             //Function to Update the DB
@@ -456,6 +467,9 @@
                         setTimeout(function() {
                             $("#viewStudentModal").modal('hide');
                         }, 500);
+                    },
+                    error:function(){
+                        alert("Failed to Update Students!");
                     }
                 })
 

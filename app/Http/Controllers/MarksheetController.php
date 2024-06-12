@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -96,6 +95,7 @@ class MarksheetController extends Controller
         $class = $request->classname;
         $table = $request->tablename;
         $level = $request->level;
+        $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
 
         $subjects = DB::select("
             SELECT
@@ -136,16 +136,16 @@ class MarksheetController extends Controller
         //Student data here
         $data = DB::select("
                 SELECT
-                    concat_ws(' ',student.lname, IF(student.mname = 'NULL','',student.mname), student.fname) as name,
-                    student.class,
+                    concat_ws(' ',student_".$current_year.".lname, IF(student_".$current_year.".mname = 'NULL','',student_".$current_year.".mname), student_".$current_year.".fname) as name,
+                    student_".$current_year.".class,
                     " . $subjects_list . ",
                     (" . $subjects_list_sum . ")as total                    
                 FROM
-                    student
+                    student_".$current_year."
                 RIGHT OUTER JOIN
                     " . $table . "
                 ON
-                    student.std_id = " . $table . ".std_id
+                    student_".$current_year.".std_id = " . $table . ".std_id
                 WHERE
                     " . $table . ".class = '" . $class . "'
                 AND
@@ -261,6 +261,8 @@ class MarksheetController extends Controller
     }
 
     public function print_marksheet($class, $table, $level){
+        $current_year = (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        
         $subjects = DB::select("
             SELECT
                 DISTINCT name
@@ -302,16 +304,16 @@ class MarksheetController extends Controller
         //Student data here
         $data = DB::select("
                 SELECT
-                    concat_ws(' ',student.lname, student.mname, student.fname) as name,
-                    student.class,
+                    concat_ws(' ',student_".$current_year.".lname, student_".$current_year.".mname, student_".$current_year.".fname) as name,
+                    student_".$current_year.".class,
                     " . $subjects_list . ",
                     (" . $subjects_list_sum . ")as total                    
                 FROM
-                    student
+                    student_".$current_year."
                 RIGHT OUTER JOIN
                     " . $table . "
                 ON
-                    student.std_id = " . $table . ".std_id
+                    student_".$current_year.".std_id = " . $table . ".std_id
                 WHERE
                     " . $table . ".class = '" . $class . "'
                 AND

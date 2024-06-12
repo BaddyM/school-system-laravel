@@ -442,6 +442,7 @@ class SettingController extends Controller
     public function fetch_topics_ajax(Request $req){
         $class = $req->classname;
         $subject = $req->subject;
+        
         $data = DB::table('topics')->select('topic')->where(['class' => $class, 'subject' => $subject])->get();
         return response($data);
     }

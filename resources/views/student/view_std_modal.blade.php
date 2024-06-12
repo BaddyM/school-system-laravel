@@ -66,7 +66,7 @@
 <div class="modal fade" id="viewStudentModal" data-bs-backdrop="static" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content confirm-modal">
-            <div class="modal-header d-block justify-content-between text-white align-items-center">
+            <div class="modal-header d-block justify-content-between text-white align-items-center std_header d-none">
                 <div class="d-flex justify-content-end">
                     <button class="close-std-view btn btn-danger bg-gradient rounded-5"><i class="fa fa-x"></i></button>
                 </div>
@@ -83,7 +83,7 @@
             </div>
 
             <div class="modal-body text-center">
-                <div class="row justify-content-between w-100" style="gap:20px;">
+                <div class="row justify-content-between w-100 std_body_container d-none" style="gap:20px;">
                     <div class="col-md-2">
                         <p class="mb-2 text-uppercase fw-bold" style="color:white; font-size:18px;">Student Image
                         </p>
@@ -139,10 +139,17 @@
                             <div class="mb-2"><label class="form-label">Updated On :</label> <input type="text" id="updated_at"></div>
                         </div>
                     </div>
+                </div>{{-- body_content --}}
+
+                <div class="spinner_body d-none">
+                    <div class="d-flex justify-content-center align-items-center">
+                        <div style="color:purple;" class="spinner-border spinner-border-lg" role="status">
+                        </div>
+                    </div>{{-- spinner --}}
                 </div>
             </div>
 
-            <div class="modal-footer text-center justify-content-center mb-0">
+            <div class="modal-footer text-center justify-content-center mb-0 std_footer d-none">
                 <div class="w-100 text-center d-flex justify-content-center button_cont" style="gap:30px;">
                     <button class="btn yes-button px-5 py-2 bg-gradient" id="update-std">
                         UPDATE

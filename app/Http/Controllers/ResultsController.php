@@ -104,28 +104,29 @@ class ResultsController extends Controller
         $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
 
         $results_table = $table . "_" . $term . "_" . $year;
+        $current_year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
 
         if ($level == 'O Level') {
             //Fetch Data
             $data = DB::select("
                 SELECT
-                    student.std_id,
-                    student.fname,
-                    student.mname,
-                    student.lname,
+                    student_".$current_year.".std_id,
+                    student_".$current_year.".fname,
+                    student_".$current_year.".mname,
+                    student_".$current_year.".lname,
                     " . $results_table . ".score as mark,
                     " . $results_table . ".competence as competence,
                     " . $results_table . ".remark as remark
                 FROM
-                    student
+                    student_".$current_year."
                 LEFT OUTER JOIN
                     " . $results_table . "
                 ON
-                    student.std_id = " . $results_table . ".std_id
+                    student_".$current_year.".std_id = " . $results_table . ".std_id
                 WHERE
-                    student.class = '" . $classname . "'
+                    student_".$current_year.".class = '" . $classname . "'
                 AND
-                    student.status = 'continuing'      
+                    student_".$current_year.".status = 'continuing'      
                 AND
                     " . $results_table . ".topic = '" . $topic . "'   
                 AND
@@ -136,21 +137,21 @@ class ResultsController extends Controller
             //Fetch Data
             $data = DB::select("
                 SELECT
-                    student.std_id,
-                    student.fname,
-                    student.mname,
-                    student.lname,
+                    student_".$current_year.".std_id,
+                    student_".$current_year.".fname,
+                    student_".$current_year.".mname,
+                    student_".$current_year.".lname,
                     " . $results_table . "." . $subject . "_" . $paper . " as mark
                 FROM
-                    student
+                    student_".$current_year."
                 LEFT OUTER JOIN
                     " . $results_table . "
                 ON
-                    student.std_id = " . $results_table . ".std_id
+                    student_".$current_year.".std_id = " . $results_table . ".std_id
                 WHERE
-                    student.class = '" . $classname . "'
+                    student_".$current_year.".class = '" . $classname . "'
                 AND
-                    student.status = 'continuing'              
+                    student_".$current_year.".status = 'continuing'              
                 ORDER BY lname ASC
             ");
         }
@@ -158,25 +159,23 @@ class ResultsController extends Controller
         if (count($data) == 0) {
             $data = DB::select("
                     SELECT
-                        student.std_id,
-                        student.fname,
-                        student.mname,
-                        student.lname
+                        student_".$current_year.".std_id,
+                        student_".$current_year.".fname,
+                        student_".$current_year.".mname,
+                        student_".$current_year.".lname
                     FROM
-                        student
+                        student_".$current_year."
                     LEFT OUTER JOIN
                         " . $results_table . "
                     ON
-                        student.std_id = " . $results_table . ".std_id
+                        student_".$current_year.".std_id = " . $results_table . ".std_id
                     WHERE
-                        student.class = '" . $classname . "'
+                        student_".$current_year.".class = '" . $classname . "'
                     AND
-                        student.status = 'continuing'                      
+                        student_".$current_year.".status = 'continuing'                      
                     ORDER BY lname ASC
                 ");
         }
-
-        //$topics = DB::table('topics')->where(['class' => $classname, 'subject' => $subject])->get();
 
         return response()->json([
             'data' => $data
@@ -184,7 +183,8 @@ class ResultsController extends Controller
     }
 
     //Enter student results 
-    public function enter_results_alevel(Request $req) {
+    public function enter_results_alevel(Request $req)
+    {
         $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
         $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
         $class = $req->classname_buffer;
@@ -195,7 +195,7 @@ class ResultsController extends Controller
         $paper = $req->paper_num_buffer;
         $subject = (($req->subject_buffer) . "_" . $paper);
 
-        for($i=0; $i<count($std_id); $i++){
+        for ($i = 0; $i < count($std_id); $i++) {
             array_push($results, ['std_id' => $std_id[$i], 'mark' => $marks[$i]]);
         }
 
@@ -235,19 +235,21 @@ class ResultsController extends Controller
     {
         $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
         $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        $school_name = DB::table('school_details')->where('id', 1)->first();
+        $current_year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
 
         $data = DB::select("
                 SELECT
-                    student.std_id,
-                    student.fname,
-                    student.mname,
-                    student.lname
+                    student_".$current_year.".std_id,
+                    student_".$current_year.".fname,
+                    student_".$current_year.".mname,
+                    student_".$current_year.".lname
                 FROM
-                    student
+                    student_".$current_year."
                 WHERE
-                    student.class = '" . $class . "'
+                    student_".$current_year.".class = '" . $class . "'
                 AND
-                    student.status = 'continuing'
+                    student_".$current_year.".status = 'continuing'
                 ORDER BY lname ASC
             ");
 
@@ -288,7 +290,30 @@ class ResultsController extends Controller
                         height:100px;
                     }
                 </style>
-                    <div class="container">
+                <div class="container">
+                ';
+
+            //Title Table
+            $html .= "
+        <table style='margin-bottom:; border:none !important;'>
+            <tbody>
+                <tr>
+                <td style='border:none !important'><img style='width:70px;' src='" . public_path('images/' . $school_name->school_badge . '') . "'></td>
+                    <td style='border:none !important; font-size:25px; text-align:center; text-transform:uppercase; font-weight:bold;'>" . (($school_name->school_name != null) ? $school_name->school_name : '') . "</td>
+                    <td style='border:none !important'><img style='width:70px;' src='" . public_path('images/' . $school_name->school_badge . '') . "'></td>
+                </tr>
+            </tbody>
+        </table>";
+
+
+            for ($i = 0; $i < 2; $i++) {
+                //Separator
+                $html .= "
+                    <div style='width:100%; height:1px; margin-bottom:2px; background:black;'></div>
+                    ";
+            }
+
+            $html .= '
                         <p class="title">' . $class . ' ' . $subject . ' ' . (($class == 'Senior 6' || $class == 'Senior 5') ? $paper : '') . ' List Term ' . $term . ' ' . $year . '</p>
 
                         <table>
@@ -303,25 +328,36 @@ class ResultsController extends Controller
                             </thead>
                             <tbody>';
 
-                    $counter = 0;
-                    foreach ($data as $d) {
-                        $counter += 1;
-                        $html .= '
+            $counter = 0;
+
+            if(count($data) > 0){
+                foreach ($data as $d) {
+                    $counter += 1;
+                    $html .= '
+                        <tr>
+                            <td style="text-align:center;">' . $counter . '</td>
+                            <td>' . $d->lname . ' ' . (($d->lname == null || $d->mname == 'NULL' || $d->mname == '') ? '' : $d->mname) . ' ' . $d->fname . '</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    ';
+                }
+            }else{
+                $html .= '
                     <tr>
-                        <td style="text-align:center;">' . $counter . '</td>
-                        <td>' . $d->lname . ' ' . (($d->lname == null || $d->mname == 'NULL' || $d->mname == '') ? '' : $d->mname) . ' ' . $d->fname . '</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                        <td colspan=5 style=" text-align:center;">
+                            <img style="width:70px; height:70px;" src="'.public_path('/images/icon/empty_set.png').'">
+                        </td>
                     </tr>
                 ';
-                    }
+            }
 
-                    $html .= '   </tbody>
+            $html .= '   </tbody>
                         </table>
                     </div>
                 ';
-        }elseif($level == 'A Level'){
+        } elseif ($level == 'A Level') {
             $html = '
             <style>
                 .container{
@@ -355,8 +391,29 @@ class ResultsController extends Controller
                     padding:5px;
                 }
             </style>
-                <div class="container">
-                    <p class="title">' . $class . ' ' . $subject . ' ' . (($class == 'Senior 6' || $class == 'Senior 5') ? $paper : '') . ' List Term ' . $term . ' ' . $year . '</p>
+                <div class="container">';
+
+            //Title Table
+            $html .= "
+            <table style='margin-bottom:; border:none !important;'>
+                <tbody>
+                    <tr>
+                    <td style='border:none !important'><img style='width:70px;' src='" . public_path('images/' . $school_name->school_badge . '') . "'></td>
+                        <td style='border:none !important; font-size:25px; text-align:center; text-transform:uppercase; font-weight:bold;'>" . (($school_name->school_name != null) ? $school_name->school_name : '') . "</td>
+                        <td style='border:none !important'><img style='width:70px;' src='" . public_path('images/' . $school_name->school_badge . '') . "'></td>
+                    </tr>
+                </tbody>
+            </table>";
+
+
+            for ($i = 0; $i < 2; $i++) {
+                //Separator
+                $html .= "
+                        <div style='width:100%; height:1px; margin-bottom:2px; background:black;'></div>
+                        ";
+            }
+
+            $html .= '    <p class="title">' . $class . ' ' . $subject . ' ' . (($class == 'Senior 6' || $class == 'Senior 5') ? $paper : '') . ' List Term ' . $term . ' ' . $year . '</p>
 
                     <table>
                         <thead>
@@ -368,19 +425,29 @@ class ResultsController extends Controller
                         </thead>
                         <tbody>';
 
-                $counter = 0;
+            $counter = 0;
+            if(count($data) > 0){
                 foreach ($data as $d) {
                     $counter += 1;
                     $html .= '
-                <tr>
-                    <td style="text-align:center;">' . $counter . '</td>
-                    <td>' . $d->lname . ' ' . (($d->lname == null || $d->mname == 'NULL' || $d->mname == '') ? '' : $d->mname) . ' ' . $d->fname . '</td>
-                    <td></td>
-                </tr>
-            ';
+                    <tr>
+                        <td style="text-align:center;">' . $counter . '</td>
+                        <td>' . $d->lname . ' ' . (($d->lname == null || $d->mname == 'NULL' || $d->mname == '') ? '' : $d->mname) . ' ' . $d->fname . '</td>
+                        <td></td>
+                    </tr>
+                ';
                 }
+            }else{
+                $html .= '
+                    <tr>
+                        <td colspan=3 style=" text-align:center;">
+                            <img style="width:70px; height:70px;" src="'.public_path('/images/icon/empty_set.png').'">
+                        </td>
+                    </tr>
+                ';
+            }
 
-                $html .= '   </tbody>
+            $html .= '   </tbody>
                     </table>
                 </div>
             ';
@@ -511,8 +578,9 @@ class ResultsController extends Controller
     public function select_class(Request $req)
     {
         $class = $req->classname;
+        $current_year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
         try {
-            $data = DB::table('student')->select(['std_id', 'lname', 'mname', 'fname'])->where(['class' => $class, 'status' => 'continuing'])->get();
+            $data = DB::table('student_'.$current_year.'')->select(['std_id', 'lname', 'mname', 'fname'])->where(['class' => $class, 'status' => 'continuing'])->get();
         } catch (Exception $e) {
             info($e);
         }
@@ -530,19 +598,20 @@ class ResultsController extends Controller
     {
         $tables = array();
         $table_collect = explode(',', $table);
+        $current_year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
 
         //Deal with the tables here
         foreach ($table_collect as $t) {
             array_push($tables, $t);
         }
 
-        $class = DB::table('student')->select('class')->whereIn('std_id', explode(',', $std_ids))->first();
+        $class = DB::table('student_'.$current_year.'')->select('class')->whereIn('std_id', explode(',', $std_ids))->first();
 
         $data = DB::select("
                 SELECT 
                     *
                 FROM
-                    student                    
+                    student_".$current_year."                    
                 WHERE
                     std_id
                 IN
@@ -1086,13 +1155,14 @@ class ResultsController extends Controller
     public function areports_print($table, $term, $year, $std_ids)
     {
         $tables = array();
+        $current_year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
 
         //Deal with the table counter here
         foreach (explode(',', $table) as $t) {
             array_push($tables, $t);
         }
 
-        $class = DB::table('student')->select('class')->whereIn('std_id', explode(',', $std_ids))->first();
+        $class = DB::table('student_'.$current_year.'')->select('class')->whereIn('std_id', explode(',', $std_ids))->first();
 
         //Signatures
         $signature_hm = DB::table('signature')->select('signature')->where('signatory', 'head-teacher')->value('signature');
@@ -1105,7 +1175,7 @@ class ResultsController extends Controller
             SELECT 
                 *
             FROM
-                student                    
+                student_".$current_year."                    
             WHERE
                 std_id
             IN
@@ -2175,5 +2245,199 @@ class ResultsController extends Controller
         }
 
         return $comment;
+    }
+
+    //O'Level Marklist
+    public function olevel_marklist_index()
+    {
+        $classes = DB::select("
+                        SELECT
+                            *
+                        FROM
+                            std_class
+                        WHERE
+                            level = 'O Level'
+                    ");
+
+        $subjects = DB::select("
+            SELECT
+                DISTINCT name
+            FROM
+                subjects
+            WHERE
+                level = 'O Level'
+        ");
+
+        $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
+        $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+
+        $table_name = DB::table('results_table')->where(['term' => $term, 'year' => $year, 'level' => 'O Level'])->get();
+
+        return view('results.olevel_marklist', compact('classes', 'subjects', 'table_name'));
+    }
+
+    //Fetch marklist results
+    public function fetch_olevel_marklist_result(Request $req)
+    {
+        $class = $req->classname;
+        $subject = $req->subject;
+        $topic = $req->topic;
+        $result_table = $req->table_name;
+        $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
+        $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        $table = $result_table . "_" . $term . "_" . $year;
+        $current_year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+
+        $data = DB::select("
+            SELECT
+                fname,
+                lname,
+                mname,
+                " . $table . ".subject as subject,
+                " . $table . ".competence as competence,
+                " . $table . ".score as score,
+                " . $table . ".remark as remark,
+                " . $table . ".topic as topic
+            FROM
+                student_".$current_year."
+            RIGHT OUTER JOIN
+                " . $table . "
+            ON
+                student_".$current_year.".std_id = " . $table . ".std_id
+            WHERE
+                " . $table . ".class = '" . $class . "'
+            AND
+                topic  = '" . $topic . "'
+            AND
+                subject = '" . $subject . "'
+        ");
+
+        return response($data);
+    }
+
+    public function print_marklist_olevel($table, $class, $subject, $topic)
+    {
+        $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
+        $year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        $current_year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        $school_name = DB::table('school_details')->where('id', 1)->first();
+
+        $data = DB::select("
+                    SELECT
+                        fname,
+                        lname,
+                        mname,
+                        " . $table . ".subject as subject,
+                        " . $table . ".competence as competence,
+                        " . $table . ".score as score,
+                        " . $table . ".remark as remark,
+                        " . $table . ".topic as topic
+                    FROM
+                        student_".$current_year."
+                    RIGHT OUTER JOIN
+                        " . $table . "
+                    ON
+                        student_".$current_year.".std_id = " . $table . ".std_id
+                    WHERE
+                        " . $table . ".class = '" . $class . "'
+                    AND
+                        topic  = '" . $topic . "'
+                    AND
+                        subject = '" . $subject . "'
+                ");
+
+        $html = "
+                <style>
+                    .paper_margin{
+                        margin-top:-1cm;
+                        margin-left:-0.5cm;
+                        margin-right:-0.5cm;
+                    }
+        
+                    table{
+                        width:100%;
+                    }
+        
+                    table, th, td{
+                        border: black 1px solid;
+                        border-collapse:collapse;
+                    }
+        
+                    th, td{
+                        font-size:17px;
+                    }
+        
+                    th, td {
+                        padding:7px;
+                    }
+                </style>
+        
+                <div class='paper_margin'>
+                ";
+
+        //Title Table
+        $html .= "
+                            <table style='margin-bottom:; border:none !important;'>
+                                <tbody>
+                                    <tr>
+                                    <td style='border:none !important'><img style='width:70px;' src='" . public_path('images/' . $school_name->school_badge . '') . "'></td>
+                                        <td style='border:none !important; font-size:25px; text-align:center; text-transform:uppercase; font-weight:bold;'>" . (($school_name->school_name != null) ? $school_name->school_name : '') . "</td>
+                                        <td style='border:none !important'><img style='width:70px;' src='" . public_path('images/' . $school_name->school_badge . '') . "'></td>
+                                    </tr>
+                                </tbody>
+                            </table>";
+
+
+        for ($i = 0; $i < 2; $i++) {
+            //Separator
+            $html .= "
+                    <div style='width:100%; height:1px; margin-bottom:2px; background:black;'></div>
+                    ";
+        }
+
+        //Title
+        $html .= "<div style='text-align:center;'><p style='font-size:20px;'>" . $class . " <strong style='text-decoration:underline;'>" . $subject . "</strong>  MarkList Term <strong>" . $term . " " . $year . "</strong> </p></div>";
+
+        //Resultant table
+        $html .= "   <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Score</th>
+                                <th>Competence</th>
+                                <th>Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody>";
+
+        if (count($data) > 0) {
+            $counter = 0;
+            foreach ($data as $d) {
+                //Results
+                $html .= "<tr>
+                        <td>" . ($counter += 1) . "</td>
+                        <td style='text-transform:capitalize;'>" . $d->lname . " " . ($d->mname == null ? '' : $d->mname) . " " . $d->fname . "</td>
+                        <td>" . $d->score . "</td>
+                        <td>" . $d->competence . "</td>
+                        <td>" . $d->remark . "</td>
+                </tr>";
+            }
+        } else {
+            //Empty set
+            $html .= "<tr>
+                <td colspan=5 style='text-align:center;'><img style='width:100px;' class='fluid' src='" . public_path("/images/icon/empty_set.png") . "'></td>
+            </tr>";
+        }
+
+
+        //Close table
+        $html .= "
+                </tbody>
+                </table>
+        </div>";
+
+        $pdf = Pdf::loadHTML($html)->setOption('a4', 'portrait');
+        return $pdf->stream('' . $class . ' ' . $subject . ' Marklist');
     }
 }

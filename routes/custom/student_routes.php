@@ -18,4 +18,9 @@ Route::middleware(['auth','allowed-users'])->prefix('Student')->group(function()
     Route::get('/std_status_index',[StudentController::class,'student_status_index'])->name('student.status.index');
     Route::post('/std_status_dt',[StudentController::class,'display_std_status'])->name('student.status.dt');
     Route::post('/std_status_update',[StudentController::class,'update_std_status'])->name('student.status.update');
+
+    //Promotion
+    Route::get('/promote-student-index',[StudentController::class,'promote_index'])->name('student.promote.index');
+    Route::post('/promote-student-list',[StudentController::class,'fetch_promote_students'])->name('student.promote.list');
+    Route::post('/promote-student-promote',[StudentController::class,'promote_students'])->name('student.promote.promote');
 });

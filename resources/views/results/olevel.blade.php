@@ -83,7 +83,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="overflow-scroll">
-                            <table class="table" id="marks_table">
+                            <table class="table table-hover" id="marks_table">
                                 <thead>
                                     <tr class="table-dark">
                                         <th scope="col">#</th>
@@ -147,7 +147,7 @@
                         alert('Failed to Fetch Topics');
                     }
                 });
-            })
+            });
 
             $('#show_table').on('click', function(e) {
                 e.preventDefault();
@@ -198,37 +198,44 @@
                             var row_data;
                             var std_name;
                             var row_count = 0;
-                            $.each(response.data, function(key, value) {
-                                std_ids.push(value.std_id);
-                                if (value.mname == '' || value.mname == null || value
-                                    .mname == 'NULL') {
-                                    std_name = value.lname + " " + value.fname;
-                                } else {
-                                    std_name = value.lname + " " + value.mname + " " + value
-                                        .fname;
-                                }
-                                row_count += 1;
-                                row_data = '<tr>\
-                                                <td>' + row_count + '</td>\
-                                                <td>' + std_name + '</td>\
-                                                <td style="width:100px !important;" class="classname"></td>\
-                                                <td>\
-                                                    <input type="hidden" name="std_ids[]" value="'+value.std_id+'">\
-                                                    <input type="number" style="width:150px;" min=0 step=0.1 class="form-control rounded-0 std_marks"\
-                                                    value="'+((value.mark == null || value.mark == "NULL" || value.mark == "")?"":parseFloat(value.mark))+'" name="std_marks[]"" placeholder="Score"></td>\
-                                                    <td class="topic">\
-                                                    </td>\
+                            
+                            if((response.data).length > 0){
+                                $.each(response.data, function(key, value) {
+                                    std_ids.push(value.std_id);
+                                    if (value.mname == '' || value.mname == null || value
+                                        .mname == 'NULL') {
+                                        std_name = value.lname + " " + value.fname;
+                                    } else {
+                                        std_name = value.lname + " " + value.mname + " " + value
+                                            .fname;
+                                    }
+                                    row_count += 1;
+                                    row_data = '<tr>\
+                                                    <td>' + row_count + '</td>\
+                                                    <td>' + std_name + '</td>\
+                                                    <td style="width:100px !important;" class="classname"></td>\
                                                     <td>\
-                                                        <textarea placeholder="Competence" name="competence[]" style="width:200px !important;" rows=6 class="form-control rounded-0">'+((value.competence) != null ? value.competence : "")+'</textarea>\
-                                                    </td>\
-                                                    <td>\
-                                                        <textarea placeholder="Remark" name="remark[]" style="width:200px !important;" rows=6 class="form-control rounded-0">'+((value.remark) != null ? value.remark : "")+'</textarea>\
-                                                    </td>\
-                                            </tr>';
-                                $('tbody').append(row_data);
-                                $(".classname").text(classname);
-                                $(".topic").text(topic);  
-                            });
+                                                        <input type="hidden" name="std_ids[]" value="'+value.std_id+'">\
+                                                        <input type="number" style="width:150px;" min=0 step=0.1 class="form-control rounded-0 std_marks"\
+                                                        value="'+((value.mark == null || value.mark == "NULL" || value.mark == "")?"":parseFloat(value.mark))+'" name="std_marks[]"" placeholder="Score"></td>\
+                                                        <td class="topic">\
+                                                        </td>\
+                                                        <td>\
+                                                            <textarea placeholder="Competence" name="competence[]" style="width:200px !important;" rows=6 class="form-control rounded-0">'+((value.competence) != null ? value.competence : "")+'</textarea>\
+                                                        </td>\
+                                                        <td>\
+                                                            <textarea placeholder="Remark" name="remark[]" style="width:200px !important;" rows=6 class="form-control rounded-0">'+((value.remark) != null ? value.remark : "")+'</textarea>\
+                                                        </td>\
+                                                </tr>';
+                                    $('tbody').append(row_data);
+                                    $(".classname").text(classname);
+                                    $(".topic").text(topic);  
+                                });
+                            }else{
+                                $("tbody").append("<tr>\
+                                    <td colspan=7 class='text-center'> <img style='width:100px;' class='fluid' src='/images/icon/empty_set.png'></td>\
+                                </tr>");
+                            }
                         },
                         error: function(error) {
                             alert('Failed');

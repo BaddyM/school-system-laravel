@@ -159,26 +159,31 @@
                         //Enable the button again
                         $('#show_table').removeClass('submit-btn-disabled').addClass('submit-btn').prop('disabled',false);
 
-                        $.each(data.data,function(k,v){
-                            if(v.mname == null || v.mname == '' || v.mname == 'NULL'){
-                                var std_name = v.lname+" "+v.fname;
-                            }else{
-                                var std_name = v.lname+" "+ v.mname +" "+v.fname;
-                            }
-                            
+                        if((data.data).length > 0){
+                            $.each(data.data,function(k,v){
+                                if(v.mname == null || v.mname == '' || v.mname == 'NULL'){
+                                    var std_name = v.lname+" "+v.fname;
+                                }else{
+                                    var std_name = v.lname+" "+ v.mname +" "+v.fname;
+                                }                                
 
-                            var row_data = "<tr>\
-                                            <td>"+(counter += 1)+"</td>\
-                                            <td>"+(std_name)+"</td>\
-                                            <td>"+(classname)+"</td>\
-                                            <td>"+(paper)+"</td>\
-                                            <td>\
-                                                <input type='hidden' name='std_id[]' value='"+v.std_id+"'>\
-                                                <input type='number' name='std_mark[]' value='"+v.mark+"' class='std_marks form-control rounded-0' placeholder='"+subject+"'>\
-                                            </td>\
-                                        </tr>"
-                            $("#marks_table tbody").append(row_data);
-                        });
+                                var row_data = "<tr>\
+                                                <td>"+(counter += 1)+"</td>\
+                                                <td>"+(std_name)+"</td>\
+                                                <td>"+(classname)+"</td>\
+                                                <td>"+(paper)+"</td>\
+                                                <td>\
+                                                    <input type='hidden' name='std_id[]' value='"+v.std_id+"'>\
+                                                    <input type='number' name='std_mark[]' value='"+v.mark+"' class='std_marks form-control rounded-0' placeholder='"+subject+"'>\
+                                                </td>\
+                                            </tr>"
+                                $("#marks_table tbody").append(row_data);
+                            });
+                        }else{
+                            $("#marks_table tbody").append("<tr>\
+                                    <td colspan=5 class='text-center'> <img style='width:100px;' class='fluid' src='/images/icon/empty_set.png'></td>\
+                                </tr>");
+                        }
                         
                     },
                     error: function(error) {
@@ -228,10 +233,11 @@
             //Print Marklist
             $("#print_marklist").on('click',function(e){
                 e.preventDefault();
-                var subject = $("#subject_buffer").val();
-                var classname = $("#classname_buffer").val();
-                var paper = $("#paper_num_buffer").val();
+                var classname = $("#classname").val();
+                var subject = $("#subject").val();
+                var paper = $("#paper_num").val();
                 var level = 'A Level';
+
                 $.ajax({
                     type: "GET",
                     headers: {
