@@ -11,11 +11,12 @@ use Illuminate\Support\Facades\Artisan;
 class HomeController extends Controller
 {
     function index(){
-        $staff = User::all();
-        $students = Student::where('status','continuing')->get();
         //Get the active term
         $term = (DB::table('term')->select('term')->where('active',1)->first())->term;
         $year =  (DB::table('term')->select('year')->where('active',1)->first())->year; 
+
+        $staff = User::all();
+        $students = DB::table('student_'.$year.'')->where('status','continuing')->get();
         $planner = DB::table('planner')->where(['term' => $term, 'year' => $year])->get();
         
         $subjects = DB::select("
@@ -33,10 +34,11 @@ class HomeController extends Controller
 
     function fetch_term(){
         $term = DB::table('term')->select('term','year')->where('active',1)->first();
+        $year =  (DB::table('term')->select('year')->where('active',1)->first())->year;
 
         //Students Summary
-        $girls = Student::where('gender','Female')->count();
-        $boys = Student::where('gender','Male')->count();
+        $girls = DB::table('student_'.$year.'')->where('gender','Female')->count();
+        $boys = DB::table('student_'.$year.'')->where('gender','Male')->count();
 
         //Staff Summary
         $females = User::where('gender','female')->count();

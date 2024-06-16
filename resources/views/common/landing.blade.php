@@ -272,7 +272,7 @@
         //Fetch the Term
         $.ajax({
             type: 'get',
-            url: '{{ route('home.term') }}',
+            url: '{{ route("home.term") }}',
             success: function(data) {
                 student_chart((data.girls), (data.boys));
                 staff_chart((data.females), (data.males));
@@ -293,7 +293,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 type: 'POST',
-                url: '{{ route('attendance.student.get') }}',
+                url: '{{ route("attendance.student.get") }}',
                 success: function(data) {
                     if (data.total == 0) {
                         $("#notification-message").text("Create Student Attendance Table!");

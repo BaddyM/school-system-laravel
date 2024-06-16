@@ -61,70 +61,79 @@
                     <p class="text-center mb-0 h5 fw-bold">Terms List</p>
                 </div>
                 <div class="card-body">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr class="bg-dark">
-                                <th scope="col">Term</th>
-                                <th scope="col">Year</th>
-                                <th scope="col">Status</th>
-                                <th scope="col">Date Enrolled</th>
-                                @if (Auth::user()->is_admin == 1 || Auth::user()->is_super_admin == 1)
-                                    <th scope="col">Action</th>
-                                @endif
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @php
-                                $counter = 0;
-                            @endphp
-                            @foreach ($term_list as $list)
-                                <tr>
-                                    <td>{{ $list->term }}</td>
-                                    <td>{{ $list->year }}</td>
-                                    <td>
-                                        @if ($list->active == 1)
-                                            <span class="badge bg-success">active</span>
-                                        @else
-                                            <span class="badge bg-secondary">inactive</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ date('D, d M, Y h:i a', strtotime($list->created_at)) }}</td>
-                                    <td>
-                                        @if (Auth::user()->is_admin == 1 || Auth::user()->is_super_admin == 1)
-                                            <div class="d-flex align-items-center justify-content-center" style="gap:10px;">
-                                                <form action="" method="post" class="mb-0 delete_term_form">
-                                                    @csrf
-                                                    <input type="hidden" value="{{ $list->id }}" name="delete_id">
-                                                    <button title="Delete" class="btn btn-outline-danger py-2 rounded-5"
-                                                        type="submit">
-                                                        <i class="fa fa-x"></i>
-                                                    </button>
-                                                </form>
-
-                                                <form action="" method="post" class="mb-0 update_term_form">
-                                                    <input type="hidden" name="term" value="{{ $list->term }}">
-                                                    <input type="hidden" name="year" value="{{ $list->year }}">
-                                                    @if ($list->active == 1)
-                                                        <button title="Active"
-                                                            class="btn btn-success py-2 bg-gradient rounded-5"
-                                                            type="submit">
-                                                            <i class="fa fa-check"></i>
-                                                        </button>
-                                                    @else
-                                                        <button title="Change"
-                                                            class="btn btn-outline-success py-2 bg-gradient rounded-5"
-                                                            type="submit">
-                                                            <i class="fa fa-check"></i>
-                                                        </button>
-                                                    @endif
-                                                </form>
-                                            </div>
-                                        @endif
-                                    </td>
+                    <div class="table_container">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr class="bg-dark">
+                                    <th scope="col">Term</th>
+                                    <th scope="col">Year</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Date Enrolled</th>
+                                    @if (Auth::user()->is_admin == 1 || Auth::user()->is_super_admin == 1)
+                                        <th scope="col">Action</th>
+                                    @endif
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $counter = 0;
+                                @endphp
+                                @foreach ($term_list as $list)
+                                    <tr>
+                                        <td>{{ $list->term }}</td>
+                                        <td>{{ $list->year }}</td>
+                                        <td>
+                                            @if ($list->active == 1)
+                                                <span class="badge bg-success">active</span>
+                                            @else
+                                                <span class="badge bg-secondary">inactive</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ date('D, d M, Y h:i a', strtotime($list->created_at)) }}</td>
+                                        <td>
+                                            @if (Auth::user()->is_admin == 1 || Auth::user()->is_super_admin == 1)
+                                                <div class="d-flex align-items-center justify-content-center" style="gap:10px;">
+                                                    <form action="" method="post" class="mb-0 delete_term_form">
+                                                        @csrf
+                                                        <input type="hidden" value="{{ $list->id }}" name="delete_id">
+                                                        <button title="Delete" class="btn btn-outline-danger py-2 rounded-5"
+                                                            type="submit">
+                                                            <i class="fa fa-x"></i>
+                                                        </button>
+                                                    </form>
+    
+                                                    <form action="" method="post" class="mb-0 update_term_form">
+                                                        <input type="hidden" name="term" value="{{ $list->term }}">
+                                                        <input type="hidden" name="year" value="{{ $list->year }}">
+                                                        @if ($list->active == 1)
+                                                            <button title="Active"
+                                                                class="btn btn-success py-2 bg-gradient rounded-5"
+                                                                type="submit">
+                                                                <i class="fa fa-check"></i>
+                                                            </button>
+                                                        @else
+                                                            <button title="Change"
+                                                                class="btn btn-outline-success py-2 bg-gradient rounded-5"
+                                                                type="submit">
+                                                                <i class="fa fa-check"></i>
+                                                            </button>
+                                                        @endif
+                                                    </form>
+                                                </div>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="spinner_body d-none">
+                        <div class="d-flex justify-content-center align-items-center">
+                            <div style="color:purple;" class="spinner-border spinner-border-lg" role="status">
+                            </div>
+                        </div>
+                    </div>{{-- spinner --}}
                 </div>
             </div>
         </div>
@@ -140,6 +149,10 @@
             //Update Term
             $(".update_term_form").on('submit', function(e) {
                 e.preventDefault();
+
+                $(".table_container").addClass("d-none");
+                $(".spinner_body").removeClass("d-none");
+
                 $.ajax({
                     type: "POST",
                     headers: {
@@ -153,6 +166,9 @@
                     success: function(data) {
                         alert(data);
                         location.reload();
+
+                        $(".table_container").removeClass("d-none");
+                        $(".spinner_body").addClass("d-none");
                     },
                     error: function(error) {
                         alert('Failed to Update Term');
@@ -195,6 +211,10 @@
             //Delete Term
             $(".delete_term_form").on('submit', function(e) {
                 e.preventDefault();
+
+                $(".table_container").addClass("d-none");
+                $(".spinner_body").removeClass("d-none");
+
                 $.ajax({
                     type: "POST",
                     headers: {
@@ -209,6 +229,9 @@
                         $(".delete_term_form")[0].reset();
                         alert(data);
                         location.reload();
+
+                        $(".table_container").removeClass("d-none");
+                        $(".spinner_body").addClass("d-none");
                     },
                     error: function(error) {
                         alert('Failed to Add Term');

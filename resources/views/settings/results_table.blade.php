@@ -37,12 +37,18 @@
 
                     <div class="">
                         <p class="fw-bold h6 text-primary">A-Level Subjects List</p>
+
+                        <div class="align-items-center">
+                            <input type="checkbox" class="form-check-input rounded-0 me-2" id="select_all" style="height:20px; width:20px;">
+                            <label class="fw-bold form-label h6 mb-0">Select all</label>
+                        </div>{{-- Select All --}}
+
                         <div class="my-2">
                             @foreach ($alevel as $a)
                                 <div class="d-flex align-items-center mb-2" style="gap:7px;">
-                                    <input type="checkbox" style="height:20px; width:20px;"
+                                    <input type="checkbox" class="form-check-input rounded-0" style="height:20px; width:20px;"
                                         value="{{ $a->name }}_{{ $a->paper }}" name="subject_list">
-                                    {{ $a->name }} {{ $a->paper }}
+                                    {{ ucfirst($a->name )}} {{ $a->paper }}
                                 </div>
                             @endforeach
                         </div>{{-- A-Level --}}
@@ -210,6 +216,15 @@
                         location.reload();
                     }
                 });
+            });
+
+            $("#select_all").on('change', function(){
+                const check_val = $(this).prop('checked');
+                if(check_val == true){
+                    $("input[name='subject_list']").prop('checked',true);
+                }else{
+                    $("input[name='subject_list']").prop('checked',false);
+                }
             })
         });
     </script>

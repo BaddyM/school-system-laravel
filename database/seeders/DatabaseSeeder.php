@@ -83,32 +83,39 @@ class DatabaseSeeder extends Seeder {
         }
         */
 
-        $class = array('Senior 1', 'Senior 2', 'Senior 3', 'Senior 4');
-        $topics = array('Topic 1', 'Topic 2', 'Topic 3');
-        $subjects = array('Mathematics','History','Luganda','Literature','ICT','Physics','Chemistry');
-        $stdid = array('20241001','20241002','20241003','20241004','20241005');
+        //$class = array('Senior 1', 'Senior 2', 'Senior 3', 'Senior 4');
+        
+        $subjects = DB::table('subjects')->where('level','O Level')->get();
+        $stdid = DB::table('student_2023')->select('std_id')->where('class','Senior 1')->get();
         $competence = array('can do better', 'relaxed a lot', 'misunderstood the statements','No introductions');
+        $remark = array('Great','Understood', 'Tried');
 
-        for($i=0; $i<=10; $i++){
-            foreach($stdid as $std_id){
-                $subject = $subjects[array_rand($subjects)];
-                $topic = $topics[array_rand($topics)];
-                $c = $class[array_rand($class)];
-                $comptence = $competence[array_rand($competence)];
-                $score = rand(1,3);
-    
-                $exists = DB::table('olevel_2_2024')->where(['std_id'=>$std_id, 'subject'=>$subject, 'topic'=>$topic])->exists();
-    
-                if($exists != 1){
-                    DB::table('olevel_2_2024')->insert([
-                        'std_id' => $std_id,
-                        'class' => $c,
-                        'subject'=>$subject,
-                        'competence' => $comptence,
-                        'topic'=>$topic,
-                        'score' => $score,
-                        'created_at' => now()
-                    ]);
+        foreach($stdid as $id){
+            foreach($subjects as $s){
+                $topics = DB::table('topics')->where(['class' => 'Senior 1', 'subject' => $s->name])->get();
+                foreach($topics as $t){
+                    $exists = DB::table('activity_1_2023')->where(['class' => 'Senior 1', 'topic' => $t->topic, 'std_id' => $id->std_id, 'subject' => $s->name])->exists();
+
+                    if($exists != 1){
+                        DB::table('activity_1_2023')->insert([
+                            'std_id' => $id->std_id,
+                            'subject' => $s->name,
+                            'class' => 'Senior 1',
+                            'topic' => $t->topic,
+                            'competence' => $competence[array_rand($competence)],
+                            'score' => rand(1,3),
+                            'remark' => $remark[array_rand($remark)]
+                        ]);
+                    }else{
+                        DB::table('activity_1_2023')->where('std_id', $id->std_id)->update([
+                            'subject' => $s->name,
+                            'class' => 'Senior 1',
+                            'topic' => $t->topic,
+                            'competence' => $competence[array_rand($competence)],
+                            'score' => rand(1,3),
+                            'remark' => $remark[array_rand($remark)]
+                        ]);
+                    }
                 }
             }
         }

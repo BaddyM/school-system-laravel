@@ -58,7 +58,7 @@
 
                     @foreach ($results as $result)
                         <div class="d-flex align-items-center mb-2" style="gap:5px;">
-                            <input type="checkbox" class="form-check-input p-2 border-dark rounded-0" name="result_table"
+                            <input type="radio" class="form-radio-input p-2 border-dark rounded-0" style="width:20px; height:20px;" name="result_table"
                                 value="{{ $result->table_name }}">
                             <p class="mb-0 h6 text-uppercase">{{ (explode('_',$result->table_name))[0] }}</p>
                         </div>

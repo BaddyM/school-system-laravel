@@ -6,6 +6,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Codedge\Fpdf\Fpdf\Fpdf;
 
 class ResultsController extends Controller
 {
@@ -110,23 +111,23 @@ class ResultsController extends Controller
             //Fetch Data
             $data = DB::select("
                 SELECT
-                    student_".$current_year.".std_id,
-                    student_".$current_year.".fname,
-                    student_".$current_year.".mname,
-                    student_".$current_year.".lname,
+                    student_" . $current_year . ".std_id,
+                    student_" . $current_year . ".fname,
+                    student_" . $current_year . ".mname,
+                    student_" . $current_year . ".lname,
                     " . $results_table . ".score as mark,
                     " . $results_table . ".competence as competence,
                     " . $results_table . ".remark as remark
                 FROM
-                    student_".$current_year."
+                    student_" . $current_year . "
                 LEFT OUTER JOIN
                     " . $results_table . "
                 ON
-                    student_".$current_year.".std_id = " . $results_table . ".std_id
+                    student_" . $current_year . ".std_id = " . $results_table . ".std_id
                 WHERE
-                    student_".$current_year.".class = '" . $classname . "'
+                    student_" . $current_year . ".class = '" . $classname . "'
                 AND
-                    student_".$current_year.".status = 'continuing'      
+                    student_" . $current_year . ".status = 'continuing'      
                 AND
                     " . $results_table . ".topic = '" . $topic . "'   
                 AND
@@ -137,21 +138,21 @@ class ResultsController extends Controller
             //Fetch Data
             $data = DB::select("
                 SELECT
-                    student_".$current_year.".std_id,
-                    student_".$current_year.".fname,
-                    student_".$current_year.".mname,
-                    student_".$current_year.".lname,
+                    student_" . $current_year . ".std_id,
+                    student_" . $current_year . ".fname,
+                    student_" . $current_year . ".mname,
+                    student_" . $current_year . ".lname,
                     " . $results_table . "." . $subject . "_" . $paper . " as mark
                 FROM
-                    student_".$current_year."
+                    student_" . $current_year . "
                 LEFT OUTER JOIN
                     " . $results_table . "
                 ON
-                    student_".$current_year.".std_id = " . $results_table . ".std_id
+                    student_" . $current_year . ".std_id = " . $results_table . ".std_id
                 WHERE
-                    student_".$current_year.".class = '" . $classname . "'
+                    student_" . $current_year . ".class = '" . $classname . "'
                 AND
-                    student_".$current_year.".status = 'continuing'              
+                    student_" . $current_year . ".status = 'continuing'              
                 ORDER BY lname ASC
             ");
         }
@@ -159,20 +160,20 @@ class ResultsController extends Controller
         if (count($data) == 0) {
             $data = DB::select("
                     SELECT
-                        student_".$current_year.".std_id,
-                        student_".$current_year.".fname,
-                        student_".$current_year.".mname,
-                        student_".$current_year.".lname
+                        student_" . $current_year . ".std_id,
+                        student_" . $current_year . ".fname,
+                        student_" . $current_year . ".mname,
+                        student_" . $current_year . ".lname
                     FROM
-                        student_".$current_year."
+                        student_" . $current_year . "
                     LEFT OUTER JOIN
                         " . $results_table . "
                     ON
-                        student_".$current_year.".std_id = " . $results_table . ".std_id
+                        student_" . $current_year . ".std_id = " . $results_table . ".std_id
                     WHERE
-                        student_".$current_year.".class = '" . $classname . "'
+                        student_" . $current_year . ".class = '" . $classname . "'
                     AND
-                        student_".$current_year.".status = 'continuing'                      
+                        student_" . $current_year . ".status = 'continuing'                      
                     ORDER BY lname ASC
                 ");
         }
@@ -240,16 +241,16 @@ class ResultsController extends Controller
 
         $data = DB::select("
                 SELECT
-                    student_".$current_year.".std_id,
-                    student_".$current_year.".fname,
-                    student_".$current_year.".mname,
-                    student_".$current_year.".lname
+                    student_" . $current_year . ".std_id,
+                    student_" . $current_year . ".fname,
+                    student_" . $current_year . ".mname,
+                    student_" . $current_year . ".lname
                 FROM
-                    student_".$current_year."
+                    student_" . $current_year . "
                 WHERE
-                    student_".$current_year.".class = '" . $class . "'
+                    student_" . $current_year . ".class = '" . $class . "'
                 AND
-                    student_".$current_year.".status = 'continuing'
+                    student_" . $current_year . ".status = 'continuing'
                 ORDER BY lname ASC
             ");
 
@@ -330,7 +331,7 @@ class ResultsController extends Controller
 
             $counter = 0;
 
-            if(count($data) > 0){
+            if (count($data) > 0) {
                 foreach ($data as $d) {
                     $counter += 1;
                     $html .= '
@@ -343,11 +344,11 @@ class ResultsController extends Controller
                         </tr>
                     ';
                 }
-            }else{
+            } else {
                 $html .= '
                     <tr>
                         <td colspan=5 style=" text-align:center;">
-                            <img style="width:70px; height:70px;" src="'.public_path('/images/icon/empty_set.png').'">
+                            <img style="width:70px; height:70px;" src="' . public_path('/images/icon/empty_set.png') . '">
                         </td>
                     </tr>
                 ';
@@ -426,7 +427,7 @@ class ResultsController extends Controller
                         <tbody>';
 
             $counter = 0;
-            if(count($data) > 0){
+            if (count($data) > 0) {
                 foreach ($data as $d) {
                     $counter += 1;
                     $html .= '
@@ -437,11 +438,11 @@ class ResultsController extends Controller
                     </tr>
                 ';
                 }
-            }else{
+            } else {
                 $html .= '
                     <tr>
                         <td colspan=3 style=" text-align:center;">
-                            <img style="width:70px; height:70px;" src="'.public_path('/images/icon/empty_set.png').'">
+                            <img style="width:70px; height:70px;" src="' . public_path('/images/icon/empty_set.png') . '">
                         </td>
                     </tr>
                 ';
@@ -579,8 +580,9 @@ class ResultsController extends Controller
     {
         $class = $req->classname;
         $current_year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+
         try {
-            $data = DB::table('student_'.$current_year.'')->select(['std_id', 'lname', 'mname', 'fname'])->where(['class' => $class, 'status' => 'continuing'])->get();
+            $data = DB::table('student_' . $current_year . '')->select(['std_id', 'lname', 'mname', 'fname'])->where(['class' => $class, 'status' => 'continuing'])->get();
         } catch (Exception $e) {
             info($e);
         }
@@ -594,24 +596,318 @@ class ResultsController extends Controller
         return DB::table('initials')->select('initials')->where(['subject' => $subject, 'class' => $class])->value('initials');
     }
 
+
+    //New PRint Code
+    public function oreports_print_fpdf($table, $term, $year, $std_ids)
+    {
+        $tables = array();
+        $table_collect = explode(',', $table);
+        $current_year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
+        $term = (DB::table('term')->select('term')->where('active', 1)->first())->term;
+
+        //check if keys exists
+        function key_check($key, $array)
+        {
+            $check = array_key_exists($key, $array);
+
+            if ($check == 1) {
+                $value = $array[$key];
+            } else {
+                $value = "";
+            }
+            return $value;
+        }
+
+        $class = DB::table('student_' . $current_year . '')->select('class')->whereIn('std_id', explode(',', $std_ids))->first();
+
+        $data = DB::select("
+                SELECT 
+                    *
+                FROM
+                    student_" . $current_year . "                    
+                WHERE
+                    std_id
+                IN
+                    (" . $std_ids . ")
+            ");
+
+        $school = DB::table('school_details')->select('*')->where('id', 1)->first();
+
+        $subjects = DB::select("
+                SELECT
+                    DISTINCT name
+                FROM
+                    subjects
+                WHERE
+                    level = 'O Level'
+            ");
+
+        try {
+            $signature_hm = DB::table('signature')->select('signature')->where('signatory', 'head-teacher')->value('signature');
+        } catch (Exception $e) {
+            $signature_hm = 'empty';
+        }
+
+        try {
+            $signature_dos = DB::table('signature')->select('signature')->where('signatory', 'dos')->value('signature');
+        } catch (Exception $e) {
+            $signature_dos = 'empty';
+        }
+
+        //Create PDF instance
+        $pdf = new Fpdf();
+
+        foreach($data as $d){
+            $pdf->AddPage();
+            $pdf->SetFont('Arial', 'B', 20);
+
+            //HEADER SECTION
+            $pdf->Image(public_path("school_badge/".$school->school_badge.""),2,2,30,30);
+            $pdf->Cell(190, 0, ''.strtoupper($school->school_name).'',0,1,'C');
+
+            //Student Image here
+            if($d->image == null){
+                if($d->gender == 'Female'){
+                    $pdf->Image(public_path("images/static/female.jpg"),178,2,30,30);
+                }else{
+                    $pdf->Image(public_path("images/static/male.jpg"),178,2,30,30);
+                }
+            }else{
+                $pdf->Image(public_path("images/student_photos/".$d->image.""),178,2,30,30);
+            }
+            
+            $pdf->SetFont('Arial', '', 13);
+            $pdf->Cell(190, 11, ''.ucfirst($school->address).'',0,1,'C');
+            $pdf->Cell(190, 0, ''.ucfirst($school->contact).'',0,1,'C');
+            $pdf->SetFont('Arial', 'B', 15);
+            $pdf->Cell(190, 12, '"'.ucfirst($school->motto).'"',0,1,'C');
+            $pdf->Cell(190, 0, '------------------------------------------------------------------------------------------------------------------',0,1,'C');
+            $pdf->Cell(190, 2, '------------------------------------------------------------------------------------------------------------------',0,1,'C');
+
+            $pdf->Ln('1');
+
+            //Student Details
+            $pdf->SetFont('Arial', 'B', 11);
+
+            //Student Name
+            $pdf->SetFillColor(140,140,140);
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(140,140,140);
+            $pdf->Cell(30,7,'Student Name:',1,0,'L',true);
+            $pdf->SetTextColor(0,0,0);
+            $pdf->Cell(90,7,''.$d->lname.' '.(($d->mname == null)?"":$d->mname).' '.$d->fname.'',1,0,'L',false);
+
+            //Student Class
+            $pdf->SetFillColor(140,140,140);
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(140,140,140);
+            $pdf->Cell(30,7,'Student Class:',1,0,'L',true);
+            $pdf->SetTextColor(0,0,0);
+            $pdf->Cell(40,7,''.$d->class.'',1,1,'C',false);
+
+            $pdf->Ln('1');
+
+            //Student Section
+            $pdf->SetFillColor(140,140,140);
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(140,140,140);
+            $pdf->Cell(30,7,'Section:',1,0,'L',true);
+            $pdf->SetTextColor(0,0,0);
+            $pdf->Cell(20,7,''.$d->section.'',1,0,'C',false);
+
+            //Student Gender
+            $pdf->SetFillColor(140,140,140);
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(140,140,140);
+            $pdf->Cell(20,7,'Gender:',1,0,'L',true);
+            $pdf->SetTextColor(0,0,0);
+            $pdf->Cell(20,7,''.$d->gender.'',1,0,'C',false);
+
+            //Student House
+            $pdf->SetFillColor(140,140,140);
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(140,140,140);
+            $pdf->Cell(20,7,'House:',1,0,'L',true);
+            $pdf->SetTextColor(0,0,0);
+            $pdf->Cell(30,7,''.$d->house.'',1,0,'C',false);
+
+            //Student ID
+            $pdf->SetFillColor(140,140,140);
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(140,140,140);
+            $pdf->Cell(10,7,'ID:',1,0,'C',true);
+            $pdf->SetTextColor(0,0,0);
+            $pdf->Cell(40,7,'CHSN - '.$d->std_id.'',1,1,'C',false);
+
+            $pdf->Ln('1');
+
+            //Term
+            $pdf->SetFillColor(140,140,140);
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(140,140,140);
+            $pdf->Cell(15,7,'Term:',1,0,'L',true);
+            $pdf->SetTextColor(0,0,0);
+            $pdf->Cell(10,7,''.$term.'',1,0,'C',false);
+
+            //Year
+            $pdf->SetFillColor(140,140,140);
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(140,140,140);
+            $pdf->Cell(15,7,'Year:',1,0,'L',true);
+            $pdf->SetTextColor(0,0,0);
+            $pdf->Cell(15,7,''.$current_year.'',1,0,'C',false);
+
+            //Student Combination
+            $pdf->SetFillColor(140,140,140);
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(140,140,140);
+            $pdf->Cell(30,7,'Combination:',1,0,'L',true);
+            $pdf->SetTextColor(0,0,0);
+            $pdf->Cell(30,7,''.$d->combination.'',1,0,'C',false);
+
+            //Student Fees
+            $pdf->SetFillColor(140,140,140);
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(140,140,140);
+            $pdf->Cell(35,7,'Fees Balance:',1,0,'C',true);
+            $pdf->SetTextColor(0,0,0);
+            $pdf->Cell(40,7,'',1,1,'C',false);
+
+            //Student SchoolPay
+            /*
+            $pdf->SetFillColor(140,140,140);
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(140,140,140);
+            $pdf->Cell(30,10,'School Pay:',1,0,'L',true);
+            $pdf->SetTextColor(0,0,0);
+            $pdf->Cell(30,10,'',1,0,'C',false);
+            */
+
+            $pdf->Ln('2');
+
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(0,0,0);
+            $pdf->SetFillColor(0,0,0);
+            //RESULTS AREA
+            $pdf->Cell(190,10,'STUDENT RESULTS',0,1,'C',true);
+
+            $pdf->Ln('1');
+
+            $pdf->SetTextColor(255,255,255);
+            $pdf->SetDrawColor(0,0,0);
+            $pdf->SetFillColor(135,135,135);
+
+            //RESULTS TABLE
+            $pdf->Cell(30,9,'Subject',1,0,'C',true);
+            $pdf->Cell(40,9,'Topic',1,0,'C',true);
+            $pdf->Cell(50,9,'Competence',1,0,'C',true);
+            $pdf->Cell(50,9,'Remark',1,0,'C',true);
+            $pdf->Cell(20,9,'Score',1,1,'C',true);
+
+            //DEAL WITH RESULTS
+            $std_results = DB::select('
+            select group_concat(distinct std_id) as std_id, group_concat(distinct ' . $table . '.class) as class, group_concat(distinct subject) as subject_title, group_concat(subject) as subject, group_concat(topic) as topic, group_concat(remark) as remark, group_concat(distinct competence) as competence, group_concat(score) as score  from ' . $table . ' where class="Senior 1" and std_id="' . $d->std_id . '" group by subject;
+            ');
+
+            $pdf->SetTextColor(0,0,0);
+            $pdf->SetDrawColor(0,0,0);
+
+            foreach ($std_results as $r) {
+                $subject_label = $r->subject_title;
+                $subjects = explode(',', $r->subject);
+                $mark = explode(',', $r->score);
+                $competence = explode(',', $r->competence);
+                $remark = explode(',', $r->remark);
+                $topic = explode(',', $r->topic);
+                $rowspan = count($subjects);
+
+                $pdf->SetFontSize(10);
+                for ($i = 0; $i < $rowspan; $i++) {
+                    if($i == 0){
+                        $y = $pdf->GetY();
+                        $x = $pdf->GetX();
+                        $pdf->MultiCell(30,(5*$rowspan),''.$subject_label.'',1,'C',false);
+                        $pdf->SetXY($x+30,$y);
+                        $pdf->MultiCell(40,5,''.key_check($i, $topic).'',1,'C',false);
+                        $pdf->SetXY($pdf->GetX(),$pdf->GetY()+20);
+                    }
+                }
+            }            
+
+            $pdf->Ln('10');
+
+            $pdf->SetTextColor(0,0,0);
+            $pdf->SetDrawColor(0,0,0);
+            //COMMENT SECTION
+            $pdf->SetFont('Arial', 'B', 11);
+            $pdf->SetFillColor(0,0,0);
+            $pdf->SetTextColor(255,255,255);
+            $pdf->Cell(190, 7, 'Remark',1,1,'C',true);
+            $pdf->SetTextColor(0,0,0);
+            
+            //Headteacher
+            $pdf->Cell(30, 20, 'HeadTeacher',1,0,'C');
+            $pdf->Cell(30, 20, '',0,0,'C');
+            $pdf->Cell(10, 20, '',0,0,'C');
+            $pdf->Cell(20, 20, 'DOS',1,0,'C');
+            $pdf->Cell(30, 20, '',0,0,'C');
+            $pdf->Cell(10, 20, '',0,0,'C');
+            $pdf->SetFont('Arial', 'B', 8);
+            $pdf->Cell(20, 20, "ClassTeacher",1,0,'C');
+            $pdf->SetFont('Arial', 'B', 11);
+            $pdf->Image(public_path("images/signatures/".$signature_hm.""),43,$pdf->GetY(),28,12);
+            $pdf->Image(public_path("images/signatures/".$signature_hm.""),105,$pdf->GetY(),28,12);
+            $pdf->Cell(40, 10, '',1,1,'C');
+            $pdf->Cell(30, 10, '',0,0,'C');
+            $pdf->Cell(40, 10, '',1,0,'C');
+            $pdf->Cell(20, 10, '',0,0,'C');
+            $pdf->Cell(40, 10, '',1,0,'C');
+            $pdf->Cell(20, 10, '',0,0,'C');
+            $pdf->Cell(40, 10, '',1,0,'C');
+
+            info("2 ".$pdf->GetY());
+
+        }
+
+
+
+        $pdf->Output('',''.$class->class.'_Reports');
+        exit;
+    }
+
+    //OLD Print Code
     public function oreports_print($table, $term, $year, $std_ids)
     {
         $tables = array();
         $table_collect = explode(',', $table);
         $current_year =  (DB::table('term')->select('year')->where('active', 1)->first())->year;
 
+        /*
+        //check if keys exists
+        function key_check($key, $array){
+            $check = array_key_exists($key, $array);
+
+            if($check == 1){
+                $value = $array[$key];
+            }else{
+                $value = "";
+            }
+            return $value;
+        }
+        */
+
         //Deal with the tables here
         foreach ($table_collect as $t) {
             array_push($tables, $t);
         }
 
-        $class = DB::table('student_'.$current_year.'')->select('class')->whereIn('std_id', explode(',', $std_ids))->first();
+        $class = DB::table('student_' . $current_year . '')->select('class')->whereIn('std_id', explode(',', $std_ids))->first();
 
         $data = DB::select("
                 SELECT 
                     *
                 FROM
-                    student_".$current_year."                    
+                    student_" . $current_year . "                    
                 WHERE
                     std_id
                 IN
@@ -747,6 +1043,14 @@ class ResultsController extends Controller
                     width:100px;
                 }
 
+                .results_table{
+                    
+                }
+
+                .results_table th, .results_table td{
+                    padding:5px !important;
+                }
+
             </style>';
 
         //Student Results
@@ -876,149 +1180,64 @@ class ResultsController extends Controller
                     </tr>
                 </table>';
 
-            //foreach($subjects as $subject){
-            $html .= '
-                <p style="text-align:center; margin-bottom:4px; margin-top:-7px; font-weight:bold; text-transform:uppercase; font-size:18px;">Student Results</p>
+            $total = array();
 
-                    <table style="width:100%;">
+            //DEAL WITH RESULTS
+            $std_results = DB::select('
+                select group_concat(distinct std_id) as std_id, group_concat(distinct ' . $table . '.class) as class, group_concat(distinct subject) as subject_title, group_concat(subject) as subject, group_concat(topic) as topic, group_concat(remark) as remark, group_concat(distinct competence) as competence, group_concat(score) as score  from ' . $table . ' where class="Senior 1" and std_id="' . $d->std_id . '" group by subject;
+            ');
+
+            $html .= '
+                    <table class="results_table" style="width:100%;">
                         <thead>
                             <tr style="background:black; color:white;">
-                                <th>Subject</th>';
-            //Deal with Subject titles
-            $t_count = 0;
-            foreach ($tables as $table) {
-                $t_count += 1;
-                $html .= '<th>A' . $t_count . '</th>';
-            }
+                                <th>Subject</th>
+                                <th>Topic</th>
+                                <th>Competence</th>
+                                <th>Remark on Competence</th>
+                                <th>Score</th>
+                                <th>Initials</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            ';
 
-            $html .= '
-                    <th>Average</th>
-                    <th>Identifier</th>
-                    <th>Descriptor</th>
-                    <th>Teacher Initials</th>
-                </tr>
-            </thead>
-            <tbody>';
+            foreach ($std_results as $r) {
+                $subject_label = $r->subject_title;
+                $subjects = explode(',', $r->subject);
+                $mark = explode(',', $r->score);
+                $competence = explode(',', $r->competence);
+                $remark = explode(',', $r->remark);
+                $topic = explode(',', $r->topic);
+                $rowspan = count($subjects);
 
-            //Deal with the Results
-            $total = array();
-            if (count($tables) > 1) {
-                //MULTIPLE TABLE RESULTS              
-                foreach ($subjects as $subject) {
-                    $avg = array();
-                    if ($table_counter > 1) {
-                        for ($i = 0; $i < $table_counter; $i++) {
-                            $mark = DB::table('' . $tables[$i] . '')->select('' . $subject->name . '_1')->where('std_id', $d->std_id)->value('' . $subject->name . '_1');
-                            array_push($avg, $mark);
-
-                            if ($i == 0 && $mark > 0) {
-                                //OPENING ROW TAG
-                                $html .= '<tr class="result_row">';
-                                $html .= '<td style="padding:5px;">' . $subject->name . '</td>';
-                            }
-
-                            if ($mark > 0) {
-                                $html .= '<td style="text-align:center;">' . $mark . '</td>';
-                            }
-                        }
-                    }
-
-                    if (array_sum($avg) > 0) {
-                        $average = round((array_sum($avg) / count($avg)), 1);
-                        //Push the average
-                        array_push($total, $average);
-
-                        if ($average >= 2.5 && $average <= 3) {
-                            $identifier = 3;
-                            $desc = 'OUTSTANDING';
-                        } elseif ($average >= 1.5 && $average <= 2.4) {
-                            $identifier = 2;
-                            $desc = 'MODERATE';
-                        } elseif ($average > 0 && $average <= 1.4) {
-                            $identifier = 1;
-                            $desc = 'BASIC';
-                        } else {
-                            $identifier = '';
-                            $desc = '';
-                        }
-
-                        //Average
-                        $html .= '<td style="text-align:center;">' . $average . '</td>';
-
-                        //Identifier
-                        $html .= '<td style="text-align:center;">' . $identifier . '</td>';
-
-                        //Descriptor
-                        $html .= '<td style="text-align:center;">' . $desc . '</td>';
-
-                        //Teacher Initials
-                        $html .= '<td style="text-align:center;">' . $this->initials($subject->name, $d->class) . '</td>';
-                    }
-
-                    //CLOSING ROW TAG
-                    $html .= '</tr>';
-                }
-            } else {
-                //ONE TABLE RESULTS
-                $marks = DB::select("
-                        SELECT
-                            *
-                        FROM
-                            " . $tables[0] . "
-                        WHERE
-                            std_id
-                        IN
-                            (" . $std_ids . ")
-                    ");
-
-                foreach ($subjects as $subject) {
-                    foreach ($marks as $mark) {
-                        $subject_name = $subject->name . "_1";
-                        if ($mark->std_id == $d->std_id && floatval(($mark->$subject_name) >= 0.1)) {
-                            $result_sets = count($tables);
-
-                            //Marks Row here
-                            $html .= '
-                            <tr class="result_row">
-                                <td style="padding:5px;">' . $subject->name . '</td>';
-
-                            //Calculate Average for all results
-                            if ($result_sets == 1) {
-                                //Single result set
-                                $std_mark = $mark->$subject_name;
-                                //Grade
-                                if ($std_mark >= 2.5 && $std_mark <= 3) {
-                                    $identifier = 3;
-                                    $desc = 'OUTSTANDING';
-                                } elseif ($std_mark >= 1.5 && $std_mark <= 2.4) {
-                                    $identifier = 2;
-                                    $desc = 'MODERATE';
-                                } elseif ($std_mark > 0 && $std_mark <= 1.4) {
-                                    $identifier = 1;
-                                    $desc = 'BASIC';
-                                } else {
-                                    $identifier = '';
-                                    $desc = '';
-                                }
-
-                                $html .= '
-                                <td style="font-size:12px; padding:5px; text-align:center;">' . $mark->$subject_name . '</td>
-                                <td style="font-size:12px; padding:5px; text-align:center;">' . $mark->$subject_name . '</td>
-                                <td style="font-size:12px; padding:5px; text-align:center;">' . $identifier . '</td>
-                                <td style="font-size:12px; padding:5px; text-align:center;">' . $desc . '</td>
-                                <td style="font-size:12px; padding:5px; text-align:center;">' . $this->initials($subject->name, $d->class) . '</td>
-                            </tr>';
-                            }
-                            //Push to the total
-                            array_push($total, $mark->$subject_name);
-                        }
+                for ($i = 0; $i < $rowspan; $i++) {
+                    if ($i == 0) {
+                        $html .= "<tr>
+                                    <td style='text-align:center;' rowspan=" . $rowspan . ">" . $subject_label . "</td>
+                                    <td>" . key_check($i, $topic) . "</td>
+                                    <td>" . key_check($i, $competence) . "</td>
+                                    <td>" . key_check($i, $remark) . "</td>
+                                    <td style='text-align:center;'>" . key_check($i, $mark) . "</td>
+                                    <td></td>
+                                </tr>";
+                    } else {
+                        $html .= "<tr>
+                                    <td>" . key_check($i, $topic) . "</td>
+                                    <td>" . key_check($i, $competence) . "</td>
+                                    <td>" . key_check($i, $remark) . "</td>
+                                    <td style='text-align:center;'>" . key_check($i, $mark) . "</td>
+                                    <td></td>
+                                </tr>";
                     }
                 }
             }
+
 
             //Close the Results Table here
-            $html .= '</tbody>   
-            </table>';
+            $html .= '</tbody>
+            </table>
+            ';
 
             //Deal with the Average row
             $sum = array_sum($total);
@@ -1044,6 +1263,9 @@ class ResultsController extends Controller
                 $identifier = '';
                 $desc = '';
             }
+
+            //Sample Average, Delete after
+            $avg = 1;
 
             //Average table
             $html .= '
@@ -1162,7 +1384,7 @@ class ResultsController extends Controller
             array_push($tables, $t);
         }
 
-        $class = DB::table('student_'.$current_year.'')->select('class')->whereIn('std_id', explode(',', $std_ids))->first();
+        $class = DB::table('student_' . $current_year . '')->select('class')->whereIn('std_id', explode(',', $std_ids))->first();
 
         //Signatures
         $signature_hm = DB::table('signature')->select('signature')->where('signatory', 'head-teacher')->value('signature');
@@ -1175,7 +1397,7 @@ class ResultsController extends Controller
             SELECT 
                 *
             FROM
-                student_".$current_year."                    
+                student_" . $current_year . "                    
             WHERE
                 std_id
             IN
@@ -1186,8 +1408,6 @@ class ResultsController extends Controller
         {
             return DB::table('' . $table . '')->select('' . $subject . '')->where('std_id', $std_id)->value('' . $subject . '');
         }
-
-        //info("Paper = ".paper_counter('ART'));
 
         $subjects = DB::select("
                 SELECT 
@@ -2299,11 +2519,11 @@ class ResultsController extends Controller
                 " . $table . ".remark as remark,
                 " . $table . ".topic as topic
             FROM
-                student_".$current_year."
+                student_" . $current_year . "
             RIGHT OUTER JOIN
                 " . $table . "
             ON
-                student_".$current_year.".std_id = " . $table . ".std_id
+                student_" . $current_year . ".std_id = " . $table . ".std_id
             WHERE
                 " . $table . ".class = '" . $class . "'
             AND
@@ -2333,11 +2553,11 @@ class ResultsController extends Controller
                         " . $table . ".remark as remark,
                         " . $table . ".topic as topic
                     FROM
-                        student_".$current_year."
+                        student_" . $current_year . "
                     RIGHT OUTER JOIN
                         " . $table . "
                     ON
-                        student_".$current_year.".std_id = " . $table . ".std_id
+                        student_" . $current_year . ".std_id = " . $table . ".std_id
                     WHERE
                         " . $table . ".class = '" . $class . "'
                     AND

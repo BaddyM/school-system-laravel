@@ -32,7 +32,7 @@
                     </select>
                 </div>
 
-                <button class="submit-btn" type="submit">Select</button>
+                <button class="submit-btn" type="submit" id="select-class-btn">Select</button>
             </form>
         </div>
 
@@ -79,7 +79,7 @@
                     </div>
                 </div>
 
-                <button class="submit-btn mt-3" type="submit">Promote</button>
+                <button class="submit-btn mt-3" type="submit" id="promote-btn">Promote</button>
             </form>
         </div>
 
@@ -153,6 +153,9 @@
                 $(".spinner_body").addClass('d-none');
                 $("#select_all").prop('checked',false);
 
+                //Disable the promote button
+                $("#select-class-btn").addClass('submit-btn-disabled').removeClass('submit-btn').prop('disabled',true);
+
                 //Clear the Forms
                 $("form")[0].reset();
 
@@ -165,6 +168,7 @@
                     cache: false,
                     success: function(data) {
                         alert(data);
+                        $("#select-class-btn").removeClass('submit-btn-disabled').addClass('submit-btn').prop('disabled',false);
                     },
                     error: function() {
                         alert("Failed to Promote Student!");
